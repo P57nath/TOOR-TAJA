@@ -1,34 +1,58 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { SellerService } from './seller.service';
-import { CreateSellerDto } from './dto/create-seller.dto';
-import { UpdateSellerDto } from './dto/update-seller.dto';
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { UpdateStockDto } from './dto/update-stock.dto';
 
 @Controller('seller')
 export class SellerController {
   constructor(private readonly sellerService: SellerService) {}
 
-  @Post()
-  create(@Body() createSellerDto: CreateSellerDto) {
-    return this.sellerService.create(createSellerDto);
+  // (1) POST /seller/products
+  @Post('products')
+  create(@Body() dto: CreateProductDto) {
+    return this.sellerService.create(dto);
   }
 
-  @Get()
-  findAll() {
-    return this.sellerService.findAll();
+  // (2) GET /seller/products
+  @Get('products')
+  findAll(@Query('category') category?: string) {
+    return this.sellerService.findAll(category);
   }
 
-  @Get(':id')
+  // (3) GET /seller/products/:id
+  @Get('products/:id')
   findOne(@Param('id') id: string) {
-    return this.sellerService.findOne(+id);
+    return this.sellerService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSellerDto: UpdateSellerDto) {
-    return this.sellerService.update(+id, updateSellerDto);
+  // (4) PUT /seller/products/:id
+  @Put('products/:id')
+  replace(@Param('id') id: string, @Body() dto: CreateProductDto) {
+    return this.sellerService.replace(id, dto);
   }
 
-  @Delete(':id')
+  // (5) PATCH /seller/products/:id
+  @Patch('products/:id')
+  update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+    return this.sellerService.update(id, dto);
+  }
+
+  // (6) PATCH /seller/products/:id/stock
+  @Patch('products/:id/stock')
+  updateStock(@Param('id') id: string, @Body() dto: UpdateStockDto) {
+    return this.sellerService.updateStock(id, dto);
+  }
+
+  // (7) DELETE /seller/products/:id
+  @Delete('products/:id')
   remove(@Param('id') id: string) {
-    return this.sellerService.remove(+id);
+    return this.sellerService.remove(id);
+  }
+
+  // (8) GET /seller/products/stats?from=2025-01-01&to=2025-12-31
+  @Get('products/stats')
+  stats(@Query('from') from?: string, @Query('to') to?: string) {
+    return this.sellerService.stats(from, to);
   }
 }
