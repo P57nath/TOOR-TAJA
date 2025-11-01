@@ -1,12 +1,14 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  @Get('/')
+  root() {
+    return { success: true, message: 'TOOR-TAJA API', version: 'v1' };
+  }
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @Get('/health')
+  health() {
+    return { success: true, status: 'ok', timestamp: new Date().toISOString() };
   }
 }
