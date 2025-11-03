@@ -4,6 +4,7 @@ import { UpdateAdminDto } from './dto/update-admin.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { AuditQueryDto, PageQueryDto } from './dto/query.dto';
 import { Admin } from './entities/admin.entity';
+import { Role } from './enums/role';
 
 @Injectable()
 export class AdminService {
@@ -12,7 +13,7 @@ export class AdminService {
       id: 'a_1',
       email: 'root@toor-taja.com',
       name: 'Root',
-      role: 'superadmin',
+      role: Role.SuperAdmin,
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
