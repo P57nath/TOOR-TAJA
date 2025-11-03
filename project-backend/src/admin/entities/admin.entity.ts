@@ -1,9 +1,10 @@
+import { Role } from '../enums/role';
 export class Admin {
   id: string;
   email: string;
   name: string;
   isActive: boolean;
-  role: 'superadmin' | 'manager' | 'support';
+  role: Role;
   createdAt: Date;
   updatedAt: Date;
 }
