@@ -25,6 +25,14 @@ export class AdminService {
   private ok(data: any, extra: Record<string, any> = {}) {
     return { success: true, ...extra, data };
   }
+//   private ok2(data: any, extra: Record<string, any> = {}) {
+//   const filteredData = Array.isArray(data)
+//     ? data.map(({ id, name }) => ({ id, name }))
+//     : { id: data?.id, name: data?.name };
+
+//   return { success: true, ...extra, data: filteredData };
+// }
+
 
   create(dto: CreateAdminDto) {
     const item: Admin = {

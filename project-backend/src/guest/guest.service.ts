@@ -20,7 +20,7 @@ export class GuestService {
     return { success: true, ...extra, data };
   }
 
-  // 1️⃣ List all products with pagination / search
+  // List all products with pagination / search
   searchProducts(dto: SearchProductsDto) {
     let results = [...this.products];
     if (dto.query) results = results.filter(p => p.name.toLowerCase().includes(dto.query?.toLowerCase() ?? ''));
@@ -32,30 +32,30 @@ export class GuestService {
     return this.ok(paged, { total, page: dto.page, limit: dto.limit });
   }
 
-  // 2️⃣ Get single product
+  // Get single product
   getProduct(id: string) {
     return this.ok(this.products.find(p => p.id === id) ?? null);
   }
 
-  // 3️⃣ Filter by category
+  // Filter by category
   filterByCategory(dto: FilterCategoryDto) {
     const data = this.products.filter(p => p.category.toLowerCase() === dto.category.toLowerCase());
     return this.ok(data, { count: data.length });
   }
 
-  // 4️⃣ Filter by price range
+  // Filter by price range
   filterByPriceRange(dto: PriceRangeDto) {
     const data = this.products.filter(p => p.price >= dto.min && p.price <= dto.max);
     return this.ok(data, { count: data.length });
   }
 
-  // 5️⃣ Get all available categories
+  // Get all available categories
   getCategories() {
     const categories = [...new Set(this.products.map(p => p.category))];
     return this.ok(categories);
   }
 
-  // 6️⃣ Post a review
+  // Post a review
   addReview(productId: string, dto: ReviewDto) {
     const review: Review = {
       id: 'r_' + Date.now(),
@@ -69,13 +69,13 @@ export class GuestService {
     return this.ok(review, { message: 'Review submitted' });
   }
 
-  // 7️⃣ Get all reviews for a product
+  // Get all reviews for a product
   getProductReviews(productId: string) {
     const data = this.reviews.filter(r => r.productId === productId);
     return this.ok(data, { count: data.length });
   }
 
-  // 8️⃣ Get recommended products
+  // Get recommended products
   getRecommendations() {
     const sorted = this.products.sort((a, b) => b.rating - a.rating);
     return this.ok(sorted.slice(0, 3), { message: 'Top-rated products' });

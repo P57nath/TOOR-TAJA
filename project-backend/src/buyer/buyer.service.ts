@@ -18,7 +18,6 @@ export class BuyerService {
   private ok(data: any, extra: Record<string, any> = {}) {
     return { success: true, ...extra, data };
   }
-
   // --- Cart operations ---
   addToCart(buyerId: string, dto: AddToCartDto) {
     const cart = this.carts.get(buyerId) ?? { buyerId, items: [], updatedAt: new Date() };
@@ -32,7 +31,13 @@ export class BuyerService {
     }
     cart.updatedAt = new Date();
     this.carts.set(buyerId, cart);
-    return this.ok(cart, { message: 'Item added to cart' });
+
+    const filteredItems = cart.items.map(item => ({
+    productId: item.productId,
+    name: item.name,
+    }));
+    //return this.ok( cart, { message: 'Item added to cart' });
+    return this.ok({ buyerId: cart.buyerId, items: filteredItems }, { message: 'Item added to cart' });
   }
 
   updateCartItem(buyerId: string, productId: string, dto: UpdateCartItemDto) {
