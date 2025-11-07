@@ -72,9 +72,18 @@ export class AdminService {
   }
 
   findOne(id: string) {
-    const item = this.admins.find(a => a.id === id);
+    const item = this
     return this.ok(item ?? null);
   }
+
+ findOne2(id: string) {
+
+ const  {createdAt}= this.admins.find(a => a.id === id) || {createdAt: null};
+ const {updatedAt}= this.admins.find(a => a.id === id) || {updatedAt: null};
+//   //console.log(item); 
+  return this.ok({createdAt},{updatedAt});
+     
+}
 
   replace(id: string, dto: CreateAdminDto) {
     const idx = this.admins.findIndex(a => a.id === id);

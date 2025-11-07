@@ -7,5 +7,5 @@ export class UpdateRoleDto {
   })
   role: Role;
   @IsNotEmpty()
-  reason: string; // why role changed (audit)
+  reason: string; 
 }

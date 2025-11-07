@@ -10,6 +10,6 @@ export class PageQueryDto {
 
 export class AuditQueryDto {
   @IsOptional() @IsString() type?: 'login' | 'role-change' | 'delete' | 'create';
-  @IsOptional() @IsString() from?: string; // ISO date
-  @IsOptional() @IsString() to?: string;   // ISO date
+  @IsOptional() @IsString() from?: string; 
+  @IsOptional() @IsString() to?: string;  
 }
