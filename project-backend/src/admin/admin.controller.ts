@@ -17,16 +17,21 @@ export class AdminController {
     return this.adminService.create(dto);
   }
 
-  // (2) GET /admin/users?search=&role=&active=&page=&limit=  -> list admins
+  // (2) GET /admin/users-> list admins
   @Get('users')
   findAll(@Query() q: PageQueryDto) {
     return this.adminService.findAll(q);
   }
 
-  // (3) GET /admin/users/:id  -> get one admin (Param)
+  // (3) GET /admin/users/:id  -> get one admin
   @Get('users/:id')
   findOne(@Param('id') id: string) {
     return this.adminService.findOne(id);
+  }
+
+  @Get('users/:id/dates')
+  findOne2(@Param('id') id: string) {
+    return this.adminService.findOne2(id);
   }
 
   // (4) PUT /admin/users/:id  -> full replace (Body + Param)
@@ -53,7 +58,7 @@ export class AdminController {
     return this.adminService.updateRole(id, dto);
   }
 
-  // (8) GET /admin/audit-logs?type=&from=&to=  -> audit trail (Query)
+  // (8) GET /admin/audit-logs?type=&from=&to=  
   @Get('audit-logs')
   audit(@Query() q: AuditQueryDto) {
     return this.adminService.getAuditLogs(q);
