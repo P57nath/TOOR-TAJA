@@ -5,6 +5,7 @@ export class Admin {
   name: string;
   isActive: boolean;
   role: Role;
+  profileName?: string;//new added for profile
   createdAt: Date;
   updatedAt: Date;
 }

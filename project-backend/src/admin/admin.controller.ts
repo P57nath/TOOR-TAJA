@@ -1,11 +1,17 @@
 import {
-  Body, Controller, Delete, Get, Param, Patch, Post, Put, Query,
+  Body, Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, Patch, Post, Put, Query,
+  UploadedFile,
+  UseInterceptors,
+  ValidationPipe,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { AuditQueryDto, PageQueryDto } from './dto/query.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+
 
 @Controller('admin')
 export class AdminController {
@@ -13,7 +19,28 @@ export class AdminController {
 
   // (1) POST /admin/users  -> create admin
   @Post('users')
-  create(@Body() dto: CreateAdminDto) {
+  @UseInterceptors(
+    FileInterceptor('profileFile', {
+      storage: diskStorage({
+        destination: './upload',
+        filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
+      }),
+    }),
+  )
+  create(
+    @Body(new ValidationPipe()) dto: CreateAdminDto,
+    @UploadedFile(
+      new ParseFilePipe({ 
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 3_000_000 }),                 
+          // new FileTypeValidator({ fileType: /(image\/(png|jpe?g|webp))$/i }),
+          //new FileTypeValidator({ fileType: /\.(png|jpe?g|webp)$/i }),
+        ],
+      }),
+    )
+    file?: Express.Multer.File,
+  ) {
+    dto.profileName = file?.filename;
     return this.adminService.create(dto);
   }
 

@@ -15,6 +15,7 @@ export class AdminService {
       name: 'Root',
       role: Role.SuperAdmin,
       isActive: true,
+      profileName: '1762516770107-473581276_1164858864996135_7118521416663172618_n.jpg',//newly added for profile
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -40,6 +41,7 @@ export class AdminService {
       email: dto.email,
       name: dto.name,
       role: dto.role,
+      profileName: dto.profileName ?? '',// newly added for profile
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -82,6 +84,7 @@ export class AdminService {
       email: dto.email,
       name: dto.name,
       role: dto.role,
+      profileName: dto.profileName ?? (idx >= 0 ? this.admins[idx].profileName : ''),// newly added for profile
       isActive: true,
       createdAt: idx >= 0 ? this.admins[idx].createdAt : now,
       updatedAt: now,
@@ -94,6 +97,11 @@ export class AdminService {
   update(id: string, dto: UpdateAdminDto) {
     const item = this.admins.find(a => a.id === id);
     if (!item) return this.ok(null, { message: 'Not found' });
+
+     const patch = { ...dto } as any;
+    if (Object.prototype.hasOwnProperty.call(dto, 'profileName')) {
+    patch.profileName = dto.profileName ?? item.profileName;
+    }
 
     Object.assign(item, dto, { updatedAt: new Date() });
     this.audits.push({ id: 'log_' + Date.now(), type: 'update', adminId: id, at: new Date() });

@@ -8,8 +8,7 @@ export class CreateAdminDto {
     message: 'role must be superadmin | manager | support',
   })
   role: Role;
-
-
-  @IsOptional() @IsString() password?: string; 
+  @IsOptional() @IsString() profileName?: string;// newly added for profile
+  
 }
 
