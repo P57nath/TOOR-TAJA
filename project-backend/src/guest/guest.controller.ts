@@ -57,3 +57,13 @@ export class GuestController {
     return this.guestService.getRecommendations();
   }
 }
+
+// Quick Postman Test Guide
+// 1	GET	/guest/products?query=milk&category=Dairy&page=1&limit=5	—
+// 2	GET	/guest/products/p1	—
+// 3	POST	/guest/products/category	{ "category": "Fruits" }
+// 4	POST	/guest/products/price-range	{ "min": 1, "max": 3 }
+// 5	GET	/guest/categories	—
+// 6	POST	/guest/products/p1/reviews	{ "guestName": "John", "rating": 5, "comment": "Fresh and tasty!" }
+// 7	GET	/guest/products/p1/reviews	—
+// 8	GET	/guest/recommendations	—

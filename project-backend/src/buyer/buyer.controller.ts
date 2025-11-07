@@ -15,7 +15,6 @@ export class BuyerController {
   addToCart(@Param('buyerId') buyerId: string, @Body() dto: AddToCartDto) {
     return this.buyerService.addToCart(buyerId, dto);
   }
-
   // 2) PATCH /buyer/:buyerId/cart/items/:productId -> update quantity
   @Patch(':buyerId/cart/items/:productId')
   updateCartItem(
@@ -62,3 +61,38 @@ export class BuyerController {
     return this.buyerService.replaceProfile(buyerId, dto);
   }
 }
+
+// POST /buyer/buyer_1/cart/items
+
+// { "productId": "p1", "name": "Banana", "price": 1.99, "quantity": 3 }
+
+
+// PATCH /buyer/buyer_1/cart/items/p1
+
+// { "quantity": 5 }
+
+
+// DELETE /buyer/buyer_1/cart/items/p1
+
+// GET /buyer/buyer_1/cart?coupon=SAVE10
+
+// POST /buyer/orders
+
+// {
+//   "buyerId": "buyer_1",
+//   "addressId": "addr_7",
+//   "items": [
+//     { "productId": "p1", "name": "Banana", "price": 1.99, "quantity": 2 },
+//     { "productId": "p3", "name": "Spinach", "price": 1.49, "quantity": 1 }
+//   ],
+//   "note": "Leave at door"
+// }
+
+
+// GET /buyer/buyer_1/orders/o_123
+
+// GET /buyer/buyer_1/orders?status=pending&page=1&limit=10
+
+// PUT /buyer/buyer_1/profile
+
+// { "buyerId": "buyer_1", "name": "Ashish", "email": "ashish@example.com", "phone": "555-0199" }
