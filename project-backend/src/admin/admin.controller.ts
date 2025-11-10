@@ -1,64 +1,85 @@
 import {
-  Body, Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, Patch, Post, Put, Query,
+  Body, Controller, Delete,UsePipes,Res, Get, Param, Patch, Post, Put, Query,
   UploadedFile,
   UseInterceptors,
   ValidationPipe,
-} from '@nestjs/common';
+  ParseDatePipe,
+}
+from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { AuditQueryDto, PageQueryDto } from './dto/query.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
+import { MulterError, diskStorage } from 'multer';
 
 
 @Controller('admin')
+@UsePipes(new ValidationPipe({ transform: true }))
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
+  
   // (1) POST /admin/users  -> create admin
-  @Post('users')
-  @UseInterceptors(
-    FileInterceptor('profileFile', {
-      storage: diskStorage({
-        destination: './upload',
-        filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
-      }),
+@Post('users')
+@UseInterceptors(
+  FileInterceptor('profileFile' ,{
+    fileFilter: (req, file, cb) => {
+      // Check file type
+      if (!file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
+        return cb(new Error('Only image files are allowed!'), false);
+      }
+      
+     
+      if (file.size > 2_000_000) {
+        return cb(new Error('File size too large! Maximum is 2MB'), false);
+      }
+      
+      cb(null, true);
+    },
+    storage: diskStorage({
+      destination: './upload',
+      filename: (_req, file, cb) => cb(null, Date.now() + file.originalname),
     }),
-  )
-  create(
-    @Body(new ValidationPipe()) dto: CreateAdminDto,
-    @UploadedFile(
-      new ParseFilePipe({ 
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 3_000_000 }),                 
-          // new FileTypeValidator({ fileType: /(image\/(png|jpe?g|webp))$/i }),
-          //new FileTypeValidator({ fileType: /\.(png|jpe?g|webp)$/i }),
-        ],
-      }),
-    )
-    file?: Express.Multer.File,
-  ) {
-    dto.profileName = file?.filename;
-    return this.adminService.create(dto);
+    limits: {
+      fileSize: 2_000_000, // 2 MB
+    },
+  }),
+)
+
+create(
+  @Body() dto: CreateAdminDto,
+  @UploadedFile() file?: Express.Multer.File,
+) {
+  dto.profileName = file?.filename;
+  return this.adminService.create(dto);
+}
+///to fetch image
+@Get('/getimage/:name')
+getImages(@Param('name') name: string, @Res() res)
+ {
+        res.sendFile(name, { root: './upload' })
   }
 
   // (2) GET /admin/users-> list admins
   @Get('users')
   findAll(@Query() q: PageQueryDto) {
+   
     return this.adminService.findAll(q);
+    
   }
 
   // (3) GET /admin/users/:id  -> get one admin
   @Get('users/:id')
   findOne(@Param('id') id: string) {
+   
     return this.adminService.findOne(id);
   }
 
   @Get('users/:id/dates')
   findOne2(@Param('id') id: string) {
-    return this.adminService.findOne2(id);
+    return this.adminService.findDates(id);
   }
 
   // (4) PUT /admin/users/:id  -> full replace (Body + Param)
@@ -87,7 +108,21 @@ export class AdminController {
 
   // (8) GET /admin/audit-logs?type=&from=&to=  
   @Get('audit-logs')
-  audit(@Query() q: AuditQueryDto) {
+  audit(@Query()  q: AuditQueryDto) {
     return this.adminService.getAuditLogs(q);
   }
+
+  // @Get(':buyerId/orders')
+  // listOrders(
+  // @Param('buyerId') buyerId: string,
+  // // @Query('status') status?: orderEntity.OrderStatus,
+  // // @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+  // // @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number = 20,
+  // @Query('page', ParseIntPipe)
+  // @Query('limit', ParseIntPipe) q: OrderQueryDto
+  // )
+  // {
+  //   //return this.buyerService.listOrders(buyerId, { status, page, limit });
+  //   return this.buyerService.listOrders(buyerId, q);
+  // }
 }

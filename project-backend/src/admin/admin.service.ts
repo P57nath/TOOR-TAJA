@@ -13,6 +13,7 @@ export class AdminService {
       id: 'a_1',
       email: 'root@toor-taja.com',
       name: 'Root',
+      nid: '1234567890',
       role: Role.SuperAdmin,
       isActive: true,
       profileName: '1762516770107-473581276_1164858864996135_7118521416663172618_n.jpg',//newly added for profile
@@ -26,13 +27,6 @@ export class AdminService {
   private ok(data: any, extra: Record<string, any> = {}) {
     return { success: true, ...extra, data };
   }
-//   private ok2(data: any, extra: Record<string, any> = {}) {
-//   const filteredData = Array.isArray(data)
-//     ? data.map(({ id, name }) => ({ id, name }))
-//     : { id: data?.id, name: data?.name };
-
-//   return { success: true, ...extra, data: filteredData };
-// }
 
 
   create(dto: CreateAdminDto) {
@@ -40,6 +34,7 @@ export class AdminService {
       id: 'a_' + Date.now(),
       email: dto.email,
       name: dto.name,
+      nid: dto.nid.trim(),
       role: dto.role,
       profileName: dto.profileName ?? '',// newly added for profile
       isActive: true,
@@ -48,6 +43,7 @@ export class AdminService {
     };
     this.admins.push(item);
     this.audits.push({ id: 'log_' + Date.now(), type: 'create', adminId: item.id, at: new Date() });
+
     return this.ok(item, { message: 'Admin created' });
   }
 
@@ -69,6 +65,7 @@ export class AdminService {
     const total = res.length;
     const data = res.slice((page - 1) * limit, page * limit);
     return this.ok(data, { page, limit, total });
+    
   }
 
   findOne(id: string) {
@@ -76,13 +73,11 @@ export class AdminService {
     return this.ok(item ?? null);
   }
 
- findOne2(id: string) {
-
- const  {createdAt}= this.admins.find(a => a.id === id) || {createdAt: null};
- const {updatedAt}= this.admins.find(a => a.id === id) || {updatedAt: null};
-//   //console.log(item); 
-  return this.ok({createdAt},{updatedAt});
-     
+ findDates(id: string) {
+// const { createdAt, updatedAt}=this.admins.find(a => a.id === id) || { createdAt: null, updatedAt: null };
+// return this.ok({ createdAt, updatedAt }); 
+const {nid,profileName}=this.admins.find(a => a.id === id) || { nid: null, profileName: null };
+return this.ok({ nid,profileName });   
 }
 
   replace(id: string, dto: CreateAdminDto) {
@@ -92,6 +87,7 @@ export class AdminService {
       id,
       email: dto.email,
       name: dto.name,
+      nid: dto.nid,
       role: dto.role,
       profileName: dto.profileName ?? (idx >= 0 ? this.admins[idx].profileName : ''),// newly added for profile
       isActive: true,
