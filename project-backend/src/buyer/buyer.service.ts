@@ -12,36 +12,68 @@ import { BuyerProfileDto } from './dto/profile.dto';
 export class BuyerService {
   private carts = new Map<string, Cart>();      
   private orders = new Map<string, Order[]>();  
-  private profiles = new Map<string, BuyerProfile>();
 
-  private buyer: BuyerProfile[] =
-  [
+  private buyerCounter = 1;
+
+  private profiles: BuyerProfile[] = [
     {
-      buyerId: 'b_1',
+      buyerId: 'buyer_1',
       name: 'John Doe',
       email: 'JohnDoe@gmail.com',
-      phone: '1234567890',
+      password: 'passWord123',
+      phone: '01782641610',
       defaultAddressId: 'addr_1',
       updatedAt: new Date(),
-    }
+    },
   ];
-  private ok(data: any, extra: Record<string, any> = {}) {
+
+  private Success(data: any, extra: Record<string, any> = {}) {
     return { success: true, ...extra, data };
-  }
+  } 
+
   // --- Buyer Profile ---
   createBuyer(dto: BuyerProfileDto) {
-    const buyerId = 'b_' + Date.now();
+    this.buyerCounter++;                        
+    const buyerId = `buyer_${this.buyerCounter}`;
+
     const entity: BuyerProfile = {
       buyerId,
       name: dto.name,
       email: dto.email,
+      password: dto.password,
       phone: dto.phone,
       defaultAddressId: dto.defaultAddressId,
       updatedAt: new Date(),
     };
-    this.profiles.set(buyerId, entity);
-    return this.ok(entity, { message: 'Buyer created', buyerId });
+
+    this.profiles.push(entity);
+
+    return this.Success(entity, { message: 'Buyer created', buyerId });
   }
+
+  // --- Profile operations ---
+  replaceProfile(buyerId: string, dto: BuyerProfileDto) {
+    const idx = this.profiles.findIndex(p => p.buyerId === buyerId);
+
+    if (idx === -1) {
+      return this.Success(null, { message: 'Buyer not found' });
+    }
+
+    const entity: BuyerProfile = {
+      buyerId,
+      name: dto.name,
+      email: dto.email,
+      password: dto.password,
+      phone: dto.phone,
+      defaultAddressId: dto.defaultAddressId,
+      updatedAt: new Date(),
+    };
+
+    this.profiles[idx] = entity;
+
+    return this.Success(entity, { message: 'Profile updated', buyerId });
+  }
+
   // --- Cart operations ---
   addToCart(buyerId: string, dto: AddToCartDto) {
     const cart = this.carts.get(buyerId) ?? { buyerId, items: [], updatedAt: new Date() };
@@ -61,32 +93,32 @@ export class BuyerService {
     name: item.name,
     }));
     //return this.ok( cart, { message: 'Item added to cart' });
-    return this.ok({ buyerId: cart.buyerId, items: filteredItems }, { message: 'Item added to cart' });
+    return this.Success({ buyerId: cart.buyerId, items: filteredItems }, { message: 'Item added to cart' });
   }
 
   updateCartItem(buyerId: string, productId: string, dto: UpdateCartItemDto) {
     const cart = this.carts.get(buyerId);
-    if (!cart) return this.ok(null, { message: 'Cart not found' });
+    if (!cart) return this.Success(null, { message: 'Cart not found' });
     const item = cart.items.find(i => i.productId === productId);
-    if (!item) return this.ok(null, { message: 'Item not found' });
+    if (!item) return this.Success(null, { message: 'Item not found' });
     item.quantity = dto.quantity;
     cart.updatedAt = new Date();
-    return this.ok(cart, { message: 'Cart item updated' });
+    return this.Success(cart, { message: 'Cart item updated' });
   }
 
   removeCartItem(buyerId: string, productId: string) {
     const cart = this.carts.get(buyerId);
-    if (!cart) return this.ok(null, { message: 'Cart not found' });
+    if (!cart) return this.Success(null, { message: 'Cart not found' });
     const before = cart.items.length;
     cart.items = cart.items.filter(i => i.productId !== productId);
     cart.updatedAt = new Date();
-    return this.ok({ removed: before - cart.items.length, cart }, { message: 'Cart item removed' });
+    return this.Success({ removed: before - cart.items.length, cart }, { message: 'Cart item removed' });
   }
 
   getCart(buyerId: string, coupon?: string) {
     const cart = this.carts.get(buyerId) ?? { buyerId, items: [], updatedAt: new Date() };
     if (coupon) cart.coupon = coupon;
-    return this.ok(cart);
+    return this.Success(cart);
   }
 
   // --- Orders ---
@@ -109,15 +141,22 @@ export class BuyerService {
     // clear cart for buyer (optional)
     this.carts.delete(dto.buyerId);
 
-    return this.ok(order, { message: 'Order created' });
+    return this.Success(order, { message: 'Order created' });
   }
 
   getOrder(buyerId: string, id: string) {
     const arr = this.orders.get(buyerId) ?? [];
     const order = arr.find(o => o.id === id) ?? null;
-    return this.ok(order);
+    return this.Success(order);
   }
 
+  // listOrders(buyerId: string, q: { status?: OrderStatus; page: number; limit: number }) {
+  // let arr = this.orders.get(buyerId) ?? [];
+  // if (q.status) arr = arr.filter(o => o.status === q.status);
+  // const total = arr.length;
+  // const data = arr.slice((q.page - 1) * q.limit, q.page * q.limit);
+  // return this.Success(data, { page: q.page, limit: q.limit, total });
+  // }
   listOrders(buyerId: string, q: OrderQueryDto) {
     const page = Number(q.page ?? 1);
     const limit = Number(q.limit ?? 20);
@@ -125,20 +164,21 @@ export class BuyerService {
     if (q.status) arr = arr.filter(o => o.status === q.status);
     const total = arr.length;
     const data = arr.slice((page - 1) * limit, page * limit);
-    return this.ok(data, { page, limit, total });
+    return this.Success(data, { page, limit, total });
   }
 
-  // --- Profile ---
-  replaceProfile(buyerId: string, dto: BuyerProfileDto) {
-    const entity: BuyerProfile = {
+  uploadDocument(buyerId: string, dto: any, file: Express.Multer.File) {
+    const documentInfo = {
       buyerId,
-      name: dto.name,
-      email: dto.email,
-      phone: dto.phone,
-      defaultAddressId: dto.defaultAddressId,
-      updatedAt: new Date(),
+      documentType: dto.documentType,
+      fileName: file.filename,
+      originalName: file.originalname,
+      filePath: file.path,
+      fileSize: file.size,
+      uploadedAt: new Date(),
     };
-    this.profiles.set(buyerId, entity);
-    return this.ok(entity, { message: 'Profile saved' });
+    
+    return this.Success(documentInfo, { message: 'PDF document uploaded successfully' });
   }
+  
 }
