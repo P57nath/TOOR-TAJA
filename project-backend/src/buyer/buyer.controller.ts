@@ -10,12 +10,23 @@ import { BuyerProfileDto } from './dto/profile.dto';
 export class BuyerController {
   constructor(private readonly buyerService: BuyerService) {}
 
-  // 1) POST /buyer/:buyerId/cart/items  -> add to cart
+
+  // 1) Post /buyer -> create buyer
+  @Post()
+  createBuyer(@Body() dto: BuyerProfileDto) {
+    return this.buyerService.createBuyer(dto);
+  }
+  // 2) PUT /buyer/:buyerId/profile -> replace profile
+  @Put(':buyerId/profile')
+  replaceProfile(@Param('buyerId') buyerId: string, @Body() dto: BuyerProfileDto) {
+    return this.buyerService.replaceProfile(buyerId, dto);
+  }
+  // 3) POST /buyer/:buyerId/cart/items  -> add to cart
   @Post(':buyerId/cart/items')
   addToCart(@Param('buyerId') buyerId: string, @Body() dto: AddToCartDto) {
     return this.buyerService.addToCart(buyerId, dto);
   }
-  // 2) PATCH /buyer/:buyerId/cart/items/:productId -> update quantity
+  // 4) PATCH /buyer/:buyerId/cart/items/:productId -> update quantity
   @Patch(':buyerId/cart/items/:productId')
   updateCartItem(
     @Param('buyerId') buyerId: string,
@@ -25,74 +36,76 @@ export class BuyerController {
     return this.buyerService.updateCartItem(buyerId, productId, dto);
   }
 
-  // 3) DELETE /buyer/:buyerId/cart/items/:productId -> remove item
+  // 5) DELETE /buyer/:buyerId/cart/items/:productId -> remove item
   @Delete(':buyerId/cart/items/:productId')
   removeCartItem(@Param('buyerId') buyerId: string, @Param('productId') productId: string) {
     return this.buyerService.removeCartItem(buyerId, productId);
   }
 
-  // 4) GET /buyer/:buyerId/cart?coupon=SAVE10 -> fetch cart
+  // 6) GET /buyer/:buyerId/cart?coupon=SAVE10 -> fetch cart
   @Get(':buyerId/cart')
   getCart(@Param('buyerId') buyerId: string, @Query('coupon') coupon?: string) {
     return this.buyerService.getCart(buyerId, coupon);
   }
 
-  // 5) POST /buyer/orders -> create order
+  // 7) POST /buyer/orders -> create order
   @Post('orders')
   createOrder(@Body() dto: CreateOrderDto) {
     return this.buyerService.createOrder(dto);
   }
 
-  // 6) GET /buyer/:buyerId/orders/:id -> order detail
+  // 8) GET /buyer/:buyerId/orders/:id -> order detail
   @Get(':buyerId/orders/:id')
   getOrder(@Param('buyerId') buyerId: string, @Param('id') id: string) {
     return this.buyerService.getOrder(buyerId, id);
   }
 
-  // 7) GET /buyer/:buyerId/orders?status=&page=&limit= -> order list
+  // 9) GET /buyer/:buyerId/orders?status=&page=&limit= -> order list
   @Get(':buyerId/orders')
   listOrders(@Param('buyerId') buyerId: string, @Query() q: OrderQueryDto) {
     return this.buyerService.listOrders(buyerId, q);
   }
 
-  // 8) PUT /buyer/:buyerId/profile -> replace profile
-  @Put(':buyerId/profile')
-  replaceProfile(@Param('buyerId') buyerId: string, @Body() dto: BuyerProfileDto) {
-    return this.buyerService.replaceProfile(buyerId, dto);
-  }
+  
+  
+}
+// Example Requests:
+/* 
+PUT /buyer/buyer_1/profile
+
+{ "buyerId": "buyer_1", "name": "Ashish", "email": "ashish@example.com", "phone": "555-0199" }
+
+POST /buyer/buyer_1/cart/items
+
+{ "productId": "p1", "name": "Banana", "price": 1.99, "quantity": 3 }
+
+
+PATCH /buyer/buyer_1/cart/items/p1
+
+{ "quantity": 5 }
+
+
+DELETE /buyer/buyer_1/cart/items/p1
+
+GET /buyer/buyer_1/cart?coupon=SAVE10
+
+POST /buyer/orders
+
+{
+  "buyerId": "buyer_1",
+  "addressId": "addr_7",
+  "items": [
+    { "productId": "p1", "name": "Banana", "price": 1.99, "quantity": 2 },
+    { "productId": "p3", "name": "Spinach", "price": 1.49, "quantity": 1 }
+  ],
+  "note": "Leave at door"
 }
 
-// POST /buyer/buyer_1/cart/items
 
-// { "productId": "p1", "name": "Banana", "price": 1.99, "quantity": 3 }
+GET /buyer/buyer_1/orders/o_123
 
+GET /buyer/buyer_1/orders?status=pending&page=1&limit=10
 
-// PATCH /buyer/buyer_1/cart/items/p1
-
-// { "quantity": 5 }
+*/
 
 
-// DELETE /buyer/buyer_1/cart/items/p1
-
-// GET /buyer/buyer_1/cart?coupon=SAVE10
-
-// POST /buyer/orders
-
-// {
-//   "buyerId": "buyer_1",
-//   "addressId": "addr_7",
-//   "items": [
-//     { "productId": "p1", "name": "Banana", "price": 1.99, "quantity": 2 },
-//     { "productId": "p3", "name": "Spinach", "price": 1.49, "quantity": 1 }
-//   ],
-//   "note": "Leave at door"
-// }
-
-
-// GET /buyer/buyer_1/orders/o_123
-
-// GET /buyer/buyer_1/orders?status=pending&page=1&limit=10
-
-// PUT /buyer/buyer_1/profile
-
-// { "buyerId": "buyer_1", "name": "Ashish", "email": "ashish@example.com", "phone": "555-0199" }

@@ -10,13 +10,37 @@ import { BuyerProfileDto } from './dto/profile.dto';
 
 @Injectable()
 export class BuyerService {
-  // Mock in-memory stores
-  private carts = new Map<string, Cart>();      // key: buyerId
-  private orders = new Map<string, Order[]>();  // key: buyerId
+  private carts = new Map<string, Cart>();      
+  private orders = new Map<string, Order[]>();  
   private profiles = new Map<string, BuyerProfile>();
 
+  private buyer: BuyerProfile[] =
+  [
+    {
+      buyerId: 'b_1',
+      name: 'John Doe',
+      email: 'JohnDoe@gmail.com',
+      phone: '1234567890',
+      defaultAddressId: 'addr_1',
+      updatedAt: new Date(),
+    }
+  ];
   private ok(data: any, extra: Record<string, any> = {}) {
     return { success: true, ...extra, data };
+  }
+  // --- Buyer Profile ---
+  createBuyer(dto: BuyerProfileDto) {
+    const buyerId = 'b_' + Date.now();
+    const entity: BuyerProfile = {
+      buyerId,
+      name: dto.name,
+      email: dto.email,
+      phone: dto.phone,
+      defaultAddressId: dto.defaultAddressId,
+      updatedAt: new Date(),
+    };
+    this.profiles.set(buyerId, entity);
+    return this.ok(entity, { message: 'Buyer created', buyerId });
   }
   // --- Cart operations ---
   addToCart(buyerId: string, dto: AddToCartDto) {
