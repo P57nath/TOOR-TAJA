@@ -19,8 +19,7 @@ import { MulterError, diskStorage } from 'multer';
 @UsePipes(new ValidationPipe({ transform: true }))
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
-
-  
+ 
   // (1) POST /admin/users  -> create admin
 @Post('users')
 @UseInterceptors(
@@ -112,17 +111,17 @@ getImages(@Param('name') name: string, @Res() res)
     return this.adminService.getAuditLogs(q);
   }
 
-  // @Get(':buyerId/orders')
-  // listOrders(
-  // @Param('buyerId') buyerId: string,
-  // // @Query('status') status?: orderEntity.OrderStatus,
-  // // @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-  // // @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number = 20,
-  // @Query('page', ParseIntPipe)
-  // @Query('limit', ParseIntPipe) q: OrderQueryDto
-  // )
-  // {
-  //   //return this.buyerService.listOrders(buyerId, { status, page, limit });
-  //   return this.buyerService.listOrders(buyerId, q);
-  // }
+ // Operation 2: Modify the phone number of an existing user
+@Patch('users/:id/phone')
+updatePhone(@Param('id') id: string, @Body('phone') phone: number) {
+  return this.adminService.updatePhone(id, phone);
+}
+
+// Operation 3: Retrieve users with null values in the full name column
+@Get('users/null-names')
+findAdminsWithNullName() {
+  return this.adminService.findAdminsWithNullName();
+}
+
+
 }

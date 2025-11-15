@@ -5,10 +5,22 @@ import { BuyerModule } from './buyer/buyer.module';
 import { GuestModule } from './guest/guest.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-//import { PrismaModule } from './prisma/prisma.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 
 @Module({
-  imports: [AdminModule, SellerModule, BuyerModule, GuestModule],
+  imports: [AdminModule, SellerModule, BuyerModule, GuestModule,TypeOrmModule.forRoot(
+    {
+      type: 'postgres',
+      host: 'localhost',
+      port: 5432,
+      username: 'postgres',
+      password: 'DBweb012@',
+      database: 'toortaja',
+      autoLoadEntities: true,
+      synchronize: true,
+    }),
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

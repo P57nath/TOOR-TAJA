@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Like, Repository } from 'typeorm';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
@@ -8,19 +10,10 @@ import { Role } from './enums/role';
 
 @Injectable()
 export class AdminService {
-  private admins: Admin[] = [
-    {
-      id: 'a_1',
-      email: 'root@toor-taja.com',
-      name: 'Root',
-      nid: '1234567890',
-      role: Role.SuperAdmin,
-      isActive: true,
-      profileName: '1762516770107-473581276_1164858864996135_7118521416663172618_n.jpg',//newly added for profile
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ];
+  constructor(
+    @InjectRepository(Admin)
+    private adminRepository: Repository<Admin>,
+  ) { }
 
   private audits: any[] = [];
 
@@ -28,104 +21,181 @@ export class AdminService {
     return { success: true, ...extra, data };
   }
 
-
-  create(dto: CreateAdminDto) {
-    const item: Admin = {
-      id: 'a_' + Date.now(),
+  // Create a user
+  async create(dto: CreateAdminDto) {
+    const admin = this.adminRepository.create({
       email: dto.email,
       name: dto.name,
       nid: dto.nid.trim(),
+      phone: dto.phone,
       role: dto.role,
-      profileName: dto.profileName ?? '',// newly added for profile
+      profileName: dto.profileName ?? '',
       isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.admins.push(item);
-    this.audits.push({ id: 'log_' + Date.now(), type: 'create', adminId: item.id, at: new Date() });
+    });
 
-    return this.ok(item, { message: 'Admin created' });
+    const savedAdmin = await this.adminRepository.save(admin);
+
+    this.audits.push({
+      id: 'log_' + Date.now(),
+      type: 'create',
+      adminId: savedAdmin.id,
+      at: new Date()
+    });
+
+    return this.ok(savedAdmin, { message: 'Admin created' });
   }
 
-  findAll(q: PageQueryDto) {
+  async findAll(q: PageQueryDto) {
+
     const page = Number(q.page ?? 1);
     const limit = Number(q.limit ?? 20);
-    let res = [...this.admins];
 
-    if (q.search) {
-      const s = q.search.toLowerCase();
-      res = res.filter(a => a.name.toLowerCase().includes(s) || a.email.toLowerCase().includes(s));
+    // Build where conditions
+    const where: any = {};
+
+    if (q.role) {
+      where.role = q.role;
     }
-    if (q.role) res = res.filter(a => a.role === q.role);
+
     if (q.active === 'true' || q.active === 'false') {
-      const flag = q.active === 'true';
-      res = res.filter(a => a.isActive === flag);
+      where.isActive = q.active === 'true';
     }
 
-    const total = res.length;
-    const data = res.slice((page - 1) * limit, page * limit);
+    // Handle search with OR conditions for name and email
+    if (q.search) {
+      const search = q.search.toLowerCase();
+      const [data, total] = await this.adminRepository.findAndCount({
+        where: [
+          { ...where, name: Like(`%${search}%`) },
+          { ...where, email: Like(`%${search}%`) }
+        ],
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+      return this.ok(data, { page, limit, total });
+    }
+
+    // Without search
+    const [data, total] = await this.adminRepository.findAndCount({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
     return this.ok(data, { page, limit, total });
-    
   }
 
-  findOne(id: string) {
-    const item = this
+
+  async findOne(id: string) {
+    const item = await this.adminRepository.findOne({ where: { id } });
     return this.ok(item ?? null);
   }
 
- findDates(id: string) {
-// const { createdAt, updatedAt}=this.admins.find(a => a.id === id) || { createdAt: null, updatedAt: null };
-// return this.ok({ createdAt, updatedAt }); 
-const {nid,profileName}=this.admins.find(a => a.id === id) || { nid: null, profileName: null };
-return this.ok({ nid,profileName });   
-}
+  async findDates(id: string) {
+    const admin = await this.adminRepository.findOne({
+      where: { id },
+      select: ['nid', 'profileName']
+    });
 
-  replace(id: string, dto: CreateAdminDto) {
-    const idx = this.admins.findIndex(a => a.id === id);
-    const now = new Date();
-    const base: Admin = {
-      id,
-      email: dto.email,
-      name: dto.name,
-      nid: dto.nid,
-      role: dto.role,
-      profileName: dto.profileName ?? (idx >= 0 ? this.admins[idx].profileName : ''),// newly added for profile
-      isActive: true,
-      createdAt: idx >= 0 ? this.admins[idx].createdAt : now,
-      updatedAt: now,
-    };
-    if (idx >= 0) this.admins[idx] = base; else this.admins.push(base);
-    this.audits.push({ id: 'log_' + Date.now(), type: 'replace', adminId: id, at: now });
-    return this.ok(base, { message: 'Admin replaced' });
+    const { nid, profileName } = admin || { nid: null, profileName: null };
+    return this.ok({ nid, profileName });
   }
 
-  update(id: string, dto: UpdateAdminDto) {
-    const item = this.admins.find(a => a.id === id);
+  async replace(id: string, dto: CreateAdminDto) {
+    const existingAdmin = await this.adminRepository.findOne({ where: { id } });
+    const now = new Date();
+
+    if (existingAdmin) {
+      Object.assign(existingAdmin, {
+        email: dto.email,
+        name: dto.name,
+        nid: dto.nid,
+        phone: dto.phone,
+        role: dto.role,
+        profileName: dto.profileName ?? existingAdmin.profileName,
+        updatedAt: now,
+      });
+
+      const updatedAdmin = await this.adminRepository.save(existingAdmin);
+      this.audits.push({
+        id: 'log_' + Date.now(),
+        type: 'replace',
+        adminId: id,
+        at: now
+      });
+
+      return this.ok(updatedAdmin, { message: 'Admin replaced' });
+    } else {
+      const newAdmin = this.adminRepository.create({
+        id,
+        email: dto.email,
+        name: dto.name,
+        nid: dto.nid,
+        phone: dto.phone,
+        role: dto.role,
+        profileName: dto.profileName ?? '',
+        isActive: true,
+      });
+
+      const savedAdmin = await this.adminRepository.save(newAdmin);
+      this.audits.push({
+        id: 'log_' + Date.now(),
+        type: 'replace',
+        adminId: id,
+        at: now
+      });
+
+      return this.ok(savedAdmin, { message: 'Admin replaced' });
+    }
+  }
+
+  async update(id: string, dto: UpdateAdminDto) {
+    const item = await this.adminRepository.findOne({ where: { id } });
     if (!item) return this.ok(null, { message: 'Not found' });
 
-     const patch = { ...dto } as any;
+    const patch = { ...dto };
     if (Object.prototype.hasOwnProperty.call(dto, 'profileName')) {
-    patch.profileName = dto.profileName ?? item.profileName;
+      patch.profileName = dto.profileName ?? item.profileName;
     }
 
-    Object.assign(item, dto, { updatedAt: new Date() });
-    this.audits.push({ id: 'log_' + Date.now(), type: 'update', adminId: id, at: new Date() });
-    return this.ok(item, { message: 'Admin updated' });
+    Object.assign(item, patch, { updatedAt: new Date() });
+    const updatedAdmin = await this.adminRepository.save(item);
+
+    this.audits.push({
+      id: 'log_' + Date.now(),
+      type: 'update',
+      adminId: id,
+      at: new Date()
+    });
+
+    return this.ok(updatedAdmin, { message: 'Admin updated' });
   }
 
-  remove(id: string) {
-    const before = this.admins.length;
-    this.admins = this.admins.filter(a => a.id !== id);
-    this.audits.push({ id: 'log_' + Date.now(), type: 'delete', adminId: id, at: new Date() });
-    return this.ok({ removed: before - this.admins.length }, { message: 'Admin deleted' });
+  // Remove a user from the system based on their id
+  async remove(id: string) {
+    const result = await this.adminRepository.delete(id);
+    this.audits.push({
+      id: 'log_' + Date.now(),
+      type: 'delete',
+      adminId: id,
+      at: new Date()
+    });
+
+    return this.ok(
+      { removed: result.affected },
+      { message: 'Admin deleted' }
+    );
   }
 
-  updateRole(id: string, dto: UpdateRoleDto) {
-    const item = this.admins.find(a => a.id === id);
+  async updateRole(id: string, dto: UpdateRoleDto) {
+    const item = await this.adminRepository.findOne({ where: { id } });
     if (!item) return this.ok(null, { message: 'Not found' });
 
     item.role = dto.role;
     item.updatedAt = new Date();
+
+    const updatedAdmin = await this.adminRepository.save(item);
+
     this.audits.push({
       id: 'log_' + Date.now(),
       type: 'role-change',
@@ -133,7 +203,8 @@ return this.ok({ nid,profileName });
       detail: dto.reason,
       at: new Date(),
     });
-    return this.ok(item, { message: 'Role updated' });
+
+    return this.ok(updatedAdmin, { message: 'Role updated' });
   }
 
   getAuditLogs(q: AuditQueryDto) {
@@ -143,4 +214,41 @@ return this.ok({ nid,profileName });
     if (q.to) res = res.filter(l => new Date(l.at) <= new Date(q.to!));
     return this.ok(res, { count: res.length });
   }
+
+  // ========== REQUESTED DB OPERATIONS ==========
+
+  // 1. Create a user (already implemented above in create() method)
+
+  // 2. Modify the phone number of an existing user
+  async updatePhone(id: string, phone: number) {
+    const result = await this.adminRepository.update(id, {
+      phone,
+      updatedAt: new Date()
+    });
+
+    if (result.affected === 0) {
+      return this.ok(null, { message: 'Admin not found' });
+    }
+
+    const updatedAdmin = await this.adminRepository.findOne({ where: { id } });
+    this.audits.push({
+      id: 'log_' + Date.now(),
+      type: 'phone-update',
+      adminId: id,
+      at: new Date(),
+    });
+
+    return this.ok(updatedAdmin, { message: 'Phone number updated' });
+  }
+
+  // 3. Retrieve users with null values in the full name column
+ async findAdminsWithNullName() {
+  const admins = await this.adminRepository.find({
+    where: { name: '' }
+  });
+
+  return this.ok(admins, { count: admins.length });
+}
+
+  // 4. Remove a user from the system based on their id (already implemented above in remove() method)
 }
