@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Cart, CartItem } from './entities/cart.entity';
 import { Order, OrderStatus } from './entities/order.entity';
 import { BuyerProfile } from './entities/buyer-profile.entity';
@@ -7,6 +7,8 @@ import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderQueryDto } from './dto/order-query.dto';
 import { BuyerProfileDto } from './dto/profile.dto';
+import * as fs from 'fs';
+import { Response } from 'express';
 
 @Injectable()
 export class BuyerService {
@@ -180,5 +182,35 @@ export class BuyerService {
     
     return this.Success(documentInfo, { message: 'PDF document uploaded successfully' });
   }
+
+    getDocumentInfo(buyerId: string, filename: string) {
+    const filePath = `./upload/buyer-documents/${filename}`;
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      return this.Success(null, { message: 'Document not found' });
+    }
+
+    const stats = fs.statSync(filePath);
+    const documentInfo = {
+      buyerId,
+      filename,
+      filePath,
+      fileSize: stats.size,
+      uploadedAt: stats.birthtime,
+      lastModified: stats.mtime,
+    };
+
+    return this.Success(documentInfo, { message: 'Document info retrieved' });
+  }
+
+  downloadDocument(buyerId: string, filename: string, res: Response) {
+  const filePath = `./upload/buyer-documents/${filename}`;
+  
+  if (!fs.existsSync(filePath)) {
+    throw new NotFoundException('Document not found');
+  }
+  res.sendFile(require('path').resolve(filePath));
+}
   
 }

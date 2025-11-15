@@ -1,4 +1,4 @@
-import { Body, Controller, DefaultValuePipe, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Delete, Get, Header, Param, ParseIntPipe, Patch, Post, Put, Query, Res, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { BuyerService } from './buyer.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
@@ -6,7 +6,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderQueryDto } from './dto/order-query.dto';
 import { BuyerProfileDto } from './dto/profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
+import { diskStorage, MulterError } from 'multer';
 import * as orderEntity from './entities/order.entity';
 
 @Controller('buyer')
@@ -89,7 +89,9 @@ export class BuyerController {
   FileInterceptor('document', {
     fileFilter: (req, file, cb) => {
       if (!file.originalname.match(/\.(pdf)$/i)) {
-        return cb(new Error('Only PDF files are allowed!'), false);
+        
+        // return cb(new MulterError('Only PDF files are allowed','pdf'), false);
+        return cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'pdf'), false);
       }
         
       // if (file.mimetype !== 'application/pdf') {
@@ -109,9 +111,9 @@ export class BuyerController {
         cb(null, uniqueName);
       },
     }),
-      limits: {
-        fileSize: 5_000_000,
-      },
+      // limits: {
+      //   fileSize: 5_000_000,
+      // },
     }),
   )
     uploadDocument(
@@ -121,6 +123,25 @@ export class BuyerController {
     ) {
       return this.buyerService.uploadDocument(buyerId, dto, file);
     }
+
+  @Get(':buyerId/documents/:filename')
+  getDocumentInfo(
+  @Param('buyerId') buyerId: string,
+  @Param('filename') filename: string,
+  ) {
+  return this.buyerService.getDocumentInfo(buyerId, filename);
+  }
+
+  @Get(':buyerId/documents/:filename/download')
+@Header('Content-Type', 'application/pdf')
+@Header('Content-Disposition', 'attachment; filename="document.pdf"')
+downloadDocument(
+  @Param('buyerId') buyerId: string,
+  @Param('filename') filename: string,
+  @Res() res: any,
+) {
+  return this.buyerService.downloadDocument(buyerId, filename, res);
+}
 
   
   

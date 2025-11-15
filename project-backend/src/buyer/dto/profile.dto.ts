@@ -1,7 +1,6 @@
-import { IsEmail, IsOptional, IsString, Matches, MinLength } from 'class-validator';
+import { IsEmail, IsOptional, IsString, Matches, MinLength, IsNumber, Min, Max } from 'class-validator';
 
 export class BuyerProfileDto {
-
   buyerId?: string;
 
   @IsString()
@@ -14,7 +13,6 @@ export class BuyerProfileDto {
   @IsEmail() 
   email: string;
 
-
   @IsString()
   @MinLength(6, { message: 'Password must be at least 6 characters long' })
   @Matches(/(?=.*[a-z])/, { 
@@ -25,13 +23,17 @@ export class BuyerProfileDto {
   @IsOptional() 
   @IsString()
   @Matches(/^01\d{9}$/, { 
-  message: 'Phone number must start with 01 and be exactly 11 digits' 
+    message: 'Phone number must start with 01 and be exactly 11 digits' 
   })
   phone?: string;
 
+  @IsOptional()
+  @IsNumber()
+  @Min(1, { message: 'Age must be at least 1' })
+  @Max(120, { message: 'Age must be less than 120' })
+  age?: number;
 
   @IsOptional() 
   @IsString() 
   defaultAddressId?: string;
-  
 }
