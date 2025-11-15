@@ -11,12 +11,12 @@ export class CreateSellerDto {
   // Password: at least 6 characters long and must contain one Uppercase character
   @IsString()
   @MinLength(6)
-  @Matches(/[A-Z]/, { message: 'Password must contain at least one uppercase character.' })
+  @Matches(/(?=.*[A-Z])/, { message: 'Password must contain at least one uppercase character.' })
   password: string;
 
   // Gender: Validate gender given male or female.
-  @IsString()
-  @IsIn(['male', 'female'], { message: 'Gender must be male or female.' })
+  @IsString({ message: 'gender must not contain any number.' })
+  @IsIn(['male', 'female'], { message: 'Gender must be male or female.'})
   gender: 'male' | 'female';
 
   // Phone Number: must contain only numbers

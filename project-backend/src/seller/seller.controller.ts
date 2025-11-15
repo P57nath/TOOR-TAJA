@@ -1,17 +1,35 @@
-import {Body,Controller,Delete,Get,Param,Patch,Post,Put,Query} from '@nestjs/common';
+
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { SellerService } from './seller.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
+import { CreateSellerDto } from './dto/create-seller.dto'; 
 
 @Controller('seller')
 export class SellerController {
   constructor(private readonly sellerService: SellerService) {}
 
-  // (1) POST /seller/products
+  // (1) POST /seller/products (Product Create)
   @Post('products')
   create(@Body() dto: CreateProductDto) {
     return this.sellerService.create(dto);
+  }
+  
+  // (9) POST /seller/register (Seller User Registration) 
+  @Post('register') 
+  createSeller(@Body() dto: CreateSellerDto) {
+    return this.sellerService.createSeller(dto);
   }
 
   // (2) GET /seller/products

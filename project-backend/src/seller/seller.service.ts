@@ -1,17 +1,21 @@
+
 import { Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
 import { Product } from './entities/product.entity';
+import { CreateSellerDto } from './dto/create-seller.dto'; 
 
 @Injectable()
 export class SellerService {
   private products: Product[] = [];
+  private sellers: any[] = []; 
 
   private ok(data: any, extra: Record<string, any> = {}) {
     return { success: true, ...extra, data };
   }
 
+ 
   create(dto: CreateProductDto) {
     const product: Product = {
       id: 'p_' + Date.now(),
@@ -20,7 +24,10 @@ export class SellerService {
       category: dto.category,
       description: dto.description,
       stock: dto.stock ?? 0,
-      sellerId: 'seller_1',
+      
+     
+      sellerId: dto.sellerId, 
+      
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -28,6 +35,27 @@ export class SellerService {
     return this.ok(product, { message: 'Product created' });
   }
 
+ 
+  createSeller(dto: CreateSellerDto) {
+    const seller = {
+      id: 's_' + Date.now(), 
+      email: dto.email,
+      password: dto.password,
+      gender: dto.gender,
+      phoneNumber: dto.phoneNumber,
+      createdAt: new Date(),
+    };
+    
+    this.sellers.push(seller);
+    const responseData = {
+      phoneNumber: seller.phoneNumber,
+      createdAt: seller.createdAt,
+  };
+
+    return this.ok(responseData, { message: 'Seller User registered successfully' });
+  }
+
+  
   findAll(category?: string) {
     const data = category ? this.products.filter(p => p.category === category) : this.products;
     return this.ok(data, { count: data.length });
@@ -37,13 +65,17 @@ export class SellerService {
     return this.ok(this.products.find(p => p.id === id) ?? null);
   }
 
+  
   replace(id: string, dto: CreateProductDto) {
     const idx = this.products.findIndex(p => p.id === id);
     const product: Product = {
       id,
       ...dto,
       stock: dto.stock ?? 0,
-      sellerId: 'seller_1',
+      
+     
+      sellerId: dto.sellerId, 
+      
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -54,7 +86,10 @@ export class SellerService {
   update(id: string, dto: UpdateProductDto) {
     const product = this.products.find(p => p.id === id);
     if (!product) return this.ok(null, { message: 'Not found' });
+    
+   
     Object.assign(product, dto, { updatedAt: new Date() });
+    
     return this.ok(product, { message: 'Product updated' });
   }
 
