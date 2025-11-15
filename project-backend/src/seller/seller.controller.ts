@@ -1,4 +1,3 @@
-
 import {
   Body,
   Controller,
@@ -11,64 +10,90 @@ import {
   Query,
 } from '@nestjs/common';
 import { SellerService } from './seller.service';
+import { CreateSellerDto } from './dto/create-seller.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
-import { CreateSellerDto } from './dto/create-seller.dto'; 
 
 @Controller('seller')
 export class SellerController {
   constructor(private readonly sellerService: SellerService) {}
 
-  // (1) POST /seller/products (Product Create)
-  @Post('products')
-  create(@Body() dto: CreateProductDto) {
-    return this.sellerService.create(dto);
-  }
-  
-  // (9) POST /seller/register (Seller User Registration) 
-  @Post('register') 
+  // -------------------------
+  // SELLER OPERATIONS
+  // -------------------------
+
+  // (1) Create a Seller
+  @Post('register')
   createSeller(@Body() dto: CreateSellerDto) {
-    return this.sellerService.createSeller(dto);
+    return this.sellerService.createUser(dto);
   }
 
-  // (2) GET /seller/products
+  // (2) Retrieve users whose full name contains substring
+  @Get('search')
+  searchByName(@Query('name') name: string) {
+    return this.sellerService.findUsersByFullName(name);
+  }
+
+  // (3) Retrieve a seller by username
+  @Get(':username')
+  getByUsername(@Param('username') username: string) {
+    return this.sellerService.findUserByUsername(username);
+  }
+
+  // (4) Delete seller based on username
+  @Delete(':username')
+  removeSeller(@Param('username') username: string) {
+    return this.sellerService.removeUserByUsername(username);
+  }
+
+  // -------------------------
+  // PRODUCT OPERATIONS
+  // -------------------------
+
+  // Create a product
+  @Post('products')
+  createProduct(@Body() dto: CreateProductDto) {
+    return this.sellerService.createProduct(dto);
+  }
+
+  // Get all products (filter optional)
   @Get('products')
-  findAll(@Query('category') category?: string) {
-    return this.sellerService.findAll(category);
+  findAllProducts(@Query('category') category?: string) {
+    return this.sellerService.findAllProducts(category);
   }
 
-  // (3) GET /seller/products/:id
+  // Get product by ID
   @Get('products/:id')
-  findOne(@Param('id') id: string) {
-    return this.sellerService.findOne(id);
+  findOneProduct(@Param('id') id: string) {
+    return this.sellerService.findProduct(id);
   }
 
-  // (4) PUT /seller/products/:id
+  // Replace product
   @Put('products/:id')
-  replace(@Param('id') id: string, @Body() dto: CreateProductDto) {
-    return this.sellerService.replace(id, dto);
+  replaceProduct(@Param('id') id: string, @Body() dto: CreateProductDto) {
+    return this.sellerService.replaceProduct(id, dto);
   }
 
-  // (5) PATCH /seller/products/:id
+  // Update product
   @Patch('products/:id')
-  update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
-    return this.sellerService.update(id, dto);
+  updateProduct(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+    return this.sellerService.updateProduct(id, dto);
   }
 
-  // (6) PATCH /seller/products/:id/stock
+  // Update stock only
   @Patch('products/:id/stock')
   updateStock(@Param('id') id: string, @Body() dto: UpdateStockDto) {
     return this.sellerService.updateStock(id, dto);
   }
 
-  // (7) DELETE /seller/products/:id
+  // Delete product
   @Delete('products/:id')
-  remove(@Param('id') id: string) {
-    return this.sellerService.remove(id);
+  removeProduct(@Param('id') id: string) {
+    return this.sellerService.removeProduct(id);
   }
 
-  // (8) GET /seller/products/stats?from=2025-01-01&to=2025-12-31
+  // Stats
   @Get('products/stats')
   stats(@Query('from') from?: string, @Query('to') to?: string) {
     return this.sellerService.stats(from, to);
