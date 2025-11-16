@@ -5,23 +5,22 @@ import {
     BeforeInsert,
     CreateDateColumn,
     UpdateDateColumn,
-
   } from 'typeorm';
     import { v4 as uuidv4 } from 'uuid';
   
   @Entity('sellers')
   export class Seller {
   
-    // Custom ID with BeforeInsert()
+    
     @PrimaryColumn()
     id: string;
   
     @BeforeInsert()
-    generateBuyerId() {
+    generateSellerId() { 
       if (!this.id) {
-        // Generate UUID and add prefix
-        const uuid = uuidv4().split('-')[0]; // Take first part of UUID
-        this.id = `b_${uuid}`;
+       
+        const uuid = uuidv4().split('-')[0]; 
+        this.id = `s_${uuid}`; 
       }
     }
   
@@ -32,7 +31,7 @@ import {
     fullName: string;
   
     @Column({ type: 'boolean', default: false })
-    isActive: boolean;
+    isActive: boolean; 
   
     @Column({ unique: true })
     email: string;
@@ -55,4 +54,3 @@ import {
     @UpdateDateColumn()
     updatedAt: Date;
   }
-  

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository, Like, DeleteResult } from 'typeorm';
 
 import { Seller } from './entities/seller.entity';
 import { Product } from './entities/product.entity';
@@ -24,104 +24,106 @@ export class SellerService {
     return { success: true, ...extra, data };
   }
 
-  // ----------------------------------------------------------
-  // USER OPERATIONS (REPOSITORY BASED) — REQUIRED BY YOU
-  // ----------------------------------------------------------
 
-  // 1️⃣ Create a User
+
+  
   async createUser(dto: CreateSellerDto) {
+    
     const seller = this.sellerRepo.create(dto);
     await this.sellerRepo.save(seller);
 
-    // SELECT-style output:
+    
     return this.ok(
       {
+        id: seller.id,
+        username: seller.username,
+        fullName: seller.fullName,
+        isActive: seller.isActive,
+        email: seller.email,
+        gender: seller.gender,
         phoneNumber: seller.phoneNumber,
         createdAt: seller.createdAt,
       },
-      { message: 'Seller User registered successfully' },
+      { message: 'User created successfully' },
     );
   }
 
-  // 2️⃣ Retrieve users whose fullName contains a substring
+  
   async findUsersByFullName(substring: string) {
     const users = await this.sellerRepo.find({
-      where: { fullName: Like(`%${substring}%`) },
-
-      // SELECT-like query (only return specific properties)
-      select: {
-        username: true,
-        fullName: true,
+      select: ['id', 'username', 'fullName', 'isActive', 'email', 'createdAt'], 
+      where: {
+        fullName: Like(`%${substring}%`), 
       },
     });
 
-    return this.ok(users, { count: users.length });
+    return this.ok(users, { message: `Found ${users.length} user(s)` });
   }
 
-  // 3️⃣ Retrieve a user by unique username
+  
   async findUserByUsername(username: string) {
     const user = await this.sellerRepo.findOne({
+      select: ['id', 'username', 'fullName', 'isActive', 'email', 'createdAt'],
       where: { username },
-      select: {
-        username: true,
-        fullName: true,
-        email: true,
-      },
     });
 
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) {
+      throw new NotFoundException(`User with username '${username}' not found`); 
+    }
 
-    return this.ok(user);
+    return this.ok(user, { message: 'User found' });
   }
 
-  // 4️⃣ Remove user by username
+ 
   async removeUserByUsername(username: string) {
-    const result = await this.sellerRepo.delete({ username });
+    const result: DeleteResult = await this.sellerRepo.delete({ username });
 
-    return this.ok(
-      { removed: result.affected },
-      { message: 'User removed successfully' },
-    );
+    if (result.affected === 0) {
+      throw new NotFoundException(`User with username '${username}' not found for deletion`);
+    }
+
+    return this.ok(null, { message: `User '${username}' successfully removed` });
   }
 
-  // ----------------------------------------------------------
-  // PRODUCT OPERATIONS (NOW USING REPOSITORIES)
-  // ----------------------------------------------------------
+
 
   async createProduct(dto: CreateProductDto) {
-    const product = this.productRepo.create({
-      ...dto,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
+    
+    const finalDto = { ...dto, stock: dto.stock ?? 0 };
+    const product = this.productRepo.create(finalDto);
     await this.productRepo.save(product);
-
     return this.ok(product, { message: 'Product created' });
   }
 
   async findAllProducts(category?: string) {
-    const data = await this.productRepo.find(
-      category
-        ? { where: { category } }
-        : {},
-    );
-
-    return this.ok(data, { count: data.length });
+    const products = await this.productRepo.find({
+      where: category ? { category } : {},
+      order: { createdAt: 'DESC' },
+    });
+    return this.ok(products, { message: `Found ${products.length} products` });
   }
 
   async findProduct(id: string) {
     const product = await this.productRepo.findOne({ where: { id } });
-    return this.ok(product ?? null);
+
+    if (!product) {
+      throw new NotFoundException(`Product with ID '${id}' not found`);
+    }
+    return this.ok(product, { message: 'Product found' });
   }
 
   async replaceProduct(id: string, dto: CreateProductDto) {
-    let product = await this.productRepo.findOne({ where: { id } });
+    const product = await this.productRepo.findOne({ where: { id } });
 
+    if (!product) {
+      throw new NotFoundException(`Product with ID '${id}' not found`);
+    }
+
+  
     const newProduct = this.productRepo.create({
-      id,
+      id: product.id,
       ...dto,
-      createdAt: product?.createdAt ?? new Date(),
+      createdAt: product.createdAt, 
       updatedAt: new Date(),
     });
 
@@ -133,8 +135,11 @@ export class SellerService {
   async updateProduct(id: string, dto: UpdateProductDto) {
     const product = await this.productRepo.findOne({ where: { id } });
 
-    if (!product) return this.ok(null, { message: 'Not found' });
+    if (!product) {
+      throw new NotFoundException(`Product with ID '${id}' not found`);
+    }
 
+    
     Object.assign(product, dto, { updatedAt: new Date() });
     await this.productRepo.save(product);
 
@@ -142,27 +147,26 @@ export class SellerService {
   }
 
   async updateStock(id: string, dto: UpdateStockDto) {
-    const product = await this.productRepo.findOne({ where: { id } });
+    const result = await this.productRepo.update(
+      { id },
+      { stock: dto.stock, updatedAt: new Date() },
+    );
 
-    if (!product) return this.ok(null, { message: 'Not found' });
+    if (result.affected === 0) {
+      throw new NotFoundException(`Product with ID '${id}' not found to update stock`);
+    }
 
-    product.stock = dto.stock;
-    product.updatedAt = new Date();
-
-    await this.productRepo.save(product);
-
-    return this.ok(product, { message: 'Stock updated' });
+    const updatedProduct = await this.productRepo.findOne({ where: { id } });
+    return this.ok(updatedProduct, { message: 'Stock updated' });
   }
 
   async removeProduct(id: string) {
     const result = await this.productRepo.delete(id);
-    return this.ok({ removed: result.affected });
-  }
 
-  async stats(from?: string, to?: string) {
-    const total = await this.productRepo.count();
-    const inStock = await this.productRepo.count({ where: { stock: 1 } });
+    if (result.affected === 0) {
+      throw new NotFoundException(`Product with ID '${id}' not found for deletion`);
+    }
 
-    return this.ok({ totalProducts: total, inStock });
+    return this.ok(null, { message: `Product ID '${id}' successfully removed` });
   }
 }

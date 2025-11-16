@@ -18,7 +18,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       port: 5432,
       username: 'postgres',
       password: 'mahir12345',
-      database: 'mahirDB',//Change to your database name
+      database: 'mahirDB',
       autoLoadEntities: true,
       synchronize: true,
     }),
