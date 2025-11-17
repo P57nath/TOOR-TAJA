@@ -1,0 +1,288 @@
+=== UPDATED EXAMPLE REQUESTS WITH VALIDATION RULES ===
+BUYER PROFILE OPERATIONS
+1. CREATE BUYER PROFILE (POST /buyer)
+
+http
+POST /buyer
+Content-Type: application/json
+
+{
+  "name": "Ashish Kumar",
+  "email": "ashish@example.com",
+  "password": "password123",
+  "phone": "01712345678",
+  "age": 28,
+  "defaultAddressId": "addr_1"
+}
+2. UPDATE BUYER PROFILE (PUT /buyer/:buyerId/profile)
+
+http
+PUT /buyer/b_550e8400/profile
+Content-Type: application/json
+
+{
+  "name": "Ashish Kumar",
+  "email": "ashish.updated@example.com",
+  "password": "newpassword123",
+  "phone": "01787654321",
+  "age": 29,
+  "defaultAddressId": "addr_2",
+  "status": "active"
+}
+3. CHANGE BUYER STATUS (PATCH /buyer/:buyerId/status)
+
+http
+PATCH /buyer/b_550e8400/status
+Content-Type: application/json
+
+{
+  "status": "inactive"
+}
+4. GET INACTIVE BUYERS (GET /buyer/inactive)
+
+http
+GET /buyer/inactive?page=1&limit=10
+5. GET BUYERS OVER 40 (GET /buyer/older-than-40)
+
+http
+GET /buyer/older-than-40?page=1&limit=10
+6. GET BUYERS OVER SPECIFIC AGE (GET /buyer/older-than/:age)
+
+http
+GET /buyer/older-than/40?page=1&limit=10
+CART OPERATIONS
+7. ADD TO CART (POST /buyer/:buyerId/cart/items)
+
+http
+POST /buyer/b_550e8400/cart/items
+Content-Type: application/json
+
+{
+  "productId": "p1",
+  "name": "Banana", 
+  "price": 1.99,
+  "quantity": 3
+}
+8. UPDATE CART ITEM (PATCH /buyer/:buyerId/cart/items/:productId)
+
+http
+PATCH /buyer/b_550e8400/cart/items/p1
+Content-Type: application/json
+
+{
+  "quantity": 5
+}
+9. REMOVE CART ITEM (DELETE /buyer/:buyerId/cart/items/:productId)
+
+http
+DELETE /buyer/b_550e8400/cart/items/p1
+10. GET CART WITH COUPON (GET /buyer/:buyerId/cart?coupon=)
+
+http
+GET /buyer/b_550e8400/cart?coupon=SAVE10
+ORDER OPERATIONS
+11. CREATE ORDER (POST /buyer/orders)
+
+http
+POST /buyer/orders
+Content-Type: application/json
+
+{
+  "buyerId": "b_550e8400",
+  "addressId": "addr_7",
+  "items": [
+    { 
+      "productId": "p1", 
+      "name": "Banana", 
+      "price": 1.99, 
+      "quantity": 2 
+    },
+    { 
+      "productId": "p3", 
+      "name": "Spinach", 
+      "price": 1.49, 
+      "quantity": 1 
+    }
+  ],
+  "note": "Leave at door"
+}
+12. GET ORDER DETAILS (GET /buyer/:buyerId/orders/:id)
+
+http
+GET /buyer/b_550e8400/orders/ord_550e8400
+13. LIST ORDERS WITH FILTERS (GET /buyer/:buyerId/orders?status=&page=&limit=)
+
+http
+GET /buyer/b_550e8400/orders?status=pending&page=1&limit=10
+DOCUMENT OPERATIONS
+14. UPLOAD DOCUMENT (POST /buyer/:buyerId/documents)
+
+http
+POST /buyer/b_550e8400/documents
+Content-Type: multipart/form-data
+
+Form Data:
+- document: (PDF file, max 5MB)
+- documentType: "identity"
+15. GET DOCUMENT INFO (GET /buyer/:buyerId/documents/:filename)
+
+http
+GET /buyer/b_550e8400/documents/1234567890-document.pdf
+16. DOWNLOAD DOCUMENT (GET /buyer/:buyerId/documents/:filename/download)
+
+http
+GET /buyer/b_550e8400/documents/1234567890-document.pdf/download
+=== VALIDATION RULES SUMMARY ===
+NAME FIELD:
+Rule: Only letters (a-z, A-Z) and spaces
+
+Valid: "John Doe", "Mary", "Ashish Kumar", "আশীষ" (Unicode letters)
+
+Invalid: "John123", "Mary@Smith", "Bob_Doe"
+
+PHONE FIELD:
+Rule: Must start with "01" and be exactly 11 digits
+
+Valid: "01712345678", "01876543210"
+
+Invalid: "1234567890", "02782641610", "017826416", "017826416101"
+
+PASSWORD FIELD:
+Rule: Minimum 6 characters + at least 1 lowercase letter
+
+Valid: "password123", "helloWorld", "test123"
+
+Invalid: "PASSWORD", "123456", "HELLO", "abc12"
+
+EMAIL FIELD:
+Rule: Standard email format validation
+
+Valid: "user@example.com", "test@gmail.com", "user.name+tag@domain.co.uk"
+
+Invalid: "invalid-email", "user@.com", "@example.com"
+
+AGE FIELD:
+Rule: Number between 1 and 120, unsigned
+
+Valid: 25, 1, 120
+
+Invalid: -5, 0, 121, "twenty-five"
+
+STATUS FIELD:
+Rule: Must be either 'active' or 'inactive'
+
+Valid: "active", "inactive"
+
+Invalid: "pending", "blocked", "deleted", 1, true
+
+BUYER ID FORMAT:
+Rule: Starts with "b_" followed by 8-character UUID segment
+
+Valid: "b_550e8400", "b_6ba7b810"
+
+Invalid: "buyer_1", "b_123", "b_invalid"
+
+ORDER ID FORMAT:
+Rule: Starts with "ord_" followed by 8-character UUID segment
+
+Valid: "ord_550e8400", "ord_6ba7b810"
+
+Invalid: "order_1", "ord_123", "o_123456"
+
+=== INVALID REQUEST EXAMPLES (WILL BE REJECTED) ===
+INVALID NAME (contains numbers):
+
+json
+{
+  "name": "Ashish123",
+  "email": "ashish@example.com",
+  "password": "password123",
+  "phone": "01782641610"
+}
+INVALID NAME (contains special characters):
+
+json
+{
+  "name": "Ashish@Kumar",
+  "email": "ashish@example.com", 
+  "password": "password123",
+  "phone": "01782641610"
+}
+INVALID PHONE (wrong prefix):
+
+json
+{
+  "name": "Ashish",
+  "email": "ashish@example.com",
+  "password": "password123",
+  "phone": "02782641610"
+}
+INVALID PHONE (wrong length):
+
+json
+{
+  "name": "Ashish",
+  "email": "ashish@example.com",
+  "password": "password123",
+  "phone": "017826416"
+}
+INVALID PASSWORD (no lowercase):
+
+json
+{
+  "name": "Ashish",
+  "email": "ashish@example.com",
+  "password": "PASSWORD123",
+  "phone": "01782641610"
+}
+INVALID PASSWORD (too short):
+
+json
+{
+  "name": "Ashish",
+  "email": "ashish@example.com",
+  "password": "abc12",
+  "phone": "01782641610"
+}
+INVALID AGE (out of range):
+
+json
+{
+  "name": "Ashish",
+  "email": "ashish@example.com",
+  "password": "password123",
+  "phone": "01782641610",
+  "age": 150
+}
+INVALID STATUS:
+
+json
+{
+  "status": "blocked"
+}
+=== SUCCESS RESPONSE FORMAT ===
+All successful requests return:
+
+json
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": { ... },
+  "page": 1,
+  "limit": 10,
+  "total": 50
+}
+=== ERROR RESPONSE FORMAT ===
+All failed validations return:
+
+json
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": [
+    {
+      "field": "name",
+      "message": "Name must not contain any special characters or numbers"
+    }
+  ]
+}

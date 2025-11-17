@@ -20,6 +20,9 @@ export class BuyerProfile {
 
   @Column({ type: 'bigint', unsigned: true, nullable: true })
   age?: number;
+  
+  @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })
+  status: 'active' | 'inactive' = 'active';
 
   @Column({ nullable: true })
   defaultAddressId?: string;
@@ -30,8 +33,7 @@ export class BuyerProfile {
   @BeforeInsert()
   generateBuyerId() {
     if (!this.buyerId) {
-      // Generate UUID and add prefix
-      const uuid = uuidv4().split('-')[0]; // Take first part of UUID
+      const uuid = uuidv4().split('-')[0]; 
       this.buyerId = `b_${uuid}`;
     }
   }
@@ -57,14 +59,3 @@ export class BuyerProfile {
 //     }
 //   }
 
-
-// import { v4 as uuidv4 } from 'uuid';
-
-// @BeforeInsert()
-//   generateBuyerId() {
-//     if (!this.buyerId) {
-//       // Generate UUID and add prefix
-//       const uuid = uuidv4().split('-')[0]; // Take first part of UUID
-//       this.buyerId = `b_${uuid}`;
-//     }
-//   }

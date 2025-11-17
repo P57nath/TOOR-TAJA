@@ -1,11 +1,12 @@
-import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from "typeorm";
+import { CartItem } from "./cart-items.entity";
 
 @Entity('carts')
 export class Cart {
   @PrimaryColumn()
   buyerId: string;
 
-  @Column('json')
+  @OneToMany(() => CartItem, cartItem => cartItem.cart, { cascade: true, eager: true })
   items: CartItem[];
 
   @Column({ nullable: true })
@@ -16,11 +17,11 @@ export class Cart {
 
   @UpdateDateColumn()
   updatedAt: Date;
-}
 
-export class CartItem {
-  productId: string;
-  name: string;
-  price: number;
-  quantity: number;
+  // Helper method to calculate total
+  calculateTotal(): number {
+    return this.items?.reduce((total, item) => total + (item.price * item.quantity), 0) || 0;
+  }
 }
+export { CartItem };
+

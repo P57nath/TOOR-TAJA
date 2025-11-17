@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, MoreThan } from 'typeorm';
 import { Cart, CartItem } from './entities/cart.entity';
 import { Order, OrderStatus } from './entities/order.entity';
 import { BuyerProfile } from './entities/buyer-profile.entity';
@@ -6,170 +8,350 @@ import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderQueryDto } from './dto/order-query.dto';
-import { BuyerProfileDto } from './dto/profile.dto';
+import { BuyerProfileDto } from './dto/buyerProfileDtos/profile.dto';
+import { UpdateBuyerStatusDto } from './dto/buyerProfileDtos/update-buyerStatus.dto';
+import { GetInactiveBuyersDto } from './dto/buyerProfileDtos/getInactive-buyer.dto';
+import { GetBuyersOverAgeDto } from './dto/buyerProfileDtos/getOverage-buyer.dto';
 import * as fs from 'fs';
 import { Response } from 'express';
+import { UpdateBuyerDto } from './dto/buyerProfileDtos/update-buyer.dto';
+import { OrderItem } from './entities/order-items.entity';
 
 @Injectable()
 export class BuyerService {
-  private carts = new Map<string, Cart>();      
-  private orders = new Map<string, Order[]>();  
+  constructor(
+    @InjectRepository(BuyerProfile)
+    private buyerProfileRepository: Repository<BuyerProfile>,
 
-  private buyerCounter = 1;
+    @InjectRepository(Cart)
+    private cartRepository: Repository<Cart>,
 
-  private profiles: BuyerProfile[] = [
-    {
-      buyerId: 'buyer_1',
-      name: 'John Doe',
-      email: 'JohnDoe@gmail.com',
-      password: 'passWord123',
-      phone: '01782641610',
-      defaultAddressId: 'addr_1',
-      updatedAt: new Date(),
-    },
-  ];
+    @InjectRepository(Order)
+    private orderRepository: Repository<Order>,
+
+    @InjectRepository(OrderItem)
+    private orderItemRepository: Repository<OrderItem>,
+
+    @InjectRepository(CartItem)
+    private cartItemRepository: Repository<CartItem>,
+  ) { }
 
   private Success(data: any, extra: Record<string, any> = {}) {
     return { success: true, ...extra, data };
-  } 
+  }
 
   // --- Buyer Profile ---
-  createBuyer(dto: BuyerProfileDto) {
-    this.buyerCounter++;                        
-    const buyerId = `buyer_${this.buyerCounter}`;
+  async createBuyer(dto: BuyerProfileDto) {
+    const buyerProfile = this.buyerProfileRepository.create(dto);
+    const savedProfile = await this.buyerProfileRepository.save(buyerProfile);
 
-    const entity: BuyerProfile = {
-      buyerId,
-      name: dto.name,
-      email: dto.email,
-      password: dto.password,
-      phone: dto.phone,
-      defaultAddressId: dto.defaultAddressId,
-      updatedAt: new Date(),
-    };
-
-    this.profiles.push(entity);
-
-    return this.Success(entity, { message: 'Buyer created', buyerId });
+    return this.Success(savedProfile, {
+      message: 'Buyer created successfully',
+      buyerId: savedProfile.buyerId
+    });
   }
 
   // --- Profile operations ---
-  replaceProfile(buyerId: string, dto: BuyerProfileDto) {
-    const idx = this.profiles.findIndex(p => p.buyerId === buyerId);
+  async replaceProfile(buyerId: string, dto: UpdateBuyerDto) {
+    const existingProfile = await this.buyerProfileRepository.findOne({
+      where: { buyerId }
+    });
 
-    if (idx === -1) {
-      return this.Success(null, { message: 'Buyer not found' });
+    if (!existingProfile) {
+      throw new NotFoundException('Buyer not found');
     }
 
-    const entity: BuyerProfile = {
-      buyerId,
-      name: dto.name,
-      email: dto.email,
-      password: dto.password,
-      phone: dto.phone,
-      defaultAddressId: dto.defaultAddressId,
+    // Update all fields
+    const updatedProfile = await this.buyerProfileRepository.save({
+      ...existingProfile,
+      ...dto,
       updatedAt: new Date(),
-    };
+    });
 
-    this.profiles[idx] = entity;
+    return this.Success(updatedProfile, {
+      message: 'Profile updated successfully',
+      buyerId
+    });
+  }
+  //Change buyer status to active/inactive
+  async updateBuyerStatus(buyerId: string, dto: UpdateBuyerStatusDto) {
+    const result = await this.buyerProfileRepository.update(
+      { buyerId },
+      {
+        status: dto.status,
+        updatedAt: new Date()
+      }
+    );
 
-    return this.Success(entity, { message: 'Profile updated', buyerId });
+    if (result.affected === 0) {
+      throw new NotFoundException('Buyer not found');
+    }
+
+    const updatedProfile = await this.buyerProfileRepository.findOne({
+      where: { buyerId }
+    });
+
+    return this.Success(updatedProfile, {
+      message: `Buyer status updated to ${dto.status}`
+    });
+  }
+
+  //Retrieve list of inactive users
+  async getInactiveBuyers(query: GetInactiveBuyersDto) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const skip = (page - 1) * limit;
+
+    const [buyers, total] = await this.buyerProfileRepository.findAndCount({
+      where: { status: 'inactive' },
+      skip,
+      take: limit,
+      order: { updatedAt: 'DESC' }
+    });
+
+    return this.Success(buyers, {
+      page,
+      limit,
+      total,
+      message: 'Inactive buyers retrieved successfully'
+    });
+  }
+
+  //Get list of users older than 40
+  async getBuyersOver40(query: GetBuyersOverAgeDto) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const skip = (page - 1) * limit;
+
+    const [buyers, total] = await this.buyerProfileRepository.findAndCount({
+      where: {
+        age: MoreThan(40)
+      },
+      skip,
+      take: limit,
+      order: { age: 'DESC' }
+    });
+
+    return this.Success(buyers, {
+      page,
+      limit,
+      total,
+      message: 'Buyers over 40 retrieved successfully'
+    });
+  }
+
+  //Get list of users older than specific age
+  async getBuyersOverAge(age: number, query: GetBuyersOverAgeDto) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const skip = (page - 1) * limit;
+
+    const [buyers, total] = await this.buyerProfileRepository.findAndCount({
+      where: {
+        age: MoreThan(age)
+      },
+      skip,
+      take: limit,
+      order: { age: 'DESC' }
+    });
+
+    return this.Success(buyers, {
+      page,
+      limit,
+      total,
+      message: `Buyers over ${age} retrieved successfully`
+    });
   }
 
   // --- Cart operations ---
-  addToCart(buyerId: string, dto: AddToCartDto) {
-    const cart = this.carts.get(buyerId) ?? { buyerId, items: [], updatedAt: new Date() };
-    const existing = cart.items.find(i => i.productId === dto.productId);
-    if (existing) {
-      existing.quantity += dto.quantity;
-      existing.price = dto.price; // keep latest price
-    } else {
-      const item: CartItem = { ...dto };
-      cart.items.push(item);
+  async addToCart(buyerId: string, dto: AddToCartDto) {
+    let cart = await this.cartRepository.findOne({
+      where: { buyerId },
+      relations: ['items']
+    });
+
+    if (!cart) {
+      cart = this.cartRepository.create({ buyerId });
+      await this.cartRepository.save(cart);
     }
-    cart.updatedAt = new Date();
-    this.carts.set(buyerId, cart);
 
-    const filteredItems = cart.items.map(item => ({
-    productId: item.productId,
-    name: item.name,
+    let cartItem = await this.cartItemRepository.findOne({
+      where: { cartBuyerId: buyerId, productId: dto.productId }
+    });
+
+    if (cartItem) {
+      // Update existing item
+      cartItem.quantity += dto.quantity;
+      cartItem.price = dto.price;
+    } else {
+      // Create new item
+      cartItem = this.cartItemRepository.create({
+        ...dto,
+        cartBuyerId: buyerId,
+        cart: cart
+      });
+    }
+
+    await this.cartItemRepository.save(cartItem);
+
+    // Reload cart with items
+    const updatedCart = await this.cartRepository.findOne({
+      where: { buyerId },
+      relations: ['items']
+    });
+
+    if(!updatedCart) {
+      throw new NotFoundException('Cart not found after update');
+    }
+
+    const filteredItems = updatedCart.items.map(item => ({
+      productId: item.productId,
+      name: item.name,
     }));
-    //return this.ok( cart, { message: 'Item added to cart' });
-    return this.Success({ buyerId: cart.buyerId, items: filteredItems }, { message: 'Item added to cart' });
+
+    return this.Success(
+      { buyerId: updatedCart.buyerId, items: filteredItems },
+      { message: 'Item added to cart' }
+    );
   }
 
-  updateCartItem(buyerId: string, productId: string, dto: UpdateCartItemDto) {
-    const cart = this.carts.get(buyerId);
-    if (!cart) return this.Success(null, { message: 'Cart not found' });
-    const item = cart.items.find(i => i.productId === productId);
-    if (!item) return this.Success(null, { message: 'Item not found' });
-    item.quantity = dto.quantity;
-    cart.updatedAt = new Date();
-    return this.Success(cart, { message: 'Cart item updated' });
+  async updateCartItem(buyerId: string, productId: string, dto: UpdateCartItemDto) {
+    const cartItem = await this.cartItemRepository.findOne({
+      where: { cartBuyerId: buyerId, productId: productId }
+    });
+
+    if (!cartItem) {
+      throw new NotFoundException('Cart item not found');
+    }
+
+    cartItem.quantity = dto.quantity;
+    await this.cartItemRepository.save(cartItem);
+
+    const updatedCart = await this.cartRepository.findOne({
+      where: { buyerId },
+      relations: ['items']
+    });
+
+    return this.Success(updatedCart, { message: 'Cart item updated' });
   }
 
-  removeCartItem(buyerId: string, productId: string) {
-    const cart = this.carts.get(buyerId);
-    if (!cart) return this.Success(null, { message: 'Cart not found' });
-    const before = cart.items.length;
-    cart.items = cart.items.filter(i => i.productId !== productId);
-    cart.updatedAt = new Date();
-    return this.Success({ removed: before - cart.items.length, cart }, { message: 'Cart item removed' });
+  async removeCartItem(buyerId: string, productId: string) {
+    const result = await this.cartItemRepository.delete({
+      cartBuyerId: buyerId,
+      productId: productId
+    });
+
+    if (result.affected === 0) {
+      throw new NotFoundException('Cart item not found');
+    }
+
+    const updatedCart = await this.cartRepository.findOne({
+      where: { buyerId },
+      relations: ['items']
+    });
+
+    return this.Success(
+      { removed: result.affected, cart: updatedCart },
+      { message: 'Cart item removed' }
+    );
   }
 
-  getCart(buyerId: string, coupon?: string) {
-    const cart = this.carts.get(buyerId) ?? { buyerId, items: [], updatedAt: new Date() };
-    if (coupon) cart.coupon = coupon;
+  async getCart(buyerId: string, coupon?: string) {
+    let cart = await this.cartRepository.findOne({
+      where: { buyerId },
+      relations: ['items']
+    });
+
+    if (!cart) {
+      cart = this.cartRepository.create({ buyerId, items: [] });
+      await this.cartRepository.save(cart);
+    }
+
+    if (coupon) {
+      cart.coupon = coupon;
+      await this.cartRepository.save(cart);
+    }
+
     return this.Success(cart);
   }
 
-  // --- Orders ---
-  createOrder(dto: CreateOrderDto) {
-    const total = dto.items.reduce((s, it) => s + it.price * it.quantity, 0);
-    const order: Order = {
-      id: 'o_' + Date.now(),
+  // --- Orders operations ---
+  async createOrder(dto: CreateOrderDto) {
+    const order = this.orderRepository.create({
       buyerId: dto.buyerId,
-      items: dto.items,
-      total,
-      status: 'pending',
       addressId: dto.addressId,
       note: dto.note,
-      createdAt: new Date(),
-    };
-    const arr = this.orders.get(dto.buyerId) ?? [];
-    arr.push(order);
-    this.orders.set(dto.buyerId, arr);
+      total: 0, // Will be calculated from items
+      status: 'pending' as OrderStatus,
+    });
 
-    // clear cart for buyer (optional)
-    this.carts.delete(dto.buyerId);
+    const savedOrder = await this.orderRepository.save(order);
 
-    return this.Success(order, { message: 'Order created' });
+    // Create order items
+    const orderItems = dto.items.map(itemDto =>
+      this.orderItemRepository.create({
+        ...itemDto,
+        orderId: savedOrder.id,
+        order: savedOrder
+      })
+    );
+
+    await this.orderItemRepository.save(orderItems);
+
+    // Calculate and update total
+    savedOrder.total = savedOrder.calculateTotal();
+    await this.orderRepository.save(savedOrder);
+
+    // Clear cart for buyer
+    await this.cartItemRepository.delete({ cartBuyerId: dto.buyerId });
+    await this.cartRepository.delete({ buyerId: dto.buyerId });
+
+    // Reload order with items for response
+    const completeOrder = await this.orderRepository.findOne({
+      where: { id: savedOrder.id },
+      relations: ['items']
+    });
+
+    return this.Success(completeOrder, { message: 'Order created successfully' });
   }
 
-  getOrder(buyerId: string, id: string) {
-    const arr = this.orders.get(buyerId) ?? [];
-    const order = arr.find(o => o.id === id) ?? null;
+
+  async getOrder(buyerId: string, id: string) {
+    const order = await this.orderRepository.findOne({
+      where: { id, buyerId },
+      relations: ['items']
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
     return this.Success(order);
   }
 
-  // listOrders(buyerId: string, q: { status?: OrderStatus; page: number; limit: number }) {
-  // let arr = this.orders.get(buyerId) ?? [];
-  // if (q.status) arr = arr.filter(o => o.status === q.status);
-  // const total = arr.length;
-  // const data = arr.slice((q.page - 1) * q.limit, q.page * q.limit);
-  // return this.Success(data, { page: q.page, limit: q.limit, total });
-  // }
-  listOrders(buyerId: string, q: OrderQueryDto) {
+  async listOrders(buyerId: string, q: OrderQueryDto) {
     const page = Number(q.page ?? 1);
     const limit = Number(q.limit ?? 20);
-    let arr = this.orders.get(buyerId) ?? [];
-    if (q.status) arr = arr.filter(o => o.status === q.status);
-    const total = arr.length;
-    const data = arr.slice((page - 1) * limit, page * limit);
-    return this.Success(data, { page, limit, total });
+    const skip = (page - 1) * limit;
+
+    const where: any = { buyerId };
+    if (q.status) {
+      where.status = q.status;
+    }
+
+    const [orders, total] = await this.orderRepository.findAndCount({
+      where,
+      relations: ['items'],
+      skip,
+      take: limit,
+      order: { createdAt: 'DESC' }
+    });
+
+    return this.Success(orders, { page, limit, total });
   }
 
-  uploadDocument(buyerId: string, dto: any, file: Express.Multer.File) {
+  // --- Document operations ---
+  async uploadDocument(buyerId: string, dto: any, file: Express.Multer.File) {
     const documentInfo = {
       buyerId,
       documentType: dto.documentType,
@@ -179,16 +361,15 @@ export class BuyerService {
       fileSize: file.size,
       uploadedAt: new Date(),
     };
-    
+
     return this.Success(documentInfo, { message: 'PDF document uploaded successfully' });
   }
 
-    getDocumentInfo(buyerId: string, filename: string) {
+  async getDocumentInfo(buyerId: string, filename: string) {
     const filePath = `./upload/buyer-documents/${filename}`;
-    
-    // Check if file exists
+
     if (!fs.existsSync(filePath)) {
-      return this.Success(null, { message: 'Document not found' });
+      throw new NotFoundException('Document not found');
     }
 
     const stats = fs.statSync(filePath);
@@ -204,13 +385,13 @@ export class BuyerService {
     return this.Success(documentInfo, { message: 'Document info retrieved' });
   }
 
-  downloadDocument(buyerId: string, filename: string, res: Response) {
-  const filePath = `./upload/buyer-documents/${filename}`;
-  
-  if (!fs.existsSync(filePath)) {
-    throw new NotFoundException('Document not found');
+  async downloadDocument(buyerId: string, filename: string, res: Response) {
+    const filePath = `./upload/buyer-documents/${filename}`;
+
+    if (!fs.existsSync(filePath)) {
+      throw new NotFoundException('Document not found');
+    }
+
+    res.sendFile(require('path').resolve(filePath));
   }
-  res.sendFile(require('path').resolve(filePath));
-}
-  
 }

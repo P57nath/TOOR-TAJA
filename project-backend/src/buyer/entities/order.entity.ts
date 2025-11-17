@@ -1,5 +1,6 @@
-import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeInsert, Index } from "typeorm";
+import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeInsert, Index, OneToMany } from "typeorm";
 import { v4 as uuidv4 } from 'uuid';
+import { OrderItem } from "./order-items.entity";
 
 export type OrderStatus = 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
 
@@ -12,7 +13,7 @@ export class Order {
   @Index()
   buyerId: string;
 
-  @Column('json')
+  @OneToMany(() => OrderItem, orderItem => orderItem.order, { cascade: true, eager: true })
   items: OrderItem[];
 
   @Column('decimal', { precision: 10, scale: 2 })
@@ -56,11 +57,12 @@ export class Order {
   @BeforeInsert()
   generateId() {
     if (!this.id) {
-      this.id = `ord_${uuidv4().split('-')[0]}`; //ord_550e8400
+      this.id = `ord_${uuidv4().split('-')[0]}`;
     }
   }
+
   calculateTotal(): number {
-    return this.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return this.items?.reduce((total, item) => total + (item.price * item.quantity), 0) || 0;
   }
 
   updateStatus(newStatus: OrderStatus) {
@@ -84,15 +86,6 @@ export class Order {
   }
 
   getItemCount(): number {
-    return this.items.reduce((count, item) => count + item.quantity, 0);
+    return this.items?.reduce((count, item) => count + item.quantity, 0) || 0;
   }
-}
-
-export class OrderItem {
-  productId: string;
-  name: string;
-  price: number;
-  quantity: number;
-  imageUrl?: string;
-  sku?: string;
 }

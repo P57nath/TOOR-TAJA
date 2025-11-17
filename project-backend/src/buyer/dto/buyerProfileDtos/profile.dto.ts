@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional, IsString, Matches, MinLength, IsNumber, Min, Max } from 'class-validator';
+import { IsEmail, IsOptional, IsString, Matches, MinLength, IsNumber, Min, Max, IsEnum } from 'class-validator';
 
 export class BuyerProfileDto {
   buyerId?: string;
@@ -32,6 +32,10 @@ export class BuyerProfileDto {
   @Min(1, { message: 'Age must be at least 1' })
   @Max(120, { message: 'Age must be less than 120' })
   age?: number;
+
+  @IsOptional()
+  @IsEnum(['active', 'inactive'])
+  status?: 'active' | 'inactive';
 
   @IsOptional() 
   @IsString() 
