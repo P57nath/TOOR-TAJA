@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
+import { Repository, MoreThan, LessThan } from 'typeorm';
 import { Cart, CartItem } from './entities/cart.entity';
 import { Order, OrderStatus } from './entities/order.entity';
 import { BuyerProfile } from './entities/buyer-profile.entity';
@@ -50,6 +50,14 @@ export class BuyerService {
       buyerId: savedProfile.buyerId
     });
   }
+  // --- Get all buyer profiles ---
+  async getAllBuyerProfiles() {
+    const buyers = await this.buyerProfileRepository.find();
+    return this.Success(buyers, {
+      message: 'All buyer profiles retrieved successfully',
+      total: buyers.length
+    });
+  }
 
   // --- Profile operations ---
   async replaceProfile(buyerId: string, dto: UpdateBuyerDto) {
@@ -61,12 +69,22 @@ export class BuyerService {
       throw new NotFoundException('Buyer not found');
     }
 
+    const orginalData = { ...existingProfile };
+
     // Update all fields
     const updatedProfile = await this.buyerProfileRepository.save({
       ...existingProfile,
       ...dto,
       updatedAt: new Date(),
     });
+
+    // const changeFields: string[] = [];
+
+    // Object.keys(dto).forEach(key => {
+    //   if (dto[key] !== undefined && orginalData[key] !== updatedProfile[key]) {
+    //     changeFields.push(`${key} changed from '${orginalData[key]}' to '${updatedProfile[key]}'`);
+    //   }
+    // });
 
     return this.Success(updatedProfile, {
       message: 'Profile updated successfully',
@@ -152,7 +170,7 @@ export class BuyerService {
       },
       skip,
       take: limit,
-      order: { age: 'DESC' }
+      order: { age: 'ASC' }
     });
 
     return this.Success(buyers, {
@@ -162,6 +180,29 @@ export class BuyerService {
       message: `Buyers over ${age} retrieved successfully`
     });
   }
+
+  // async findAdminsWithNullName() {
+  //   const page = query.page || 1;
+  //   const limit = query.limit || 10;
+  //   const skip = (page - 1) * limit;
+
+  //   const [admins, total] = await this.adminRepository.findAndCount({
+  //     where: {
+  //       name: IsNull(),
+  //       name: ''
+  //     },
+  //     skip,
+  //     take: limit,
+  //   });
+
+  //   return this.Success(admins, {
+  //     page,
+  //     limit,
+  //     total,
+  //     message: `Admin's with null names retrieved successfully`
+  //   });
+
+  // }
 
   // --- Cart operations ---
   async addToCart(buyerId: string, dto: AddToCartDto) {
@@ -200,7 +241,7 @@ export class BuyerService {
       relations: ['items']
     });
 
-    if(!updatedCart) {
+    if (!updatedCart) {
       throw new NotFoundException('Cart not found after update');
     }
 

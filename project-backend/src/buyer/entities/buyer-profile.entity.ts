@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Entity('buyers')
 export class BuyerProfile {
-  @PrimaryColumn()
+  @PrimaryColumn({unsigned: true})
   buyerId: string;
 
   @Column({name:'fullname', type:'varchar', length: 100 })
@@ -18,7 +18,7 @@ export class BuyerProfile {
   @Column({ nullable: true })
   phone?: string;
 
-  @Column({ type: 'bigint', unsigned: true, nullable: true })
+  @Column({ type: 'int', unsigned: true})
   age?: number;
   
   @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })

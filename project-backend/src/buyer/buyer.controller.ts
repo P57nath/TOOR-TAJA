@@ -11,24 +11,61 @@ import * as orderEntity from './entities/order.entity';
 import { UpdateBuyerStatusDto } from './dto/buyerProfileDtos/update-buyerStatus.dto';
 import { GetInactiveBuyersDto } from './dto/buyerProfileDtos/getInactive-buyer.dto';
 import { GetBuyersOverAgeDto } from './dto/buyerProfileDtos/getOverage-buyer.dto';
+import { UpdateBuyerDto } from './dto/buyerProfileDtos/update-buyer.dto';
 
 @Controller('buyer')
 @UsePipes(new ValidationPipe({ transform: true }))
 export class BuyerController {
   constructor(private readonly buyerService: BuyerService) { }
 
-  // 1) Post /buyer -> create buyer
+  // Post /buyer -> create buyer
 
   @Post()
   createBuyer(@Body() dto: BuyerProfileDto) {
     return this.buyerService.createBuyer(dto);
   }
-  // 2) PUT /buyer/:buyerId/profile -> replace profile
+  //GET -> get all profiles
+  @Get()
+  getAllBuyerProfiles() {
+    return this.buyerService.getAllBuyerProfiles();
+  }
+  // PUT /buyer/:buyerId/profile -> update profile
 
   @Put(':buyerId/profile')
-  replaceProfile(@Param('buyerId') buyerId: string, @Body() dto: BuyerProfileDto) {
+  replaceProfile(@Param('buyerId') buyerId: string, @Body() dto: UpdateBuyerDto) {
     return this.buyerService.replaceProfile(buyerId, dto);
   }
+
+  // PATCH /buyer/:buyerId/status -> change user status (active/inactive)
+  @Patch(':buyerId/status')
+  updateBuyerStatus(
+    @Param('buyerId') buyerId: string,
+    @Body() dto: UpdateBuyerStatusDto,
+  ) {
+    return this.buyerService.updateBuyerStatus(buyerId, dto);
+  }
+
+  // GET /buyer/inactive -> retrieve list of inactive users
+  @Get('inactive')
+  getInactiveBuyers(@Query() query: GetInactiveBuyersDto) {
+    return this.buyerService.getInactiveBuyers(query);
+  }
+
+  // GET /buyer/older-than-40 -> get list of users older than 40
+  @Get('older-than-40')
+  getBuyersOver40(@Query() query: GetBuyersOverAgeDto) {
+    return this.buyerService.getBuyersOver40(query);
+  }
+
+  // 14) GET /buyer/older-than/:age -> get list of users older than specific age
+  @Get('older-than/:age')
+  getBuyersOverAge(
+    @Param('age', ParseIntPipe) age: number,
+    @Query() query: GetBuyersOverAgeDto,
+  ) {
+    return this.buyerService.getBuyersOverAge(age, query);
+  }
+
   // 3) POST /buyer/:buyerId/cart/items  -> add to cart
 
   @Post(':buyerId/cart/items')
@@ -135,33 +172,5 @@ export class BuyerController {
     return this.buyerService.downloadDocument(buyerId, filename, res);
   }
 
-  // 11) PATCH /buyer/:buyerId/status -> change user status (active/inactive)
-  @Patch(':buyerId/status')
-  updateBuyerStatus(
-    @Param('buyerId') buyerId: string,
-    @Body() dto: UpdateBuyerStatusDto,
-  ) {
-    return this.buyerService.updateBuyerStatus(buyerId, dto);
-  }
-
-  // 12) GET /buyer/inactive -> retrieve list of inactive users
-  @Get('inactive')
-  getInactiveBuyers(@Query() query: GetInactiveBuyersDto) {
-    return this.buyerService.getInactiveBuyers(query);
-  }
-
-  // 13) GET /buyer/older-than-40 -> get list of users older than 40
-  @Get('older-than-40')
-  getBuyersOver40(@Query() query: GetBuyersOverAgeDto) {
-    return this.buyerService.getBuyersOver40(query);
-  }
-
-  // 14) GET /buyer/older-than/:age -> get list of users older than specific age
-  @Get('older-than/:age')
-  getBuyersOverAge(
-    @Param('age', ParseIntPipe) age: number,
-    @Query() query: GetBuyersOverAgeDto,
-  ) {
-    return this.buyerService.getBuyersOverAge(age, query);
-  }
+  
 }

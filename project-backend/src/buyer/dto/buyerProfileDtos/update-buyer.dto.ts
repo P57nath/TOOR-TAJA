@@ -17,7 +17,7 @@ export class UpdateBuyerDto {
 
   @IsOptional()
   @IsNumber()
-  @Min(1, { message: 'Age must be at least 1' })
+  @Min(8, { message: 'Age must be at least 8' })
   @Max(120, { message: 'Age must be less than 120' })
   age?: number;
 
