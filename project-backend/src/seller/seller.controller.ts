@@ -14,10 +14,21 @@ import { CreateSellerDto } from './dto/create-seller.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
+import { Seller } from './entities/seller.entity';
 
 @Controller('seller')
 export class SellerController {
   constructor(private readonly sellerService: SellerService) {}
+
+
+  // GET /sellers/:sellerId/with-products - Get seller with all their products
+  @Get(':sellerId/with-products')
+  
+  async getSellerWithProducts(
+    @Param('sellerId') sellerId: string
+  ): Promise<Seller> {
+    return this.sellerService.getSellerWithProducts(sellerId);
+  }
 
 
   @Post('register')

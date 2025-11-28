@@ -5,8 +5,10 @@ import {
     BeforeInsert,
     CreateDateColumn,
     UpdateDateColumn,
+    OneToMany,
   } from 'typeorm';
     import { v4 as uuidv4 } from 'uuid';
+import { Product } from './product.entity';
   
   @Entity('sellers')
   export class Seller {
@@ -53,4 +55,8 @@ import {
   
     @UpdateDateColumn()
     updatedAt: Date;
+
+    // One-to-Many relationship with Product
+    @OneToMany(() => Product, product => product.seller)
+    products: Product[];
   }

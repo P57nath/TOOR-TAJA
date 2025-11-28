@@ -48,6 +48,20 @@ export class SellerService {
     );
   }
 
+  // Get seller with all their products
+  async getSellerWithProducts(sellerId: string): Promise<Seller> {
+    const seller = await this.sellerRepo.findOne({
+      where: { id: sellerId },
+      relations: ['products'], // This loads the related products
+    });
+
+    if (!seller) {
+      throw new NotFoundException(`Seller with ID ${sellerId} not found`);
+    }
+
+    return seller;
+  }
+
   
   async findUsersByFullName(substring: string) {
     const users = await this.sellerRepo.find({
