@@ -1,135 +1,184 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Like, Repository,IsNull, And, Not } from 'typeorm';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { AuditQueryDto, PageQueryDto } from './dto/query.dto';
 import { Admin } from './entities/admin.entity';
 import { Role } from './enums/role';
-
+import { UpdatePhoneDto } from './dto/update-phone.dto';
+import { GetNullNamesDto } from './dto/getNullNames.dto';
 @Injectable()
 export class AdminService {
-  private admins: Admin[] = [
-    {
-      id: 'a_1',
-      email: 'root@toor-taja.com',
-      name: 'Root',
-      role: Role.SuperAdmin,
-      isActive: true,
-      profileName: '1762516770107-473581276_1164858864996135_7118521416663172618_n.jpg',//newly added for profile
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ];
+  constructor(
+    @InjectRepository(Admin)
+    private adminRepository: Repository<Admin>,
+  ) { }
 
   private audits: any[] = [];
 
   private ok(data: any, extra: Record<string, any> = {}) {
     return { success: true, ...extra, data };
   }
-//   private ok2(data: any, extra: Record<string, any> = {}) {
-//   const filteredData = Array.isArray(data)
-//     ? data.map(({ id, name }) => ({ id, name }))
-//     : { id: data?.id, name: data?.name };
 
-//   return { success: true, ...extra, data: filteredData };
-// }
-
-
-  create(dto: CreateAdminDto) {
-    const item: Admin = {
-      id: 'a_' + Date.now(),
+  // Create a user
+  async create(dto: CreateAdminDto) {
+    const admin = this.adminRepository.create({
       email: dto.email,
       name: dto.name,
+      nid: dto.nid.trim(),
+      phone: dto.phone,
       role: dto.role,
-      profileName: dto.profileName ?? '',// newly added for profile
+      profileName: dto.profileName ?? '',
       isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.admins.push(item);
-    this.audits.push({ id: 'log_' + Date.now(), type: 'create', adminId: item.id, at: new Date() });
-    return this.ok(item, { message: 'Admin created' });
+    });
+
+    const savedAdmin = await this.adminRepository.save(admin);
+
+    this.audits.push({
+      id: 'log_' + Date.now(),
+      type: 'create',
+      adminId: savedAdmin.id,
+      at: new Date()
+    });
+
+    return this.ok(savedAdmin, { message: 'Admin created' });
   }
 
-  findAll(q: PageQueryDto) {
-    const page = Number(q.page ?? 1);
-    const limit = Number(q.limit ?? 20);
-    let res = [...this.admins];
+//   async findAll() {
+//   const admins = await this.adminRepository.find();
+//   return this.ok(admins);
+// }
+ async findActive(q: PageQueryDto, isActive: string) {
+  const page = Number(q.page) || 1;
+  const limit = Number(q.limit) || 20;
+  const skip = (page - 1) * limit;
 
-    if (q.search) {
-      const s = q.search.toLowerCase();
-      res = res.filter(a => a.name.toLowerCase().includes(s) || a.email.toLowerCase().includes(s));
-    }
-    if (q.role) res = res.filter(a => a.role === q.role);
-    if (q.active === 'true' || q.active === 'false') {
-      const flag = q.active === 'true';
-      res = res.filter(a => a.isActive === flag);
-    }
+  const [admins, total] = await this.adminRepository.findAndCount({
+    where: {
+      isActive: isActive === 'true' ? true : false,
+    },
+   
+    skip,
+    take: limit,
+    order: { createdAt: 'DESC' },
+  });
 
-    const total = res.length;
-    const data = res.slice((page - 1) * limit, page * limit);
-    return this.ok(data, { page, limit, total });
-  }
-
-  findOne(id: string) {
-    const item = this
-    return this.ok(item ?? null);
-  }
-
- findOne2(id: string) {
-
- const  {createdAt}= this.admins.find(a => a.id === id) || {createdAt: null};
- const {updatedAt}= this.admins.find(a => a.id === id) || {updatedAt: null};
-//   //console.log(item); 
-  return this.ok({createdAt},{updatedAt});
-     
+  return this.ok(admins, {
+    page,
+    limit,
+    total,
+    message: `Admins retrieved successfully`,
+  });
 }
 
-  replace(id: string, dto: CreateAdminDto) {
-    const idx = this.admins.findIndex(a => a.id === id);
+
+
+  async findOne(id: string) {
+    const item = await this.adminRepository.findOne({ where: { id } });
+    return this.ok(item ?? null);
+  }
+  
+
+
+  
+
+  async replace(id: string, dto: CreateAdminDto) {
+    const existingAdmin = await this.adminRepository.findOne({ where: { id } });
     const now = new Date();
-    const base: Admin = {
-      id,
-      email: dto.email,
-      name: dto.name,
-      role: dto.role,
-      profileName: dto.profileName ?? (idx >= 0 ? this.admins[idx].profileName : ''),// newly added for profile
-      isActive: true,
-      createdAt: idx >= 0 ? this.admins[idx].createdAt : now,
-      updatedAt: now,
-    };
-    if (idx >= 0) this.admins[idx] = base; else this.admins.push(base);
-    this.audits.push({ id: 'log_' + Date.now(), type: 'replace', adminId: id, at: now });
-    return this.ok(base, { message: 'Admin replaced' });
+
+    if (existingAdmin) {
+      Object.assign(existingAdmin, {
+        email: dto.email,
+        name: dto.name,
+        nid: dto.nid,
+        phone: dto.phone,
+        role: dto.role,
+        profileName: dto.profileName ?? existingAdmin.profileName,
+        updatedAt: now,
+      });
+
+      const updatedAdmin = await this.adminRepository.save(existingAdmin);
+      this.audits.push({
+        id: 'log_' + Date.now(),
+        type: 'replace',
+        adminId: id,
+        at: now
+      });
+
+      return this.ok(updatedAdmin, { message: 'Admin replaced' });
+    } else {
+      const newAdmin = this.adminRepository.create({
+        id,
+        email: dto.email,
+        name: dto.name,
+        nid: dto.nid,
+        phone: dto.phone,
+        role: dto.role,
+        profileName: dto.profileName ?? '',
+        isActive: true,
+      });
+
+      const savedAdmin = await this.adminRepository.save(newAdmin);
+      this.audits.push({
+        id: 'log_' + Date.now(),
+        type: 'replace',
+        adminId: id,
+        at: now
+      });
+
+      return this.ok(savedAdmin, { message: 'Admin replaced' });
+    }
   }
 
-  update(id: string, dto: UpdateAdminDto) {
-    const item = this.admins.find(a => a.id === id);
+  async update(id: string, dto: UpdateAdminDto) {
+    const item = await this.adminRepository.findOne({ where: { id } });
     if (!item) return this.ok(null, { message: 'Not found' });
 
-     const patch = { ...dto } as any;
+    const patch = { ...dto };
     if (Object.prototype.hasOwnProperty.call(dto, 'profileName')) {
-    patch.profileName = dto.profileName ?? item.profileName;
+      patch.profileName = dto.profileName ?? item.profileName;
     }
 
-    Object.assign(item, dto, { updatedAt: new Date() });
-    this.audits.push({ id: 'log_' + Date.now(), type: 'update', adminId: id, at: new Date() });
-    return this.ok(item, { message: 'Admin updated' });
+    Object.assign(item, patch, { updatedAt: new Date() });
+    const updatedAdmin = await this.adminRepository.save(item);
+
+    this.audits.push({
+      id: 'log_' + Date.now(),
+      type: 'update',
+      adminId: id,
+      at: new Date()
+    });
+
+    return this.ok(updatedAdmin, { message: 'Admin updated' });
   }
 
-  remove(id: string) {
-    const before = this.admins.length;
-    this.admins = this.admins.filter(a => a.id !== id);
-    this.audits.push({ id: 'log_' + Date.now(), type: 'delete', adminId: id, at: new Date() });
-    return this.ok({ removed: before - this.admins.length }, { message: 'Admin deleted' });
+  // Remove a user from the system based on their id
+  async remove(id: string) {
+    const result = await this.adminRepository.delete(id);
+    this.audits.push({
+      id: 'log_' + Date.now(),
+      type: 'delete',
+      adminId: id,
+      at: new Date()
+    });
+
+    return this.ok(
+      { removed: result.affected },
+      { message: 'Admin deleted' }
+    );
   }
 
-  updateRole(id: string, dto: UpdateRoleDto) {
-    const item = this.admins.find(a => a.id === id);
+  async updateRole(id: string, dto: UpdateRoleDto) {
+    const item = await this.adminRepository.findOne({ where: { id } });
     if (!item) return this.ok(null, { message: 'Not found' });
 
     item.role = dto.role;
     item.updatedAt = new Date();
+
+    const updatedAdmin = await this.adminRepository.save(item);
+
     this.audits.push({
       id: 'log_' + Date.now(),
       type: 'role-change',
@@ -137,7 +186,8 @@ export class AdminService {
       detail: dto.reason,
       at: new Date(),
     });
-    return this.ok(item, { message: 'Role updated' });
+
+    return this.ok(updatedAdmin, { message: 'Role updated' });
   }
 
   getAuditLogs(q: AuditQueryDto) {
@@ -147,4 +197,69 @@ export class AdminService {
     if (q.to) res = res.filter(l => new Date(l.at) <= new Date(q.to!));
     return this.ok(res, { count: res.length });
   }
+
+
+  // 2. Modify the phone number of an existing user
+  async updatePhone(id: string, dto:UpdatePhoneDto) {
+    const result = await this.adminRepository.update(id, { phone: dto.phone, updatedAt: new Date() });
+
+    if (result.affected === 0) {
+      return this.ok(null, { message: 'Admin not found' });
+    }
+
+    const updatedAdmin = await this.adminRepository.findOne({ where: { id } });
+    this.audits.push({
+      id: 'log_' + Date.now(),
+      type: 'phone-update',
+      adminId: id,
+      at: new Date(),
+    });
+
+    return this.ok(updatedAdmin, { message: 'Phone number updated' });
+  }
+
+  //admin search by id
+async search(id: string) {
+  const admins = await this.adminRepository.find({
+     where: { 
+     
+    id: Like(`%${id}%`)}, 
+    select: ['id', 'name'],
+   
+
+  }); 
+  return this.ok(admins);
+
+}
+
+// //NUll names admin fetch
+private Success(data: any, extra: Record<string, any> = {}) {
+    return { success: true, ...extra, data };
+  }
+
+async findAdminsWithNullName(query: GetNullNamesDto) {
+  const page = query.page || 1;
+  const limit = query.limit || 10;
+  const skip = (page - 1) * limit;
+
+  const [admins, total] = await this.adminRepository.findAndCount({
+    where: {
+      name:IsNull(),   // <-- ONLY THIS NEEDED
+    },
+    skip,
+    take: limit,
+  });
+
+  return this.Success(admins, {
+    page,
+    limit,
+    total,
+    message: `Admins with null names retrieved successfully`,
+  });
+}
+
+
+
+
+
 }

@@ -9,18 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 
 @Module({
-  imports: [AdminModule, SellerModule, BuyerModule, TypeOrmModule.forRoot(
-    {
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'DBweb012@',
-      database: 'toortaja',
-      autoLoadEntities: true,
-      synchronize: true,
-    }),
-  ],
+  imports: [AdminModule, SellerModule, BuyerModule, GuestModule],
   controllers: [AppController],
   providers: [AppService],
 })
