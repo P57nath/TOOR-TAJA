@@ -5,7 +5,7 @@ export class PageQueryDto {
   @IsOptional() @IsInt({ message: 'limit must be int' }) @Min(20) limit?: number = 20;
   @IsOptional() @IsString() search?: string;
   @IsOptional() @IsString() role?: string;         
-  @IsOptional() @IsBooleanString() active?: string; // "true" | "false"
+  @IsOptional() @IsBooleanString() isActive?: string; // "true" | "false"
 }
 
 export class AuditQueryDto {

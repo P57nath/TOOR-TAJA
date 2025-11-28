@@ -9,9 +9,9 @@ export class CreateAdminDto {
   email: string;
 
  // @IsString({ message: 'Name must be a string' })
-  @Matches(/^[A-Za-z\s]+$/, { message: 'Name can only contain alphabets' }) 
-  @IsNotEmpty()
-  name: string;
+ // @Matches(/^[A-Za-z\s]+$/, { message: 'Name can only contain alphabets' }) 
+ 
+  name: string ;
    
   @IsString()
   @Matches(/^(\d{10}|\d{13}|\d{17})$/, { message: 'Invalid NID' })
@@ -21,11 +21,14 @@ export class CreateAdminDto {
     message: 'role must be superadmin | manager | support',
   })
   role: Role;
+  
   @IsNotEmpty()
   @Matches(/^01\d{9}$/, {
   message: 'Phone number must start with 01 and be exactly 11 digits long',
 })
   phone: number;
+
+
   @IsOptional() @IsString()
    profileName?: string;
   

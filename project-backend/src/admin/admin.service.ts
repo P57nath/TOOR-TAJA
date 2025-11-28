@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository } from 'typeorm';
+import { Like, Repository,IsNull, And, Not } from 'typeorm';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { AuditQueryDto, PageQueryDto } from './dto/query.dto';
 import { Admin } from './entities/admin.entity';
 import { Role } from './enums/role';
-
+import { UpdatePhoneDto } from './dto/update-phone.dto';
+import { GetNullNamesDto } from './dto/getNullNames.dto';
 @Injectable()
 export class AdminService {
   constructor(
@@ -45,61 +46,43 @@ export class AdminService {
     return this.ok(savedAdmin, { message: 'Admin created' });
   }
 
-  async findAll(q: PageQueryDto) {
+//   async findAll() {
+//   const admins = await this.adminRepository.find();
+//   return this.ok(admins);
+// }
+ async findActive(q: PageQueryDto, isActive: string) {
+  const page = Number(q.page) || 1;
+  const limit = Number(q.limit) || 20;
+  const skip = (page - 1) * limit;
 
-    const page = Number(q.page ?? 1);
-    const limit = Number(q.limit ?? 20);
+  const [admins, total] = await this.adminRepository.findAndCount({
+    where: {
+      isActive: isActive === 'true' ? true : false,
+    },
+   
+    skip,
+    take: limit,
+    order: { createdAt: 'DESC' },
+  });
 
-    // Build where conditions
-    const where: any = {};
+  return this.ok(admins, {
+    page,
+    limit,
+    total,
+    message: `Admins retrieved successfully`,
+  });
+}
 
-    if (q.role) {
-      where.role = q.role;
-    }
-
-    if (q.active === 'true' || q.active === 'false') {
-      where.isActive = q.active === 'true';
-    }
-
-    // Handle search with OR conditions for name and email
-    if (q.search) {
-      const search = q.search.toLowerCase();
-      const [data, total] = await this.adminRepository.findAndCount({
-        where: [
-          { ...where, name: Like(`%${search}%`) },
-          { ...where, email: Like(`%${search}%`) }
-        ],
-        skip: (page - 1) * limit,
-        take: limit,
-      });
-      return this.ok(data, { page, limit, total });
-    }
-
-    // Without search
-    const [data, total] = await this.adminRepository.findAndCount({
-      where,
-      skip: (page - 1) * limit,
-      take: limit,
-    });
-
-    return this.ok(data, { page, limit, total });
-  }
 
 
   async findOne(id: string) {
     const item = await this.adminRepository.findOne({ where: { id } });
     return this.ok(item ?? null);
   }
+  
 
-  async findDates(id: string) {
-    const admin = await this.adminRepository.findOne({
-      where: { id },
-      select: ['nid', 'profileName']
-    });
 
-    const { nid, profileName } = admin || { nid: null, profileName: null };
-    return this.ok({ nid, profileName });
-  }
+  
 
   async replace(id: string, dto: CreateAdminDto) {
     const existingAdmin = await this.adminRepository.findOne({ where: { id } });
@@ -215,16 +198,10 @@ export class AdminService {
     return this.ok(res, { count: res.length });
   }
 
-  // ========== REQUESTED DB OPERATIONS ==========
-
-  // 1. Create a user (already implemented above in create() method)
 
   // 2. Modify the phone number of an existing user
-  async updatePhone(id: string, phone: number) {
-    const result = await this.adminRepository.update(id, {
-      phone,
-      updatedAt: new Date()
-    });
+  async updatePhone(id: string, dto:UpdatePhoneDto) {
+    const result = await this.adminRepository.update(id, { phone: dto.phone, updatedAt: new Date() });
 
     if (result.affected === 0) {
       return this.ok(null, { message: 'Admin not found' });
@@ -241,14 +218,48 @@ export class AdminService {
     return this.ok(updatedAdmin, { message: 'Phone number updated' });
   }
 
-  // 3. Retrieve users with null values in the full name column
- async findAdminsWithNullName() {
+  //admin search by id
+async search(id: string) {
   const admins = await this.adminRepository.find({
-    where: { name: '' }
-  });
+     where: { 
+     
+    id: Like(`%${id}%`)}, 
+    select: ['id', 'name'],
+   
 
-  return this.ok(admins, { count: admins.length });
+  }); 
+  return this.ok(admins);
+
 }
 
-  // 4. Remove a user from the system based on their id (already implemented above in remove() method)
+// //NUll names admin fetch
+private Success(data: any, extra: Record<string, any> = {}) {
+    return { success: true, ...extra, data };
+  }
+
+async findAdminsWithNullName(query: GetNullNamesDto) {
+  const page = query.page || 1;
+  const limit = query.limit || 10;
+  const skip = (page - 1) * limit;
+
+  const [admins, total] = await this.adminRepository.findAndCount({
+    where: {
+      name:IsNull(),   // <-- ONLY THIS NEEDED
+    },
+    skip,
+    take: limit,
+  });
+
+  return this.Success(admins, {
+    page,
+    limit,
+    total,
+    message: `Admins with null names retrieved successfully`,
+  });
+}
+
+
+
+
+
 }
