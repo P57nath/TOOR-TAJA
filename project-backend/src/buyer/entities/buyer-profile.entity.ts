@@ -1,4 +1,5 @@
-import { Entity, PrimaryColumn, Column, BeforeInsert } from "typeorm";
+import { Admin } from "src/admin/entities/admin.entity";
+import { Entity, PrimaryColumn, Column, BeforeInsert, ManyToOne } from "typeorm";
 import { v4 as uuidv4 } from 'uuid';
 
 @Entity('buyers')
@@ -29,6 +30,12 @@ export class BuyerProfile {
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
+
+
+
+  // ⭐ MANY BUYERS BELONG TO ONE ADMIN
+  @ManyToOne(() => Admin, (admin) => admin.buyers, { onDelete: 'SET NULL', nullable: true })
+  admin: Admin;
 
   @BeforeInsert()
   generateBuyerId() {

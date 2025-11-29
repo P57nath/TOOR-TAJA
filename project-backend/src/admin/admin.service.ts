@@ -9,11 +9,14 @@ import { Admin } from './entities/admin.entity';
 import { Role } from './enums/role';
 import { UpdatePhoneDto } from './dto/update-phone.dto';
 import { GetNullNamesDto } from './dto/getNullNames.dto';
+import { BuyerProfile } from 'src/buyer/entities/buyer-profile.entity';
 @Injectable()
 export class AdminService {
   constructor(
     @InjectRepository(Admin)
     private adminRepository: Repository<Admin>,
+    @InjectRepository(BuyerProfile)
+    private buyerRepository: Repository<any>,
   ) { }
 
   private audits: any[] = [];
@@ -259,7 +262,25 @@ async findAdminsWithNullName(query: GetNullNamesDto) {
 }
 
 
+async assignBuyer(adminId: string, buyerId: string) {
+  const admin = await this.adminRepository.findOne({ where: { id: adminId } });
+  const buyer = await this.buyerRepository.findOne({ where: { buyerId } });
 
+  if (!admin || !buyer) {
+    return { success: false, message: 'Admin or Buyer not found' };
+  }
+
+  buyer.admin = admin;
+  await this.buyerRepository.save(buyer);
+
+  return { success: true, message: 'Buyer assigned to Admin', data: buyer };
+}
+
+async getBuyers(adminId: string) {
+  return this.buyerRepository.find({
+    where: { admin: { id: adminId } },
+  });
+}
 
 
 }

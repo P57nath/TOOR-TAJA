@@ -151,4 +151,19 @@ replace(
     return this.adminService.search(id);
   }
 
+
+  @Post(':adminId/assign-buyer/:buyerId')
+assignBuyer(
+  @Param('adminId') adminId: string,
+  @Param('buyerId') buyerId: string,
+) {
+  return this.adminService.assignBuyer(adminId, buyerId);
+}
+
+@Get(':id/buyers')
+getBuyers(@Param('id') id: string) {
+  return this.adminService.getBuyers(id);
+}
+
+
 }
