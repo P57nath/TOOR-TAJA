@@ -5,8 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   BeforeInsert,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
+import { Seller } from './seller.entity';
 
 @Entity('products') 
 export class Product {
@@ -44,4 +47,9 @@ export class Product {
 
   @UpdateDateColumn() 
   updatedAt: Date;
+
+  // Many-to-One relationship with Seller
+  @ManyToOne(() => Seller, seller => seller.products)
+  @JoinColumn({ name: 'sellerId' }) // This links sellerId column to Seller's primary key
+  seller: Seller;
 }
