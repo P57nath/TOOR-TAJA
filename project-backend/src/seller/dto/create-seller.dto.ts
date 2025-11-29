@@ -5,7 +5,9 @@ import {
   Matches,
   IsIn,
   IsNumberString,
-  MaxLength
+  MaxLength,
+  IsOptional,
+  IsEnum
 } from 'class-validator';
 
 export class CreateSellerDto {
@@ -42,4 +44,10 @@ export class CreateSellerDto {
   
   @IsNumberString()
   phoneNumber: string;
+
+  @IsOptional()
+  @IsEnum(['active', 'inactive'])
+  isActive?: 'active' | 'inactive';
+
+
 }

@@ -4,8 +4,10 @@ import { Role } from '../enums/role';
 import { BuyerProfile } from 'src/buyer/entities/buyer-profile.entity';
 @Entity()
 export class Admin {
-@PrimaryColumn()
+  @PrimaryColumn()
   id: string;
+  @Column()
+  password: string;
   @Column({unique : true})
   email: string;
   @Column({name:'full_name', type:'varchar',nullable:true})
@@ -14,8 +16,8 @@ export class Admin {
   phone: number;
   @Column({type:'varchar',unique:true})
   nid: string;
-  @Column({default:true})
-  isActive: boolean;
+  @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })
+  isActive: 'active' | 'inactive' = 'active';
   @Column({type:'enum', enum: Role, default: Role.Support})
   role: Role;
   @Column({name:'profile_name', type:'varchar', nullable:true})

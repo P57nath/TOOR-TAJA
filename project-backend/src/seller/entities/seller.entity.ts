@@ -32,8 +32,8 @@ import { Product } from './product.entity';
     @Column({ type: 'varchar', length: 150 })
     fullName: string;
   
-    @Column({ type: 'boolean', default: false })
-    isActive: boolean; 
+    @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })
+    isActive: 'active' | 'inactive' = 'active';
   
     @Column({ unique: true })
     email: string;

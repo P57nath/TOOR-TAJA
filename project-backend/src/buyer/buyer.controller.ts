@@ -1,4 +1,7 @@
-import { Body, Controller, DefaultValuePipe, Delete, Get, Header, Param, ParseIntPipe, Patch, Post, Put, Query, Res, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Delete, Get, Header, Param, ParseIntPipe, Patch, Post, Put, Query, Res, UploadedFile, UseInterceptors, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/roles.decorator';
 import { BuyerService } from './buyer.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
@@ -15,15 +18,17 @@ import { UpdateBuyerDto } from './dto/buyerProfileDtos/update-buyer.dto';
 
 @Controller('buyer')
 @UsePipes(new ValidationPipe({ transform: true }))
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('buyer')
 export class BuyerController {
   constructor(private readonly buyerService: BuyerService) { }
 
-  // Post /buyer -> create buyer
+  // // Post /buyer -> create buyer
 
-  @Post()
-  createBuyer(@Body() dto: BuyerProfileDto) {
-    return this.buyerService.createBuyer(dto);
-  }
+  // @Post()
+  // createBuyer(@Body() dto: BuyerProfileDto) {
+  //   return this.buyerService.createBuyer(dto);
+  // }
   //GET -> get all profiles
   @Get()
   getAllBuyerProfiles() {

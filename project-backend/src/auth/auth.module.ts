@@ -1,0 +1,26 @@
+import { Module } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { BuyerProfile } from 'src/buyer/entities/buyer-profile.entity';
+import { Seller } from 'src/seller/entities/seller.entity';
+import { Admin } from 'src/admin/entities/admin.entity';
+import { jwtConstants } from './constants';
+import { JwtStrategy } from './jwt.strategy';
+
+@Module({
+  imports: [
+    PassportModule,
+    JwtModule.register({
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: jwtConstants.expiresIn as any },
+    }),
+    TypeOrmModule.forFeature([BuyerProfile, Seller, Admin]),
+  ],
+  providers: [AuthService, JwtStrategy],
+  controllers: [AuthController],
+  exports: [AuthService],
+})
+export class AuthModule {}

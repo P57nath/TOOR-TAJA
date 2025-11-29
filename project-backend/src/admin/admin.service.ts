@@ -25,56 +25,56 @@ export class AdminService {
     return { success: true, ...extra, data };
   }
 
-  // Create a user
-  async create(dto: CreateAdminDto) {
-    const admin = this.adminRepository.create({
-      email: dto.email,
-      name: dto.name,
-      nid: dto.nid.trim(),
-      phone: dto.phone,
-      role: dto.role,
-      profileName: dto.profileName ?? '',
-      isActive: true,
-    });
+  // // Create a user
+  // async create(dto: CreateAdminDto) {
+  //   const admin = this.adminRepository.create({
+  //     email: dto.email,
+  //     name: dto.name,
+  //     nid: dto.nid.trim(),
+  //     phone: dto.phone,
+  //     role: dto.role,
+  //     profileName: dto.profileName ?? '',
+  //     isActive: true,
+  //   });
 
-    const savedAdmin = await this.adminRepository.save(admin);
+  //   const savedAdmin = await this.adminRepository.save(admin);
 
-    this.audits.push({
-      id: 'log_' + Date.now(),
-      type: 'create',
-      adminId: savedAdmin.id,
-      at: new Date()
-    });
+  //   this.audits.push({
+  //     id: 'log_' + Date.now(),
+  //     type: 'create',
+  //     adminId: savedAdmin.id,
+  //     at: new Date()
+  //   });
 
-    return this.ok(savedAdmin, { message: 'Admin created' });
-  }
+  //   return this.ok(savedAdmin, { message: 'Admin created' });
+  // }
 
 //   async findAll() {
 //   const admins = await this.adminRepository.find();
 //   return this.ok(admins);
 // }
- async findActive(q: PageQueryDto, isActive: string) {
-  const page = Number(q.page) || 1;
-  const limit = Number(q.limit) || 20;
-  const skip = (page - 1) * limit;
+//  async findActive(q: PageQueryDto, isActive: string) {
+//   const page = Number(q.page) || 1;
+//   const limit = Number(q.limit) || 20;
+//   const skip = (page - 1) * limit;
 
-  const [admins, total] = await this.adminRepository.findAndCount({
-    where: {
-      isActive: isActive === 'true' ? true : false,
-    },
+//   const [admins, total] = await this.adminRepository.findAndCount({
+//     where: {
+//       isActive: isActive === 'true' ? true : false,
+//     },
    
-    skip,
-    take: limit,
-    order: { createdAt: 'DESC' },
-  });
+//     skip,
+//     take: limit,
+//     order: { createdAt: 'DESC' },
+//   });
 
-  return this.ok(admins, {
-    page,
-    limit,
-    total,
-    message: `Admins retrieved successfully`,
-  });
-}
+//   return this.ok(admins, {
+//     page,
+//     limit,
+//     total,
+//     message: `Admins retrieved successfully`,
+//   });
+// }
 
 
 
@@ -87,53 +87,53 @@ export class AdminService {
 
   
 
-  async replace(id: string, dto: CreateAdminDto) {
-    const existingAdmin = await this.adminRepository.findOne({ where: { id } });
-    const now = new Date();
+  // async replace(id: string, dto: CreateAdminDto) {
+  //   const existingAdmin = await this.adminRepository.findOne({ where: { id } });
+  //   const now = new Date();
 
-    if (existingAdmin) {
-      Object.assign(existingAdmin, {
-        email: dto.email,
-        name: dto.name,
-        nid: dto.nid,
-        phone: dto.phone,
-        role: dto.role,
-        profileName: dto.profileName ?? existingAdmin.profileName,
-        updatedAt: now,
-      });
+  //   if (existingAdmin) {
+  //     Object.assign(existingAdmin, {
+  //       email: dto.email,
+  //       name: dto.name,
+  //       nid: dto.nid,
+  //       phone: dto.phone,
+  //       role: dto.role,
+  //       profileName: dto.profileName ?? existingAdmin.profileName,
+  //       updatedAt: now,
+  //     });
 
-      const updatedAdmin = await this.adminRepository.save(existingAdmin);
-      this.audits.push({
-        id: 'log_' + Date.now(),
-        type: 'replace',
-        adminId: id,
-        at: now
-      });
+  //     const updatedAdmin = await this.adminRepository.save(existingAdmin);
+  //     this.audits.push({
+  //       id: 'log_' + Date.now(),
+  //       type: 'replace',
+  //       adminId: id,
+  //       at: now
+  //     });
 
-      return this.ok(updatedAdmin, { message: 'Admin replaced' });
-    } else {
-      const newAdmin = this.adminRepository.create({
-        id,
-        email: dto.email,
-        name: dto.name,
-        nid: dto.nid,
-        phone: dto.phone,
-        role: dto.role,
-        profileName: dto.profileName ?? '',
-        isActive: true,
-      });
+  //     return this.ok(updatedAdmin, { message: 'Admin replaced' });
+  //   } else {
+  //     const newAdmin = this.adminRepository.create({
+  //       id,
+  //       email: dto.email,
+  //       name: dto.name,
+  //       nid: dto.nid,
+  //       phone: dto.phone,
+  //       role: dto.role,
+  //       profileName: dto.profileName ?? '',
+  //       isActive: true,
+  //     });
 
-      const savedAdmin = await this.adminRepository.save(newAdmin);
-      this.audits.push({
-        id: 'log_' + Date.now(),
-        type: 'replace',
-        adminId: id,
-        at: now
-      });
+  //     const savedAdmin = await this.adminRepository.save(newAdmin);
+  //     this.audits.push({
+  //       id: 'log_' + Date.now(),
+  //       type: 'replace',
+  //       adminId: id,
+  //       at: now
+  //     });
 
-      return this.ok(savedAdmin, { message: 'Admin replaced' });
-    }
-  }
+  //     return this.ok(savedAdmin, { message: 'Admin replaced' });
+  //   }
+  // }
 
   async update(id: string, dto: UpdateAdminDto) {
     const item = await this.adminRepository.findOne({ where: { id } });

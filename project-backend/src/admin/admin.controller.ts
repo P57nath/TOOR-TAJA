@@ -24,39 +24,39 @@ export class AdminController {
   constructor(private readonly adminService: AdminService) { }
 
   // (1) POST /admin/users  -> create admin
-  @Post('users')
-  @UseInterceptors(
-    FileInterceptor('profileFile', {
-      fileFilter: (req, file, cb) => {
-        // Check file type
-        if (!file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
-          return cb(new Error('Only image files are allowed!'), false);
-        }
+  // @Post('users')
+  // @UseInterceptors(
+  //   FileInterceptor('profileFile', {
+  //     fileFilter: (req, file, cb) => {
+  //       // Check file type
+  //       if (!file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
+  //         return cb(new Error('Only image files are allowed!'), false);
+  //       }
 
 
-        if (file.size > 2_000_000) {
-          return cb(new Error('File size too large! Maximum is 2MB'), false);
-        }
+  //       if (file.size > 2_000_000) {
+  //         return cb(new Error('File size too large! Maximum is 2MB'), false);
+  //       }
 
-        cb(null, true);
-      },
-      storage: diskStorage({
-        destination: './upload',
-        filename: (_req, file, cb) => cb(null, Date.now() + file.originalname),
-      }),
-      limits: {
-        fileSize: 2_000_000, // 2 MB
-      },
-    }),
-  )
+  //       cb(null, true);
+  //     },
+  //     storage: diskStorage({
+  //       destination: './upload',
+  //       filename: (_req, file, cb) => cb(null, Date.now() + file.originalname),
+  //     }),
+  //     limits: {
+  //       fileSize: 2_000_000, // 2 MB
+  //     },
+  //   }),
+  // )
 
-  create(
-    @Body() dto: CreateAdminDto,
-    @UploadedFile() file?: Express.Multer.File,
-  ) {
-    dto.profileName = file?.filename;
-    return this.adminService.create(dto);
-  }
+  // create(
+  //   @Body() dto: CreateAdminDto,
+  //   @UploadedFile() file?: Express.Multer.File,
+  // ) {
+  //   dto.profileName = file?.filename;
+  //   return this.adminService.create(dto);
+  // }
   // Retrieve users with null values in the full name column
   @Get('users/nullnames')
   findAdminsWithNullName(@Query() query: GetNullNamesDto) {
@@ -69,13 +69,13 @@ export class AdminController {
   }
 
   // (2) GET /admin/users-> list admins
-  @Get('users/:isActive')
-  findActive(
-    @Param('isActive') isActive: string,
-    @Query() q: PageQueryDto,
-  ) {
-    return this.adminService.findActive(q, isActive);
-  }
+  // @Get('users/:isActive')
+  // findActive(
+  //   @Param('isActive') isActive: string,
+  //   @Query() q: PageQueryDto,
+  // ) {
+  //   return this.adminService.findActive(q, isActive);
+  // }
 
   // (3) GET /admin/users/:id  -> get one admin
   @Get('users/:id')
@@ -102,14 +102,14 @@ export class AdminController {
     cb(null, true);
   }
 }))
-replace(
-  @Param('id') id: string,
-  @Body() dto: CreateAdminDto,
-  @UploadedFile() file?: Express.Multer.File
-) {
-  if (file) dto.profileName = file.filename;
-  return this.adminService.replace(id, dto);
-}
+// replace(
+//   @Param('id') id: string,
+//   @Body() dto: CreateAdminDto,
+//   @UploadedFile() file?: Express.Multer.File
+// ) {
+//   if (file) dto.profileName = file.filename;
+//   return this.adminService.replace(id, dto);
+// }
 
   // (5) PATCH /admin/users/:id  -> partial update (Body + Param)
   @Patch('users/:id')
