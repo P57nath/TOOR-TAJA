@@ -286,3 +286,36 @@ json
     }
   ]
 }
+
+\
+User logs in → System checks credentials + role → Issues JWT token with role embedded
+                    ↓
+            User makes request with token
+                    ↓
+        Guard validates token + checks role
+                    ↓
+        If valid & authorized → proceed | If not → 403 Forbidden
+
+
+
+
+
+1. Buyer calls /auth/login (email, password)
+   ↓
+2. Backend validates credentials in buyer table
+   ↓
+3. If valid → Create JWT token with: {buyerId, email, role: 'buyer'}
+   ↓
+4. Send token back to buyer
+   ↓
+5. Buyer stores token (localStorage/cookie)
+   ↓
+6. Buyer calls /buyer/:buyerId/cart with Authorization header: "Bearer <token>"
+   ↓
+7. Guard intercepts → Validates token signature + expiry
+   ↓
+8. Guard extracts buyerId from token
+   ↓
+9. If all good → Request proceeds with user attached to request object
+   ↓
+10. If token invalid/expired → 401 Unauthorized 

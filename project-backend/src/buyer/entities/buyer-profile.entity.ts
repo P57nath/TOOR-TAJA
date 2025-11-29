@@ -31,9 +31,7 @@ export class BuyerProfile {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 
-
-
-  // ⭐ MANY BUYERS BELONG TO ONE ADMIN
+  // MANY BUYERS BELONG TO ONE ADMIN
   @ManyToOne(() => Admin, (admin) => admin.buyers, { onDelete: 'SET NULL', nullable: true })
   admin: Admin;
 
@@ -45,24 +43,3 @@ export class BuyerProfile {
     }
   }
 }
-
-// Alternative ID generation strategies:
-// @BeforeInsert()
-//   async generateBuyerId() {
-//     if (!this.buyerId) {
-//       // Get the next ID from database
-//       const lastBuyer = await BuyerProfile.find({
-//         order: { buyerId: "DESC" },
-//         take: 1
-//       });
-      
-//       if (lastBuyer.length > 0) {
-//         const lastId = lastBuyer[0].buyerId;
-//         const lastNumber = parseInt(lastId.split('_')[1]);
-//         this.buyerId = `b_${lastNumber + 1}`;
-//       } else {
-//         this.buyerId = 'b_1';
-//       }
-//     }
-//   }
-
