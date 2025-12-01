@@ -9,6 +9,7 @@ import { Seller } from 'src/seller/entities/seller.entity';
 import { Admin } from 'src/admin/entities/admin.entity';
 import { jwtConstants } from './constants';
 import { JwtStrategy } from './jwt.strategy';
+import { MailerModuleCustom } from 'src/mailer/mailer.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { JwtStrategy } from './jwt.strategy';
       signOptions: { expiresIn: jwtConstants.expiresIn as any },
     }),
     TypeOrmModule.forFeature([BuyerProfile, Seller, Admin]),
+    MailerModuleCustom,
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],

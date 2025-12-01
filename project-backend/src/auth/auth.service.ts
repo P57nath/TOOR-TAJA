@@ -6,6 +6,7 @@ import { BuyerProfile } from 'src/buyer/entities/buyer-profile.entity';
 import { CreateBuyerDto } from 'src/buyer/dto/buyerProfileDtos/create-buyer.dto';
 import { Seller } from 'src/seller/entities/seller.entity';
 import { Admin } from 'src/admin/entities/admin.entity';
+import { MailerService } from 'src/mailer/mailer.service';
 import * as bcrypt from 'bcrypt';
 import { profile } from 'console';
 import { Profile } from 'passport';
@@ -17,6 +18,7 @@ import { IsPhoneNumber } from 'class-validator';
 export class AuthService {
     constructor(
         private readonly jwtService: JwtService,
+        private readonly mailerService: MailerService,
         @InjectRepository(BuyerProfile)
         private buyerRepo: Repository<BuyerProfile>,
         @InjectRepository(Seller)
@@ -88,6 +90,10 @@ export class AuthService {
         } as any);
 
         const saved = (await this.buyerRepo.save(toSave)) as unknown as BuyerProfile;
+        
+        // Send welcome email
+        await this.mailerService.sendWelcomeEmail(saved.email, saved.name);
+        
         return { message: 'Buyer registered', buyerId: saved.buyerId, email: saved.email };
     }
 
@@ -109,6 +115,10 @@ export class AuthService {
             isActive: dto.isActive,
         } as any);
         const saved = (await this.adminRepo.save(toSave)) as unknown as Admin;
+        
+        // Send admin credentials email
+        await this.mailerService.sendAdminCredentialsEmail(saved.email, saved.name, saved.id, dto.password);
+        
         return { message: 'Admin registered', adminId: saved.id, email: saved.email };
     }
 
@@ -129,6 +139,10 @@ export class AuthService {
             gender: dto.gender,
         } as any);
         const saved = (await this.sellerRepo.save(toSave)) as unknown as Seller;
+        
+        // Send seller activation email
+        await this.mailerService.sendSellerActivationEmail(saved.email, saved.fullName);
+        
         return { message: 'Seller registered', sellerId: saved.id, email: saved.email };
     }
 }

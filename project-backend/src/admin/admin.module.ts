@@ -7,12 +7,10 @@ import { AdminProfile } from './entities/admin-profile.entity';
 
 
 import { BuyerProfile } from 'src/buyer/entities/buyer-profile.entity';
-import { AdminProfileController } from './admin-profile.controller';
-import { AdminProfileService } from './admin-profile.service';
 @Module({
-   imports: [TypeOrmModule.forFeature([Admin, BuyerProfile,AdminProfile,AdminProfile])],
-  controllers: [AdminController,AdminProfileController],
-  providers: [AdminService, AdminProfileService],
+   imports: [TypeOrmModule.forFeature([Admin, BuyerProfile])],
+  controllers: [AdminController],
+  providers: [AdminService],
   exports: [AdminService],
 })
 export class AdminModule {}

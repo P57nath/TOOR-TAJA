@@ -31,10 +31,10 @@ export class SellerController {
   }
 
 
-  @Post('register')
-  createSeller(@Body() dto: CreateSellerDto) {
-    return this.sellerService.createUser(dto);
-  }
+  // @Post('register')
+  // createSeller(@Body() dto: CreateSellerDto) {
+  //   return this.sellerService.createUser(dto);
+  // }
 
 
   @Get('search')

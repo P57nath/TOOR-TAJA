@@ -9,6 +9,7 @@ import { CreateSellerDto } from './dto/create-seller.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
+import { MailerService } from 'src/mailer/mailer.service';
 
 @Injectable()
 export class SellerService {
@@ -18,6 +19,7 @@ export class SellerService {
 
     @InjectRepository(Product)
     private productRepo: Repository<Product>,
+    private readonly mailerService: MailerService,
   ) {}
 
   private ok(data: any, extra: Record<string, any> = {}) {
@@ -27,26 +29,26 @@ export class SellerService {
 
 
   
-  async createUser(dto: CreateSellerDto) {
+  // async createUser(dto: CreateSellerDto) {
     
-    const seller = this.sellerRepo.create(dto);
-    await this.sellerRepo.save(seller);
+  //   const seller = this.sellerRepo.create(dto);
+  //   await this.sellerRepo.save(seller);
 
     
-    return this.ok(
-      {
-        id: seller.id,
-        username: seller.username,
-        fullName: seller.fullName,
-        isActive: seller.isActive,
-        email: seller.email,
-        gender: seller.gender,
-        phoneNumber: seller.phoneNumber,
-        createdAt: seller.createdAt,
-      },
-      { message: 'User created successfully' },
-    );
-  }
+  //   return this.ok(
+  //     {
+  //       id: seller.id,
+  //       username: seller.username,
+  //       fullName: seller.fullName,
+  //       isActive: seller.isActive,
+  //       email: seller.email,
+  //       gender: seller.gender,
+  //       phoneNumber: seller.phoneNumber,
+  //       createdAt: seller.createdAt,
+  //     },
+  //     { message: 'User created successfully' },
+  //   );
+  // }
 
   // Get seller with all their products
   async getSellerWithProducts(sellerId: string): Promise<Seller> {
@@ -182,5 +184,34 @@ export class SellerService {
     }
 
     return this.ok(null, { message: `Product ID '${id}' successfully removed` });
+  }
+
+  async notifySellerOfLowStock(sellerEmail: string, sellerName: string, productName: string, currentStock: number) {
+    const html = `
+      <h1>Low Stock Alert</h1>
+      <p>Hi ${sellerName},</p>
+      <p>The following product has low stock:</p>
+      <p><strong>Product Name:</strong> ${productName}</p>
+      <p><strong>Current Stock:</strong> ${currentStock}</p>
+      <p>Please consider restocking this item.</p>
+      <br/>
+      <p>TOOR-TAJA Team</p>
+    `;
+    return await this.mailerService.sendGenericEmail(sellerEmail, 'Low Stock Alert', html);
+  }
+
+  async notifySellerOfNewOrder(sellerEmail: string, sellerName: string, orderId: string, productCount: number, totalAmount: number) {
+    const html = `
+      <h1>New Order Received</h1>
+      <p>Hi ${sellerName},</p>
+      <p>A new order has been placed on TOOR-TAJA!</p>
+      <p><strong>Order ID:</strong> ${orderId}</p>
+      <p><strong>Number of Products:</strong> ${productCount}</p>
+      <p><strong>Total Amount:</strong> $${totalAmount}</p>
+      <p>Please prepare the order for shipment.</p>
+      <br/>
+      <p>Thank you,<br/>TOOR-TAJA Team</p>
+    `;
+    return await this.mailerService.sendGenericEmail(sellerEmail, `New Order - ${orderId}`, html);
   }
 }
