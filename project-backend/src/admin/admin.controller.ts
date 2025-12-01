@@ -4,6 +4,7 @@ import {
   UseInterceptors,
   ValidationPipe,
   ParseDatePipe,
+  UseGuards,
 
 }
   from '@nestjs/common';
@@ -16,10 +17,12 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterError, diskStorage } from 'multer';
 import { UpdatePhoneDto } from './dto/update-phone.dto';
 import { GetNullNamesDto } from './dto/getNullNames.dto';
+import { RoleGuard } from 'src/auth/raw-jwt.guard';
 
 
 @Controller('admin')
 @UsePipes(new ValidationPipe({ transform: true }))
+@UseGuards(RoleGuard('admin'))
 export class AdminController {
   constructor(private readonly adminService: AdminService) { }
 

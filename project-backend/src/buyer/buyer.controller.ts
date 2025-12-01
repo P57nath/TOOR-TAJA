@@ -1,7 +1,5 @@
 import { Body, Controller, DefaultValuePipe, Delete, Get, Header, Param, ParseIntPipe, Patch, Post, Put, Query, Res, UploadedFile, UseInterceptors, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { RolesGuard } from 'src/auth/roles.guard';
-import { Roles } from 'src/auth/roles.decorator';
+import { RoleGuard } from 'src/auth/raw-jwt.guard';
 import { BuyerService } from './buyer.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
@@ -18,8 +16,7 @@ import { UpdateBuyerDto } from './dto/buyerProfileDtos/update-buyer.dto';
 
 @Controller('buyer')
 @UsePipes(new ValidationPipe({ transform: true }))
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('buyer')
+@UseGuards(RoleGuard('buyer'))
 export class BuyerController {
   constructor(private readonly buyerService: BuyerService) { }
 

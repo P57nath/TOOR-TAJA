@@ -20,6 +20,7 @@ export class AuthController {
     @Post('register/buyer')
     async registerBuyer(@Body() dto: CreateBuyerDto) {
         return this.authService.registerBuyer(dto);
+        // return await this.mailerService.sendWelcomeEmail(data.email, data.name);
     }
 
     
