@@ -227,12 +227,10 @@ async search(id: string) {
      where: { 
      
     id: Like(`%${id}%`)}, 
-    select: ['id', 'name'],
-   
+    select: ['id', 'name'],  
 
   }); 
   return this.ok(admins);
-
 }
 
 // //NUll names admin fetch
