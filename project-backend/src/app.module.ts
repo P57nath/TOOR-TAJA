@@ -7,7 +7,7 @@ import { GuestModule } from './guest/guest.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-//import { PrismaModule } from './prisma/prisma.module';
+
 
 @Module({
   imports: [AdminModule, SellerModule , BuyerModule, GuestModule,SellerModule,TypeOrmModule.forRoot(
@@ -16,8 +16,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       host: 'localhost',
       port: 5432,
       username: 'postgres',
-      password: '',
-      database: '',
+      password: 'mahir12345',
+      database: 'mahirDB',
       autoLoadEntities: true,
       synchronize: true,
     }),

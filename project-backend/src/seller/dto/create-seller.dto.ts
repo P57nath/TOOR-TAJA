@@ -25,7 +25,7 @@ export class CreateSellerDto {
   
   @IsString()
   @IsNotEmpty()
-  @Matches(/@aiub\.edu$/, { message: 'Email must belong to the aiub.edu domain.' })
+  @Matches(/@gmail\.com$/, { message: 'Email must belong to the aiub.edu domain.' })
   email: string;
 
   

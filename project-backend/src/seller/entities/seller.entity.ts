@@ -6,9 +6,11 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     OneToMany,
+    OneToOne,
   } from 'typeorm';
     import { v4 as uuidv4 } from 'uuid';
 import { Product } from './product.entity';
+import { SellerProfile } from './seller-profile.entity'; // Import Profile
   
   @Entity('sellers')
   export class Seller {
@@ -56,7 +58,11 @@ import { Product } from './product.entity';
     @UpdateDateColumn()
     updatedAt: Date;
 
-    // One-to-Many relationship with Product
+    
     @OneToMany(() => Product, product => product.seller)
     products: Product[];
+
+   
+  @OneToOne(() => SellerProfile, (profile) => profile.seller)
+  profile: SellerProfile;
   }

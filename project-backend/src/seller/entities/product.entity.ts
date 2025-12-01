@@ -48,8 +48,8 @@ export class Product {
   @UpdateDateColumn() 
   updatedAt: Date;
 
-  // Many-to-One relationship with Seller
+  
   @ManyToOne(() => Seller, seller => seller.products)
-  @JoinColumn({ name: 'sellerId' }) // This links sellerId column to Seller's primary key
+  @JoinColumn({ name: 'sellerId' }) 
   seller: Seller;
 }
