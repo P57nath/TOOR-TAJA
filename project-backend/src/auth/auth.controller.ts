@@ -27,7 +27,6 @@ export class AuthController {
     @UseInterceptors(
         FileInterceptor('profileFile', {
           fileFilter: (req, file, cb) => {
-            // Check file type
             if (!file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
               return cb(new Error('Only image files are allowed!'), false);
             }

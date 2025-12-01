@@ -10,6 +10,7 @@ import { Role } from './enums/role';
 import { UpdatePhoneDto } from './dto/update-phone.dto';
 import { GetNullNamesDto } from './dto/getNullNames.dto';
 import { BuyerProfile } from 'src/buyer/entities/buyer-profile.entity';
+import { MailerService } from 'src/mailer/mailer.service';
 @Injectable()
 export class AdminService {
   constructor(
@@ -17,6 +18,7 @@ export class AdminService {
     private adminRepository: Repository<Admin>,
     @InjectRepository(BuyerProfile)
     private buyerRepository: Repository<any>,
+    private readonly mailerService: MailerService,
   ) { }
 
   private audits: any[] = [];
@@ -282,5 +284,20 @@ async getBuyers(adminId: string) {
   });
 }
 
+async sendShipmentEmailToBuyer(buyerEmail: string, buyerName: string, orderId: string, trackingNumber: string) {
+  return await this.mailerService.sendShipmentNotificationEmail(buyerEmail, buyerName, orderId, trackingNumber);
+}
+
+async notifyAllBuyersOfPromotion(subject: string, message: string) {
+  const buyers = await this.buyerRepository.find();
+  const results: any[] = [];
+  
+  for (const buyer of buyers) {
+    const result = await this.mailerService.sendGenericEmail(buyer.email, subject, message);
+    results.push(result);
+  }
+  
+  return { success: true, message: `Promotion email sent to ${results.length} buyers`, results };
+}
 
 }
