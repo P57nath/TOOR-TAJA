@@ -22,7 +22,7 @@ import { GetNullNamesDto } from './dto/getNullNames.dto';
 @UsePipes(new ValidationPipe({ transform: true }))
 export class AdminController {
   constructor(private readonly adminService: AdminService) { }
-
+ 
   // (1) POST /admin/users  -> create admin
   // @Post('users')
   // @UseInterceptors(

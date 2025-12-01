@@ -264,7 +264,8 @@ async findAdminsWithNullName(query: GetNullNamesDto) {
 
 async assignBuyer(adminId: string, buyerId: string) {
   const admin = await this.adminRepository.findOne({ where: { id: adminId } });
-  const buyer = await this.buyerRepository.findOne({ where: { buyerId } });
+ const buyer = await this.buyerRepository.findOne({ where: { id:buyerId } });
+
 
   if (!admin || !buyer) {
     return { success: false, message: 'Admin or Buyer not found' };
