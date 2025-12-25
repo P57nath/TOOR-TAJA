@@ -38,7 +38,7 @@ export const registerSellerSchema = z.object({
 });
 
 export const registerAdminSchema = z.object({
-  email: z.string().regex(/^[A-Za-z0-9._%+-]+@([A-Za-z0-9.-]+\.)?(xyz)$/i),
+  email: z.string().email(),
   password: z.string().min(1),
   name: z.string().min(1),
   nid: z.string().min(10),

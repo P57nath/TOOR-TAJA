@@ -408,13 +408,13 @@ export default function RegisterPage() {
                       className="text-sm font-semibold text-emerald-900"
                       htmlFor="admin-email"
                     >
-                      Email address (.xyz)
+                      Email address
                     </label>
                     <input
                       id="admin-email"
                       name="adminEmail"
                       type="email"
-                      placeholder="admin@company.xyz"
+                      placeholder="admin@company.com"
                       className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
                       required
                     />

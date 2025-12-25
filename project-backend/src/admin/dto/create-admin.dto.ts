@@ -3,10 +3,7 @@ import { Role } from '../enums/role';
 
 export class CreateAdminDto {
 
-  //@IsEmail({}, { message: 'Must be a valid & filled email address' })
-  @Matches(/^[A-Za-z0-9._%+-]+@([A-Za-z0-9.-]+\.)?(xyz)$/i, {
-    message: 'Email must be filled and end with .xyz domain',
-  })
+  @IsEmail({}, { message: 'Must be a valid & filled email address' })
   email: string;
 
   @IsNotEmpty({ message: 'Password must not be empty' })

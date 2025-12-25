@@ -28,58 +28,147 @@ export default async function BuyerDashboard() {
     profilesResult.status === "fulfilled" ? profilesResult.value : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-emerald-50 to-sky-50 text-zinc-900">
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-16 sm:py-20">
-        <header className="space-y-3">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">
-            Buyer dashboard
-          </p>
-          <h1 className="text-3xl font-semibold text-emerald-950 sm:text-4xl">
-            Welcome back, {session.displayName}
-          </h1>
-          <p className="max-w-2xl text-emerald-900/70">
-            Live data is pulled from the buyer endpoints using your JWT.
-          </p>
-        </header>
+    <div className="min-h-screen bg-amber-50 text-zinc-900">
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-10 sm:py-14">
+        <nav className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-amber-200 bg-white shadow-sm"
+              type="button"
+            >
+              <span className="text-xl">≡</span>
+            </button>
+            <a className="text-2xl font-semibold text-amber-900" href="/">
+              Toor-Taja
+            </a>
+          </div>
+          <div className="flex items-center gap-3 text-sm font-semibold">
+            <span className="rounded-full bg-white px-4 py-2 text-amber-700 shadow-sm">
+              Dhaka
+            </span>
+            <a
+              className="rounded-full bg-amber-500 px-4 py-2 text-white shadow-sm"
+              href="/login"
+            >
+              Login
+            </a>
+          </div>
+        </nav>
+
+        <section className="grid gap-10 rounded-3xl bg-amber-200/80 p-8 shadow-sm md:grid-cols-[1.3fr_0.7fr]">
+          <div className="space-y-6">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-800">
+              Buyer dashboard
+            </p>
+            <h1 className="text-4xl font-semibold leading-tight text-amber-950">
+              Grocery delivered at your doorstep
+            </h1>
+            <p className="text-base text-amber-900/80">
+              Welcome back, {session.displayName}. Track fresh picks, manage
+              your cart, and reorder favorites in one place.
+            </p>
+            <div className="relative">
+              <input
+                className="w-full rounded-2xl border border-amber-100 bg-white px-4 py-3 text-sm shadow-sm focus:border-amber-400 focus:outline-none"
+                placeholder="Search for products (e.g. eggs, milk, potato)"
+                type="search"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-400">
+                🔍
+              </span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[
+                "+15000 products to shop from",
+                "Pay after receiving products",
+                "Get delivery within 1 hour",
+                "Get offers that save money",
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-2xl border border-amber-100 bg-white/80 px-4 py-3 text-sm font-semibold text-amber-900 shadow-sm"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="grid gap-4">
+            <div className="aspect-[4/3] rounded-3xl bg-white shadow-sm" />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="aspect-square rounded-2xl bg-white shadow-sm" />
+              <div className="aspect-square rounded-2xl bg-white shadow-sm" />
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-amber-950">
+              Popular categories
+            </h2>
+            <a className="text-sm font-semibold text-amber-700" href="#">
+              View all
+            </a>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              "Fresh produce",
+              "Staples",
+              "Snacks",
+              "Household",
+            ].map((item) => (
+              <div
+                key={item}
+                className="rounded-2xl border border-amber-200 bg-white p-4 shadow-sm"
+              >
+                <p className="text-sm font-semibold text-amber-900">{item}</p>
+                <p className="mt-2 text-xs text-amber-900/70">
+                  Curated daily picks.
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <section className="grid gap-6 md:grid-cols-3">
-          <div className="rounded-2xl border border-emerald-100 bg-white/80 p-6 shadow-sm backdrop-blur">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
+          <div className="rounded-2xl border border-amber-200 bg-white p-6 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
               Profile
             </p>
-            <p className="mt-3 text-sm text-emerald-900/70">
+            <p className="mt-3 text-sm text-amber-900/70">
               Buyer ID: {buyerId || "Not available"}
             </p>
-            <p className="text-sm text-emerald-900/70">
+            <p className="text-sm text-amber-900/70">
               Email: {session.email || "Not available"}
             </p>
           </div>
-          <div className="rounded-2xl border border-emerald-100 bg-white/80 p-6 shadow-sm backdrop-blur">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
+          <div className="rounded-2xl border border-amber-200 bg-white p-6 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
               Cart snapshot
             </p>
-            <pre className="mt-3 max-h-52 overflow-auto whitespace-pre-wrap text-xs text-emerald-900/70">
+            <pre className="mt-3 max-h-52 overflow-auto whitespace-pre-wrap text-xs text-amber-900/70">
               {formatData(cart)}
             </pre>
           </div>
-          <div className="rounded-2xl border border-emerald-100 bg-white/80 p-6 shadow-sm backdrop-blur">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
+          <div className="rounded-2xl border border-amber-200 bg-white p-6 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
               Recent orders
             </p>
-            <pre className="mt-3 max-h-52 overflow-auto whitespace-pre-wrap text-xs text-emerald-900/70">
+            <pre className="mt-3 max-h-52 overflow-auto whitespace-pre-wrap text-xs text-amber-900/70">
               {formatData(orders)}
             </pre>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-sky-100 bg-white/80 p-8 shadow-sm backdrop-blur">
-          <h2 className="text-xl font-semibold text-emerald-950">
+        <section className="rounded-3xl border border-amber-200 bg-white p-8 shadow-sm">
+          <h2 className="text-xl font-semibold text-amber-950">
             Buyer profiles (admin view)
           </h2>
-          <p className="mt-2 text-sm text-emerald-900/70">
+          <p className="mt-2 text-sm text-amber-900/70">
             Loaded from the buyer list endpoint for validation.
           </p>
-          <pre className="mt-4 max-h-72 overflow-auto whitespace-pre-wrap text-xs text-emerald-900/70">
+          <pre className="mt-4 max-h-72 overflow-auto whitespace-pre-wrap text-xs text-amber-900/70">
             {formatData(profiles)}
           </pre>
         </section>
