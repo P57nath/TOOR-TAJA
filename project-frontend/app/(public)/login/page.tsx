@@ -1,6 +1,35 @@
+"use client";
+
+import { login } from "@/lib/auth-client";
+import { useState } from "react";
+
 export const dynamic = "force-static";
 
 export default function LoginPage() {
+  const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
+  const [message, setMessage] = useState("");
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setStatus("loading");
+    setMessage("");
+
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
+
+    try {
+      await login({ email, password });
+      setStatus("success");
+      setMessage("Signed in successfully. Token issued by the server.");
+    } catch (error) {
+      setStatus("idle");
+      setMessage(
+        error instanceof Error ? error.message : "Unable to sign in right now.",
+      );
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-emerald-50 to-sky-50 text-zinc-900">
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-16 sm:py-20">
@@ -18,7 +47,10 @@ export default function LoginPage() {
         </header>
 
         <section className="grid gap-8 md:grid-cols-[1.1fr_0.9fr]">
-          <form className="rounded-3xl border border-emerald-100 bg-white/80 p-8 shadow-sm backdrop-blur">
+          <form
+            className="rounded-3xl border border-emerald-100 bg-white/80 p-8 shadow-sm backdrop-blur"
+            onSubmit={handleSubmit}
+          >
             <div className="space-y-6">
               <div>
                 <label
@@ -33,6 +65,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="you@example.com"
                   className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                  required
                 />
               </div>
               <div>
@@ -46,8 +79,9 @@ export default function LoginPage() {
                   id="login-password"
                   name="password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="********"
                   className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                  required
                 />
               </div>
               <div className="flex items-center justify-between text-sm text-emerald-900/70">
@@ -59,11 +93,23 @@ export default function LoginPage() {
                   Forgot password?
                 </button>
               </div>
+              {message ? (
+                <p
+                  className={`text-sm ${
+                    status === "success"
+                      ? "text-emerald-700"
+                      : "text-rose-600"
+                  }`}
+                >
+                  {message}
+                </p>
+              ) : null}
               <button
                 className="inline-flex w-full items-center justify-center rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
-                type="button"
+                type="submit"
+                disabled={status === "loading"}
               >
-                Sign in
+                {status === "loading" ? "Signing in..." : "Sign in"}
               </button>
             </div>
           </form>
