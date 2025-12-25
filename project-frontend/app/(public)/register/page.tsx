@@ -88,16 +88,26 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-emerald-50 to-sky-50 text-zinc-900">
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-16 sm:py-20">
-        <header className="space-y-3">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">
-            Join the marketplace
-          </p>
-          <h1 className="text-3xl font-semibold text-emerald-950 sm:text-4xl">
-            Create your Toor-Taja account
-          </h1>
+        <header className="space-y-4 rounded-3xl border border-emerald-100 bg-white/80 p-8 shadow-sm backdrop-blur">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="space-y-2">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">
+                Join the marketplace
+              </p>
+              <h1 className="text-3xl font-semibold text-emerald-950 sm:text-4xl">
+                Create your Toor-Taja account
+              </h1>
+            </div>
+            <a
+              className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-white/70 px-5 py-2 text-sm font-semibold text-emerald-900 shadow-sm transition hover:border-emerald-400"
+              href="/"
+            >
+              Back to home
+            </a>
+          </div>
           <p className="max-w-2xl text-emerald-900/70">
             Choose a role to register. Buyer and seller details follow the
-            backend rules you shared. Authentication will be added later.
+            backend rules you shared.
           </p>
         </header>
 
@@ -107,6 +117,9 @@ export default function RegisterPage() {
             onSubmit={handleSubmit}
           >
             <div className="space-y-6">
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-sm text-emerald-900/70">
+                Select a role to see the required fields for that account type.
+              </div>
               <div>
                 <label
                   className="text-sm font-semibold text-emerald-900"

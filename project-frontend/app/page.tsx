@@ -4,6 +4,37 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-emerald-50 to-sky-50 text-zinc-900">
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-6 py-16 sm:py-20">
+        <nav className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-emerald-100 bg-white/80 px-6 py-4 shadow-sm backdrop-blur">
+          <a className="text-lg font-semibold text-emerald-950" href="/">
+            Toor-Taja
+          </a>
+          <div className="flex flex-wrap items-center gap-3 text-sm font-semibold">
+            <a
+              className="text-emerald-900/80 transition hover:text-emerald-700"
+              href="#categories"
+            >
+              Categories
+            </a>
+            <a
+              className="text-emerald-900/80 transition hover:text-emerald-700"
+              href="#value"
+            >
+              Why us
+            </a>
+            <a
+              className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-white/70 px-5 py-2 text-emerald-900 shadow-sm transition hover:border-emerald-400"
+              href="/login"
+            >
+              Log in
+            </a>
+            <a
+              className="inline-flex items-center justify-center rounded-full bg-emerald-700 px-5 py-2 text-white shadow-sm transition hover:bg-emerald-600"
+              href="/register"
+            >
+              Register
+            </a>
+          </div>
+        </nav>
         <HeroSection />
         <FeaturedSection />
         <ValueSection />

@@ -1,13 +1,50 @@
 "use client";
 
 import { login } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export const dynamic = "force-static";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
   const [message, setMessage] = useState("");
+
+  function parseJwtPayload(token: string) {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    try {
+      const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+      const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+      const json = atob(padded);
+      return JSON.parse(json) as { role?: string; sub?: string; email?: string };
+    } catch {
+      return null;
+    }
+  }
+
+  function setSessionCookies(token: string) {
+    const payload = parseJwtPayload(token);
+    const role = payload?.role ?? "guest";
+    const userId = payload?.sub ?? "";
+    const email = payload?.email ?? "";
+
+    document.cookie = `access_token=${encodeURIComponent(
+      token,
+    )}; path=/; max-age=86400`;
+    document.cookie = `role=${encodeURIComponent(
+      role,
+    )}; path=/; max-age=86400`;
+    document.cookie = `user_id=${encodeURIComponent(
+      userId,
+    )}; path=/; max-age=86400`;
+    document.cookie = `user_email=${encodeURIComponent(
+      email,
+    )}; path=/; max-age=86400`;
+
+    return { role };
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -19,9 +56,17 @@ export default function LoginPage() {
     const password = String(formData.get("password") ?? "");
 
     try {
-      await login({ email, password });
+      const response = await login({ email, password });
+      const session = setSessionCookies(response.access_token);
       setStatus("success");
       setMessage("Signed in successfully. Token issued by the server.");
+      if (session.role === "buyer") {
+        router.push("/buyer");
+      } else if (session.role === "seller") {
+        router.push("/seller");
+      } else if (session.role === "admin") {
+        router.push("/admin");
+      }
     } catch (error) {
       setStatus("idle");
       setMessage(
@@ -33,16 +78,25 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-emerald-50 to-sky-50 text-zinc-900">
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-16 sm:py-20">
-        <header className="space-y-3">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">
-            Welcome back
-          </p>
-          <h1 className="text-3xl font-semibold text-emerald-950 sm:text-4xl">
-            Sign in to Toor-Taja
-          </h1>
+        <header className="space-y-4 rounded-3xl border border-emerald-100 bg-white/80 p-8 shadow-sm backdrop-blur">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="space-y-2">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">
+                Welcome back
+              </p>
+              <h1 className="text-3xl font-semibold text-emerald-950 sm:text-4xl">
+                Sign in to Toor-Taja
+              </h1>
+            </div>
+            <a
+              className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-white/70 px-5 py-2 text-sm font-semibold text-emerald-900 shadow-sm transition hover:border-emerald-400"
+              href="/"
+            >
+              Back to home
+            </a>
+          </div>
           <p className="max-w-2xl text-emerald-900/70">
             Access saved carts, track orders, and follow your favorite sellers.
-            Authentication will be wired in Phase 3.
           </p>
         </header>
 
@@ -52,6 +106,10 @@ export default function LoginPage() {
             onSubmit={handleSubmit}
           >
             <div className="space-y-6">
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-sm text-emerald-900/70">
+                Sign in with your buyer, seller, or admin email to access role
+                dashboards.
+              </div>
               <div>
                 <label
                   className="text-sm font-semibold text-emerald-900"
