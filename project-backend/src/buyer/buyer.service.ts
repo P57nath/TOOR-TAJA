@@ -391,6 +391,22 @@ export class BuyerService {
     return this.Success(orders, { page, limit, total });
   }
 
+  async listBuyers(orderId: string) {
+  
+    const orderItems = await this.orderItemRepository.find({
+      where: { orderId },
+      relations: ['order'],
+    });
+
+    const buyers = orderItems.map(item => item.order.buyerId);
+
+    const total = await this.orderItemRepository.count({
+      where: { orderId },
+    });
+
+    return this.Success(buyers, {total });
+  }
+
   // --- Document operations ---
   async uploadDocument(buyerId: string, dto: any, file: Express.Multer.File) {
     const documentInfo = {

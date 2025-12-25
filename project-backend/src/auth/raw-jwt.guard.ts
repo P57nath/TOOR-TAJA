@@ -21,7 +21,7 @@ export const RoleGuard = (requiredRole?: string): any => {
     async canActivate(context: ExecutionContext): Promise<boolean> {
       const req = context.switchToHttp().getRequest<Request>();
       const token = getTokenFromRequest(req);
-      if (!token) throw new UnauthorizedException('Missing authorization token');
+      if (!token) throw new UnauthorizedException('Invalid Acccess');
 
       try {
         const payload = this.jwtService.verify(token, { secret: process.env.JWT_SECRET });

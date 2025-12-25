@@ -104,23 +104,8 @@ export class BuyerController {
     return this.buyerService.createOrder(dto);
   }
 
-  // 8) GET /buyer/:buyerId/orders/:id -> order detail
 
-  @Get(':buyerId/orders/:id')
-  getOrder(@Param('buyerId') buyerId: string, @Param('id') id: string) {
-    return this.buyerService.getOrder(buyerId, id);
-  }
-
-  // 9) GET /buyer/:buyerId/orders?status=&page=&limit= -> order list
-
-  @Get(':buyerId/orders')
-  listOrders(
-    @Param('buyerId') buyerId: string,
-    @Query('page', ParseIntPipe)
-    @Query('limit', ParseIntPipe) q: OrderQueryDto
-  ) {
-    return this.buyerService.listOrders(buyerId, q);
-  }
+  
 
   // 10) POST /buyer/:buyerId/documents -> upload document
 
@@ -173,6 +158,39 @@ export class BuyerController {
   ) {
     return this.buyerService.downloadDocument(buyerId, filename, res);
   }
+
+
+  // 9) GET /buyer/:buyerId/orders?status=&page=&limit= -> order list
+
+
+  // 8) GET /buyer/:buyerId/orders/:id -> order detail
+
+  @Get(':buyerId/orders/:id')
+  getOrder(@Param('buyerId') buyerId: string, @Param('id') id: string) {
+    return this.buyerService.getOrder(buyerId, id);
+  }
+
+
+
+  @Get(':buyerId/orders')
+  listOrders(
+    @Param('buyerId') buyerId: string,
+    @Query('page', ParseIntPipe)
+    @Query('limit', ParseIntPipe) q: OrderQueryDto
+  ) {
+    return this.buyerService.listOrders(buyerId, q);
+  }
+
+  @Get(':orderId/buyer-orders')
+  listBuyers(
+    @Param('orderId') orderId: string,
+  ){
+    return this.buyerService.listBuyers(orderId);
+  }
+
+
+
+  
 
   
 }
