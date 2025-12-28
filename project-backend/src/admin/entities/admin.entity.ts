@@ -1,7 +1,8 @@
-import { BeforeInsert, Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
+import { BeforeInsert, Column, Entity, OneToMany, OneToOne, PrimaryColumn } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Role } from '../enums/role';
 import { BuyerProfile } from 'src/buyer/entities/buyer-profile.entity';
+import { AdminProfile } from './admin-profile.entity';
 @Entity()
 export class Admin {
   @PrimaryColumn()
@@ -30,6 +31,11 @@ export class Admin {
  //  ONE ADMIN HAS MANY BUYERS
   @OneToMany(() => BuyerProfile, (buyer) => buyer.admin)
   buyers: BuyerProfile[];
+
+  @OneToOne(() => AdminProfile, (profile) => profile.admin, {
+  cascade: true,
+ })
+  profile: AdminProfile;
 
  @BeforeInsert()
   generateAdminId() {
