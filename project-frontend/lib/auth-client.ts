@@ -1,11 +1,8 @@
 import axios, { type AxiosInstance } from "axios";
 import { z } from "zod";
 
-const apiBaseUrl =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5010";
-
 const client: AxiosInstance = axios.create({
-  baseURL: apiBaseUrl,
+  baseURL: "",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -85,8 +82,9 @@ export async function registerBuyer(
 ): Promise<RegisterBuyerResponse> {
   const validated = registerBuyerSchema.parse(payload);
   const response = await client.post<RegisterBuyerResponse>(
-    "/auth/register/buyer",
+    "/api/auth/register/buyer",
     validated,
+    { headers: { "Content-Type": "application/json" } },
   );
   return response.data;
 }
@@ -96,8 +94,9 @@ export async function registerSeller(
 ): Promise<RegisterSellerResponse> {
   const validated = registerSellerSchema.parse(payload);
   const response = await client.post<RegisterSellerResponse>(
-    "/auth/register/seller",
+    "/api/auth/register/seller",
     validated,
+    { headers: { "Content-Type": "application/json" } },
   );
   return response.data;
 }
@@ -121,9 +120,8 @@ export async function registerAdmin(
     formData.append("profileFile", profileFile);
   }
   const response = await client.post<RegisterAdminResponse>(
-    "/auth/register/admin",
+    "/api/auth/register/admin",
     formData,
-    { headers: { "Content-Type": "multipart/form-data" } },
   );
   return response.data;
 }

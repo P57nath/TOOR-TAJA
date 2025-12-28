@@ -1,6 +1,7 @@
 "use client";
 
-import { login } from "@/lib/auth-client";
+import { loginSchema } from "@/lib/auth-client";
+import axios from "axios";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -12,44 +13,6 @@ export default function LoginPage() {
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
   const [message, setMessage] = useState("");
 
-  function parseJwtPayload(token: string) {
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-    try {
-      const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-      const padded = base64.padEnd(
-        base64.length + ((4 - (base64.length % 4)) % 4),
-        "=",
-      );
-      const json = atob(padded);
-      return JSON.parse(json) as { role?: string; sub?: string; email?: string };
-    } catch {
-      return null;
-    }
-  }
-
-  function setSessionCookies(token: string) {
-    const payload = parseJwtPayload(token);
-    const role = payload?.role ?? "guest";
-    const userId = payload?.sub ?? "";
-    const email = payload?.email ?? "";
-
-    document.cookie = `access_token=${encodeURIComponent(
-      token,
-    )}; path=/; max-age=86400`;
-    document.cookie = `role=${encodeURIComponent(
-      role,
-    )}; path=/; max-age=86400`;
-    document.cookie = `user_id=${encodeURIComponent(
-      userId,
-    )}; path=/; max-age=86400`;
-    document.cookie = `user_email=${encodeURIComponent(
-      email,
-    )}; path=/; max-age=86400`;
-
-    return { role };
-  }
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("loading");
@@ -60,15 +23,21 @@ export default function LoginPage() {
     const password = String(formData.get("password") ?? "");
 
     try {
-      const response = await login({ email, password });
-      const session = setSessionCookies(response.access_token);
+      const payload = loginSchema.parse({ email, password });
+      const response = await axios.post<{ role: string }>(
+        "/api/auth/login",
+        payload,
+        {
+          headers: { "Content-Type": "application/json" },
+        },
+      );
       setStatus("success");
-      setMessage("Signed in successfully. Token issued by the server.");
-      if (session.role === "buyer") {
+      setMessage("Signed in successfully.");
+      if (response.data.role === "buyer") {
         router.push("/buyer");
-      } else if (session.role === "seller") {
+      } else if (response.data.role === "seller") {
         router.push("/seller");
-      } else if (session.role === "admin") {
+      } else if (response.data.role === "admin") {
         router.push("/admin");
       }
     } catch (error) {
