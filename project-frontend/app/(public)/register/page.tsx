@@ -1,6 +1,7 @@
 "use client";
 
 import { registerAdmin, registerBuyer, registerSeller } from "@/lib/auth-client";
+import Image from "next/image";
 import { useState } from "react";
 
 export const dynamic = "force-static";
@@ -87,42 +88,36 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-emerald-50 to-sky-50 text-zinc-900">
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-16 sm:py-20">
-        <header className="space-y-4 rounded-3xl border border-emerald-100 bg-white/80 p-8 shadow-sm backdrop-blur">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="space-y-2">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">
-                Join the marketplace
-              </p>
-              <h1 className="text-3xl font-semibold text-emerald-950 sm:text-4xl">
-                Create your Toor-Taja account
-              </h1>
-            </div>
-            <a
-              className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-white/70 px-5 py-2 text-sm font-semibold text-emerald-900 shadow-sm transition hover:border-emerald-400"
-              href="/"
-            >
-              Back to home
-            </a>
-          </div>
-          <p className="max-w-2xl text-emerald-900/70">
-            Choose a role to register. Buyer and seller details follow the
-            backend rules you shared.
-          </p>
-        </header>
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12 sm:py-16">
+        <section className="grid overflow-hidden rounded-3xl border border-emerald-100 bg-white/90 shadow-sm backdrop-blur md:grid-cols-[1.1fr_0.9fr]">
+          <aside className="relative min-h-[420px] overflow-hidden bg-emerald-100/80">
+            <Image
+              src="/register-illustration.jpg"
+              alt="Toor-Taja illustration"
+              fill
+              className="object-cover"
+              sizes="(min-width: 768px) 40vw, 100vw"
+            />
+          </aside>
 
-        <section className="grid gap-8 md:grid-cols-[1.1fr_0.9fr]">
-          <form
-            className="rounded-3xl border border-emerald-100 bg-white/80 p-8 shadow-sm backdrop-blur"
-            onSubmit={handleSubmit}
-          >
-            <div className="space-y-6">
-              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-sm text-emerald-900/70">
-                Select a role to see the required fields for that account type.
-              </div>
+          <div className="flex flex-col justify-center gap-6 p-10">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <Image
+                src="/file.svg"
+                width={36}
+                height={36}
+                alt="Toor-Taja logo"
+                className="h-9 w-9"
+              />
+              <h2 className="text-2xl font-semibold text-emerald-950">
+                ToorTaja
+              </h2>
+            </div>
+
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label
-                  className="text-sm font-semibold text-emerald-900"
+                  className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                   htmlFor="register-role-type"
                 >
                   Register as
@@ -130,7 +125,7 @@ export default function RegisterPage() {
                 <select
                   id="register-role-type"
                   name="roleType"
-                  className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                  className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                   value={role}
                   onChange={(event) =>
                     setRole(event.target.value as "admin" | "buyer" | "seller")
@@ -142,10 +137,10 @@ export default function RegisterPage() {
                 </select>
               </div>
               {role === "buyer" ? (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <div>
                     <label
-                      className="text-sm font-semibold text-emerald-900"
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                       htmlFor="buyer-name"
                     >
                       Full name
@@ -155,13 +150,13 @@ export default function RegisterPage() {
                       name="buyerName"
                       type="text"
                       placeholder="Buyer name"
-                      className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                      className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                       required
                     />
                   </div>
                   <div>
                     <label
-                      className="text-sm font-semibold text-emerald-900"
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                       htmlFor="buyer-email"
                     >
                       Email address
@@ -171,13 +166,13 @@ export default function RegisterPage() {
                       name="buyerEmail"
                       type="email"
                       placeholder="you@example.com"
-                      className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                      className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                       required
                     />
                   </div>
                   <div>
                     <label
-                      className="text-sm font-semibold text-emerald-900"
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                       htmlFor="buyer-password"
                     >
                       Password
@@ -187,14 +182,14 @@ export default function RegisterPage() {
                       name="buyerPassword"
                       type="password"
                       placeholder="Minimum 6 chars, 1 lowercase"
-                      className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                      className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                       required
                     />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label
-                        className="text-sm font-semibold text-emerald-900"
+                        className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                         htmlFor="buyer-phone"
                       >
                         Phone (optional)
@@ -204,12 +199,12 @@ export default function RegisterPage() {
                         name="buyerPhone"
                         type="tel"
                         placeholder="01XXXXXXXXX"
-                        className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                        className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                       />
                     </div>
                     <div>
                       <label
-                        className="text-sm font-semibold text-emerald-900"
+                        className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                         htmlFor="buyer-age"
                       >
                         Age (optional)
@@ -221,14 +216,14 @@ export default function RegisterPage() {
                         min={8}
                         max={120}
                         placeholder="18"
-                        className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                        className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                       />
                     </div>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label
-                        className="text-sm font-semibold text-emerald-900"
+                        className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                         htmlFor="buyer-status"
                       >
                         Status (optional)
@@ -236,7 +231,7 @@ export default function RegisterPage() {
                       <select
                         id="buyer-status"
                         name="buyerStatus"
-                        className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                        className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                         defaultValue=""
                       >
                         <option value="">Select</option>
@@ -246,7 +241,7 @@ export default function RegisterPage() {
                     </div>
                     <div>
                       <label
-                        className="text-sm font-semibold text-emerald-900"
+                        className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                         htmlFor="buyer-address"
                       >
                         Default address ID (optional)
@@ -256,7 +251,7 @@ export default function RegisterPage() {
                         name="buyerAddress"
                         type="text"
                         placeholder="Address ID"
-                        className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                        className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                       />
                     </div>
                   </div>
@@ -264,10 +259,10 @@ export default function RegisterPage() {
               ) : null}
 
               {role === "seller" ? (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <div>
                     <label
-                      className="text-sm font-semibold text-emerald-900"
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                       htmlFor="seller-username"
                     >
                       Username
@@ -277,13 +272,13 @@ export default function RegisterPage() {
                       name="sellerUsername"
                       type="text"
                       placeholder="seller123"
-                      className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                      className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                       required
                     />
                   </div>
                   <div>
                     <label
-                      className="text-sm font-semibold text-emerald-900"
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                       htmlFor="seller-full-name"
                     >
                       Full name
@@ -293,13 +288,13 @@ export default function RegisterPage() {
                       name="sellerFullName"
                       type="text"
                       placeholder="Seller full name"
-                      className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                      className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                       required
                     />
                   </div>
                   <div>
                     <label
-                      className="text-sm font-semibold text-emerald-900"
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                       htmlFor="seller-email"
                     >
                       Email address (@aiub.edu)
@@ -309,13 +304,13 @@ export default function RegisterPage() {
                       name="sellerEmail"
                       type="email"
                       placeholder="name@aiub.edu"
-                      className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                      className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                       required
                     />
                   </div>
                   <div>
                     <label
-                      className="text-sm font-semibold text-emerald-900"
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                       htmlFor="seller-password"
                     >
                       Password
@@ -325,14 +320,14 @@ export default function RegisterPage() {
                       name="sellerPassword"
                       type="password"
                       placeholder="Min 6 chars, 1 uppercase"
-                      className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                      className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                       required
                     />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label
-                        className="text-sm font-semibold text-emerald-900"
+                        className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                         htmlFor="seller-gender"
                       >
                         Gender
@@ -340,7 +335,7 @@ export default function RegisterPage() {
                       <select
                         id="seller-gender"
                         name="sellerGender"
-                        className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                        className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                         defaultValue="male"
                       >
                         <option value="male">Male</option>
@@ -349,7 +344,7 @@ export default function RegisterPage() {
                     </div>
                     <div>
                       <label
-                        className="text-sm font-semibold text-emerald-900"
+                        className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                         htmlFor="seller-phone"
                       >
                         Phone number
@@ -359,14 +354,14 @@ export default function RegisterPage() {
                         name="sellerPhone"
                         type="tel"
                         placeholder="Phone number"
-                        className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                        className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                         required
                       />
                     </div>
                   </div>
                   <div>
                     <label
-                      className="text-sm font-semibold text-emerald-900"
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                       htmlFor="seller-status"
                     >
                       Status (optional)
@@ -374,7 +369,7 @@ export default function RegisterPage() {
                     <select
                       id="seller-status"
                       name="sellerStatus"
-                      className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                      className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                       defaultValue=""
                     >
                       <option value="">Select</option>
@@ -386,10 +381,10 @@ export default function RegisterPage() {
               ) : null}
 
               {role === "admin" ? (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <div>
                     <label
-                      className="text-sm font-semibold text-emerald-900"
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                       htmlFor="admin-name"
                     >
                       Full name
@@ -399,13 +394,13 @@ export default function RegisterPage() {
                       name="adminName"
                       type="text"
                       placeholder="Full name"
-                      className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                      className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                       required
                     />
                   </div>
                   <div>
                     <label
-                      className="text-sm font-semibold text-emerald-900"
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                       htmlFor="admin-email"
                     >
                       Email address
@@ -415,13 +410,13 @@ export default function RegisterPage() {
                       name="adminEmail"
                       type="email"
                       placeholder="admin@company.com"
-                      className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                      className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                       required
                     />
                   </div>
                   <div>
                     <label
-                      className="text-sm font-semibold text-emerald-900"
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                       htmlFor="admin-password"
                     >
                       Password
@@ -431,13 +426,13 @@ export default function RegisterPage() {
                       name="adminPassword"
                       type="password"
                       placeholder="Create a secure password"
-                      className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                      className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                       required
                     />
                   </div>
                   <div>
                     <label
-                      className="text-sm font-semibold text-emerald-900"
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                       htmlFor="admin-nid"
                     >
                       NID
@@ -447,13 +442,13 @@ export default function RegisterPage() {
                       name="adminNid"
                       type="text"
                       placeholder="10, 13, or 17 digits"
-                      className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                      className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                       required
                     />
                   </div>
                   <div>
                     <label
-                      className="text-sm font-semibold text-emerald-900"
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                       htmlFor="admin-phone"
                     >
                       Phone number
@@ -463,14 +458,14 @@ export default function RegisterPage() {
                       name="adminPhone"
                       type="tel"
                       placeholder="01XXXXXXXXX"
-                      className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                      className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                       required
                     />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label
-                        className="text-sm font-semibold text-emerald-900"
+                        className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                         htmlFor="admin-role"
                       >
                         Admin role
@@ -478,7 +473,7 @@ export default function RegisterPage() {
                       <select
                         id="admin-role"
                         name="adminRole"
-                        className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                        className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                         defaultValue="manager"
                       >
                         <option value="superadmin">Superadmin</option>
@@ -488,7 +483,7 @@ export default function RegisterPage() {
                     </div>
                     <div>
                       <label
-                        className="text-sm font-semibold text-emerald-900"
+                        className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                         htmlFor="admin-status"
                       >
                         Status (optional)
@@ -496,7 +491,7 @@ export default function RegisterPage() {
                       <select
                         id="admin-status"
                         name="adminStatus"
-                        className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                        className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                         defaultValue=""
                       >
                         <option value="">Select</option>
@@ -507,7 +502,7 @@ export default function RegisterPage() {
                   </div>
                   <div>
                     <label
-                      className="text-sm font-semibold text-emerald-900"
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                       htmlFor="admin-profile"
                     >
                       Profile image (optional)
@@ -517,7 +512,7 @@ export default function RegisterPage() {
                       name="profileFile"
                       type="file"
                       accept="image/png,image/jpeg,image/jpg,image/webp"
-                      className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                      className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none"
                     />
                   </div>
                 </div>
@@ -544,34 +539,15 @@ export default function RegisterPage() {
                 By creating an account you agree to future Toor-Taja terms and
                 privacy policies.
               </p>
-            </div>
-          </form>
+            </form>
 
-          <aside className="space-y-6 rounded-3xl border border-amber-100 bg-white/70 p-8 shadow-sm backdrop-blur">
-            <div className="space-y-3">
-              <h2 className="text-xl font-semibold text-emerald-950">
-                Already have an account?
-              </h2>
-              <p className="text-sm text-emerald-900/70">
-                Return to sign in and continue shopping from your saved lists.
-              </p>
-              <a
-                className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-white/70 px-6 py-3 text-sm font-semibold text-emerald-900 shadow-sm transition hover:border-emerald-400"
-                href="/login"
-              >
+            <div className="text-center text-xs text-emerald-900/70">
+              Already have an account?{" "}
+              <a className="font-semibold text-emerald-700" href="/login">
                 Sign in
               </a>
             </div>
-            <div className="rounded-2xl border border-amber-100 bg-amber-50/70 p-5 text-sm text-emerald-900/70">
-              <p className="font-semibold text-emerald-950">
-                Marketplace benefits
-              </p>
-              <p className="mt-2">
-                Early access to new sellers, flexible delivery windows, and
-                curated weekly picks.
-              </p>
-            </div>
-          </aside>
+          </div>
         </section>
       </main>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { login } from "@/lib/auth-client";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -16,7 +17,10 @@ export default function LoginPage() {
     if (parts.length !== 3) return null;
     try {
       const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-      const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+      const padded = base64.padEnd(
+        base64.length + ((4 - (base64.length % 4)) % 4),
+        "=",
+      );
       const json = atob(padded);
       return JSON.parse(json) as { role?: string; sub?: string; email?: string };
     } catch {
@@ -77,42 +81,36 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-emerald-50 to-sky-50 text-zinc-900">
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-16 sm:py-20">
-        <header className="space-y-4 rounded-3xl border border-emerald-100 bg-white/80 p-8 shadow-sm backdrop-blur">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="space-y-2">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">
-                Welcome back
-              </p>
-              <h1 className="text-3xl font-semibold text-emerald-950 sm:text-4xl">
-                Sign in to Toor-Taja
-              </h1>
-            </div>
-            <a
-              className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-white/70 px-5 py-2 text-sm font-semibold text-emerald-900 shadow-sm transition hover:border-emerald-400"
-              href="/"
-            >
-              Back to home
-            </a>
-          </div>
-          <p className="max-w-2xl text-emerald-900/70">
-            Access saved carts, track orders, and follow your favorite sellers.
-          </p>
-        </header>
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12 sm:py-16">
+        <section className="grid overflow-hidden rounded-3xl border border-emerald-100 bg-white/90 shadow-sm backdrop-blur md:grid-cols-[1.1fr_0.9fr]">
+          <aside className="relative min-h-[420px] overflow-hidden bg-emerald-100/80">
+            <Image
+              src="/register-illustration.jpg"
+              alt="Toor-Taja illustration"
+              fill
+              className="object-cover"
+              sizes="(min-width: 768px) 40vw, 100vw"
+            />
+          </aside>
 
-        <section className="grid gap-8 md:grid-cols-[1.1fr_0.9fr]">
-          <form
-            className="rounded-3xl border border-emerald-100 bg-white/80 p-8 shadow-sm backdrop-blur"
-            onSubmit={handleSubmit}
-          >
-            <div className="space-y-6">
-              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-sm text-emerald-900/70">
-                Sign in with your buyer, seller, or admin email to access role
-                dashboards.
-              </div>
+          <div className="flex flex-col justify-center gap-6 p-10">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <Image
+                src="/file.svg"
+                width={36}
+                height={36}
+                alt="Toor-Taja logo"
+                className="h-9 w-9"
+              />
+              <h2 className="text-2xl font-semibold text-emerald-950">
+                ToorTaja
+              </h2>
+            </div>
+
+            <form className="space-y-5" onSubmit={handleSubmit}>
               <div>
                 <label
-                  className="text-sm font-semibold text-emerald-900"
+                  className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                   htmlFor="login-email"
                 >
                   Email address
@@ -122,13 +120,13 @@ export default function LoginPage() {
                   name="email"
                   type="email"
                   placeholder="you@example.com"
-                  className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                  className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                   required
                 />
               </div>
               <div>
                 <label
-                  className="text-sm font-semibold text-emerald-900"
+                  className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                   htmlFor="login-password"
                 >
                   Password
@@ -138,11 +136,11 @@ export default function LoginPage() {
                   name="password"
                   type="password"
                   placeholder="********"
-                  className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm text-emerald-950 shadow-sm focus:border-emerald-400 focus:outline-none"
+                  className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
                   required
                 />
               </div>
-              <div className="flex items-center justify-between text-sm text-emerald-900/70">
+              <div className="flex items-center justify-between text-xs text-emerald-900/70">
                 <span>Guest mode active</span>
                 <button
                   className="font-semibold text-emerald-700 hover:text-emerald-600"
@@ -169,35 +167,15 @@ export default function LoginPage() {
               >
                 {status === "loading" ? "Signing in..." : "Sign in"}
               </button>
-            </div>
-          </form>
+            </form>
 
-          <aside className="space-y-6 rounded-3xl border border-sky-100 bg-white/70 p-8 shadow-sm backdrop-blur">
-            <div className="space-y-3">
-              <h2 className="text-xl font-semibold text-emerald-950">
-                New to Toor-Taja?
-              </h2>
-              <p className="text-sm text-emerald-900/70">
-                Create an account to follow local sellers, save your favorites,
-                and speed through checkout.
-              </p>
-              <a
-                className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-white/70 px-6 py-3 text-sm font-semibold text-emerald-900 shadow-sm transition hover:border-emerald-400"
-                href="/register"
-              >
+            <div className="text-center text-xs text-emerald-900/70">
+              New here?{" "}
+              <a className="font-semibold text-emerald-700" href="/register">
                 Create account
               </a>
             </div>
-            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-5 text-sm text-emerald-900/70">
-              <p className="font-semibold text-emerald-950">
-                Why sign in later?
-              </p>
-              <p className="mt-2">
-                Upcoming features include delivery preferences, order history,
-                and seller messaging.
-              </p>
-            </div>
-          </aside>
+          </div>
         </section>
       </main>
     </div>
