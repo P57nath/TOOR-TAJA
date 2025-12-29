@@ -75,6 +75,10 @@ export class AdminService {
 
     profile.status = 'APPROVED';
     await this.sellerProfileRepository.save(profile);
+    if (profile.user && !profile.user.isActive) {
+      profile.user.isActive = true;
+      await this.userRepository.save(profile.user);
+    }
     await this.mailerService.sendSellerApprovedEmail(profile.user.email, profile.storeName);
     return this.ok(profile, { message: 'Seller approved' });
   }

@@ -39,7 +39,8 @@ export class AuthService {
     }
 
     async login(email: string, password: string) {
-        const user = await this.userRepo.findOne({ where: { email } });
+        const normalizedEmail = email.trim().toLowerCase();
+        const user = await this.userRepo.findOne({ where: { email: normalizedEmail } });
         if (!user) {
             throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
         }
@@ -57,7 +58,8 @@ export class AuthService {
     }
 
     async register(dto: RegisterDto) {
-        const existing = await this.userRepo.findOne({ where: { email: dto.email } });
+        const normalizedEmail = dto.email.trim().toLowerCase();
+        const existing = await this.userRepo.findOne({ where: { email: normalizedEmail } });
         if (existing) {
             throw new HttpException('Email already registered', HttpStatus.BAD_REQUEST);
         }
@@ -76,53 +78,76 @@ export class AuthService {
             throw new HttpException('Admin profile is required', HttpStatus.BAD_REQUEST);
         }
 
-        const hashed = await bcrypt.hash(dto.password, 10);
-        const user = this.userRepo.create({
-            email: dto.email,
-            passwordHash: hashed,
-            role: dto.role,
-            isActive: true,
+        const buyerProfileInput = dto.buyerProfile;
+        const sellerProfileInput = dto.sellerProfile;
+        const adminProfileInput = dto.adminProfile;
+
+        const result = await this.userRepo.manager.transaction(async (manager) => {
+            const hashed = await bcrypt.hash(dto.password, 10);
+            const userRepo = manager.getRepository(User);
+            const buyerRepo = manager.getRepository(BuyerProfile);
+            const sellerRepo = manager.getRepository(SellerProfile);
+            const adminRepo = manager.getRepository(AdminProfile);
+
+            const user = userRepo.create({
+                email: normalizedEmail,
+                passwordHash: hashed,
+                role: dto.role,
+                isActive: dto.role !== Role.SELLER,
+            });
+            const savedUser = await userRepo.save(user);
+
+            if (dto.role === Role.BUYER) {
+                const profile = buyerRepo.create({
+                    user: savedUser,
+                    fullName: buyerProfileInput!.fullName,
+                    phone: buyerProfileInput!.phone,
+                    age: buyerProfileInput!.age,
+                    status: buyerProfileInput!.status ?? 'active',
+                    defaultAddressId: buyerProfileInput!.defaultAddressId,
+                });
+                const savedProfile = await buyerRepo.save(profile);
+                return { user: savedUser, profile: savedProfile, role: Role.BUYER };
+            }
+
+            if (dto.role === Role.SELLER) {
+                const profile = sellerRepo.create({
+                    user: savedUser,
+                    storeName: sellerProfileInput!.storeName,
+                    phone: sellerProfileInput!.phone,
+                    status: 'PENDING',
+                });
+                const savedProfile = await sellerRepo.save(profile);
+                return { user: savedUser, profile: savedProfile, role: Role.SELLER };
+            }
+
+            if (dto.role === Role.ADMIN) {
+                const profile = adminRepo.create({
+                    user: savedUser,
+                    displayName: adminProfileInput!.displayName,
+                    profileName: adminProfileInput!.profileName,
+                });
+                const savedProfile = await adminRepo.save(profile);
+                return { user: savedUser, profile: savedProfile, role: Role.ADMIN };
+            }
+
+            throw new HttpException('Unsupported role', HttpStatus.BAD_REQUEST);
         });
-        const savedUser = await this.userRepo.save(user);
 
-        if (dto.role === Role.BUYER) {
-            const profile = this.buyerProfileRepo.create({
-                user: savedUser,
-                fullName: dto.buyerProfile.fullName,
-                phone: dto.buyerProfile.phone,
-                age: dto.buyerProfile.age,
-                status: dto.buyerProfile.status ?? 'active',
-                defaultAddressId: dto.buyerProfile.defaultAddressId,
-            });
-            const savedProfile = await this.buyerProfileRepo.save(profile);
-            await this.mailerService.sendBuyerWelcomeEmail(savedUser.email, savedProfile.fullName);
-            return { message: 'Buyer registered', userId: savedUser.id, profileId: savedProfile.id };
+        if (result.role === Role.BUYER) {
+            const profile = result.profile as BuyerProfile;
+            await this.mailerService.sendBuyerWelcomeEmail(result.user.email, profile.fullName);
+            return { message: 'Buyer registered', userId: result.user.id, profileId: profile.id };
         }
-
-        if (dto.role === Role.SELLER) {
-            const profile = this.sellerProfileRepo.create({
-                user: savedUser,
-                storeName: dto.sellerProfile.storeName,
-                phone: dto.sellerProfile.phone,
-                status: dto.sellerProfile.status ?? 'PENDING',
-            });
-            const savedProfile = await this.sellerProfileRepo.save(profile);
-            await this.mailerService.sendSellerApplicationReceivedEmail(savedUser.email, savedProfile.storeName);
-            return { message: 'Seller registered', userId: savedUser.id, profileId: savedProfile.id };
+        if (result.role === Role.SELLER) {
+            const profile = result.profile as SellerProfile;
+            await this.mailerService.sendSellerApplicationReceivedEmail(result.user.email, profile.storeName);
+            return { message: 'Seller registered', userId: result.user.id, profileId: profile.id };
         }
-
-        if (dto.role === Role.ADMIN) {
-            const profile = this.adminProfileRepo.create({
-                user: savedUser,
-                displayName: dto.adminProfile.displayName,
-                profileName: dto.adminProfile.profileName,
-            });
-            const savedProfile = await this.adminProfileRepo.save(profile);
-            await this.mailerService.sendAdminWelcomeEmail(
-                savedUser.email,
-                savedProfile.displayName,
-            );
-            return { message: 'Admin registered', userId: savedUser.id, profileId: savedProfile.id };
+        if (result.role === Role.ADMIN) {
+            const profile = result.profile as AdminProfile;
+            await this.mailerService.sendAdminWelcomeEmail(result.user.email, profile.displayName);
+            return { message: 'Admin registered', userId: result.user.id, profileId: profile.id };
         }
 
         throw new HttpException('Unsupported role', HttpStatus.BAD_REQUEST);
