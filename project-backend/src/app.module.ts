@@ -1,17 +1,37 @@
 import { Module } from '@nestjs/common';
 import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
-import { SellerModule } from './seller/seller.module';
+import { SellerModule } from './sellers/seller.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { BuyerModule } from './buyer/buyer.module';
+import { BuyerModule } from './buyers/buyer.module';
 import { MailerModuleCustom } from './mailer/mailer.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { ProductsModule } from './products/products.module';
+import { CartModule } from './cart/cart.module';
+import { OrdersModule } from './orders/orders.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { DisputesModule } from './disputes/disputes.module';
+import { InventoryModule } from './inventory/inventory.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
-  imports: [AdminModule, SellerModule , BuyerModule, AuthModule, UsersModule, ProductsModule, MailerModuleCustom, TypeOrmModule.forRoot(
+  imports: [
+    AdminModule,
+    SellerModule,
+    BuyerModule,
+    AuthModule,
+    UsersModule,
+    ProductsModule,
+    CartModule,
+    OrdersModule,
+    ReviewsModule,
+    DisputesModule,
+    InventoryModule,
+    PaymentsModule,
+    MailerModuleCustom,
+    TypeOrmModule.forRoot(
     {
       type: 'postgres',
       host: 'localhost',

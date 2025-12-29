@@ -3,11 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from 'src/users/user.entity';
 import { Role } from 'src/common/enums/role.enum';
-import { SellerProfile, SellerStatus } from 'src/seller/seller-profile.entity';
-import { Order } from 'src/buyer/entities/order.entity';
+import { SellerProfile, SellerStatus } from 'src/sellers/seller-profile.entity';
+import { Order } from 'src/orders/entities/order.entity';
 import { Category } from 'src/products/category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
-import { Dispute } from 'src/orders/dispute.entity';
+import { Dispute } from 'src/disputes/dispute.entity';
 import { MailerService } from 'src/mailer/mailer.service';
 @Injectable()
 export class AdminService {

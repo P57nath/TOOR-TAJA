@@ -2,6 +2,7 @@ import {
   BeforeInsert,
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   OneToOne,
   PrimaryColumn,
@@ -9,8 +10,8 @@ import {
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Role } from 'src/common/enums/role.enum';
-import { BuyerProfile } from 'src/buyer/buyer-profile.entity';
-import { SellerProfile } from 'src/seller/seller-profile.entity';
+import { BuyerProfile } from 'src/buyers/buyer-profile.entity';
+import { SellerProfile } from 'src/sellers/seller-profile.entity';
 import { AdminProfile } from 'src/admin/admin-profile.entity';
 
 // Central auth identity; role-specific data lives in profile tables.
@@ -47,6 +48,9 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt?: Date | null;
 
   @OneToOne(() => BuyerProfile, (profile) => profile.user)
   buyerProfile?: BuyerProfile;
