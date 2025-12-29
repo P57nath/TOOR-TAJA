@@ -90,7 +90,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="you@example.com"
                   className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
-                  required
+                  
                 />
               </div>
               <div>
@@ -106,7 +106,7 @@ export default function LoginPage() {
                   type="password"
                   placeholder="********"
                   className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
-                  required
+                  
                 />
               </div>
               <div className="flex items-center justify-between text-xs text-emerald-900/70">

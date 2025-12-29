@@ -1,11 +1,7 @@
 import axios from "axios";
 import { cookies } from "next/headers";
 import { z } from "zod";
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-});
+import { loginSchema } from "@/lib/auth-client";
 
 type LoginResponse = {
   access_token: string;

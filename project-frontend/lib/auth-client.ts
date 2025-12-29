@@ -89,9 +89,7 @@ export async function registerBuyer(
   return response.data;
 }
 
-export async function registerSeller(
-  payload: RegisterSellerPayload,
-): Promise<RegisterSellerResponse> {
+export async function registerSeller(payload: RegisterSellerPayload): Promise<RegisterSellerResponse> {
   const validated = registerSellerSchema.parse(payload);
   const response = await client.post<RegisterSellerResponse>(
     "/api/auth/register/seller",

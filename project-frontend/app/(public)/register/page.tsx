@@ -151,7 +151,6 @@ export default function RegisterPage() {
                       type="text"
                       placeholder="Buyer name"
                       className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
-                      required
                     />
                   </div>
                   <div>
@@ -167,7 +166,7 @@ export default function RegisterPage() {
                       type="email"
                       placeholder="you@example.com"
                       className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
-                      required
+                      
                     />
                   </div>
                   <div>
@@ -183,7 +182,7 @@ export default function RegisterPage() {
                       type="password"
                       placeholder="Minimum 6 chars, 1 lowercase"
                       className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
-                      required
+                      
                     />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -273,7 +272,7 @@ export default function RegisterPage() {
                       type="text"
                       placeholder="seller123"
                       className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
-                      required
+                      
                     />
                   </div>
                   <div>
@@ -289,7 +288,7 @@ export default function RegisterPage() {
                       type="text"
                       placeholder="Seller full name"
                       className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
-                      required
+                      
                     />
                   </div>
                   <div>
@@ -305,7 +304,7 @@ export default function RegisterPage() {
                       type="email"
                       placeholder="name@aiub.edu"
                       className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
-                      required
+                      
                     />
                   </div>
                   <div>
@@ -321,7 +320,7 @@ export default function RegisterPage() {
                       type="password"
                       placeholder="Min 6 chars, 1 uppercase"
                       className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
-                      required
+                      
                     />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -355,7 +354,7 @@ export default function RegisterPage() {
                         type="tel"
                         placeholder="Phone number"
                         className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
-                        required
+                      
                       />
                     </div>
                   </div>
@@ -395,7 +394,7 @@ export default function RegisterPage() {
                       type="text"
                       placeholder="Full name"
                       className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
-                      required
+                      
                     />
                   </div>
                   <div>
@@ -411,7 +410,7 @@ export default function RegisterPage() {
                       type="email"
                       placeholder="admin@company.com"
                       className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
-                      required
+                      
                     />
                   </div>
                   <div>
@@ -427,7 +426,7 @@ export default function RegisterPage() {
                       type="password"
                       placeholder="Create a secure password"
                       className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
-                      required
+                      
                     />
                   </div>
                   <div>
@@ -443,7 +442,7 @@ export default function RegisterPage() {
                       type="text"
                       placeholder="10, 13, or 17 digits"
                       className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
-                      required
+                      
                     />
                   </div>
                   <div>
@@ -459,7 +458,7 @@ export default function RegisterPage() {
                       type="tel"
                       placeholder="01XXXXXXXXX"
                       className="mt-2 w-full border-b border-emerald-200 bg-transparent pb-2 text-sm text-emerald-950 outline-none focus:border-emerald-500"
-                      required
+                      
                     />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
