@@ -22,6 +22,7 @@ export class Order {
   @Column({
     type: 'enum',
     enum: ['CREATED', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'],
+    enumName: 'orders_status_enum_v2',
     default: 'CREATED'
   })
   @Index()

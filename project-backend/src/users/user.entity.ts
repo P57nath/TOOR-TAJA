@@ -40,7 +40,7 @@ export class User {
   isActive: boolean;
 
   // Optional hashed refresh token to support logout/rotation.
-  @Column({ name: 'refresh_token_hash', nullable: true })
+  @Column({ name: 'refresh_token_hash', type: 'varchar', nullable: true })
   refreshTokenHash?: string | null;
 
   @CreateDateColumn()
