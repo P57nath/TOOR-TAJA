@@ -6,7 +6,7 @@ export class UpdateBuyerDto {
   @Matches(/^[a-zA-Z\s]*$/, { 
     message: 'Name must not contain any special characters or numbers' 
   })
-  name?: string;
+  fullName?: string;
 
   @IsOptional()
   @IsString()

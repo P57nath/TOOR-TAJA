@@ -6,5 +6,4 @@ export class CreateProductDto {
   @IsString() @IsNotEmpty() category: string;
   @IsOptional() @IsString() description?: string;
   @IsOptional() @IsNumber() @Min(0) stock?: number;
-  @IsString() @IsNotEmpty() sellerId: string;
 }

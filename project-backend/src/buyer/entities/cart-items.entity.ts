@@ -20,10 +20,10 @@ export class CartItem {
   quantity: number;
 
   @Column()
-  cartBuyerId: string;
+  cartUserId: string;
 
   @ManyToOne(() => Cart, cart => cart.items, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'cartBuyerId' })
+  @JoinColumn({ name: 'cartUserId' })
   cart: Cart;
 
   @CreateDateColumn()

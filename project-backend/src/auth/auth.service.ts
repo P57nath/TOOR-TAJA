@@ -2,147 +2,153 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BuyerProfile } from 'src/buyer/entities/buyer-profile.entity';
-import { CreateBuyerDto } from 'src/buyer/dto/buyerProfileDtos/create-buyer.dto';
-import { Seller } from 'src/seller/entities/seller.entity';
-import { Admin } from 'src/admin/entities/admin.entity';
+import { BuyerProfile } from 'src/buyer/buyer-profile.entity';
+import { BuyerProfile } from 'src/buyer/buyer-profile.entity';
+import { SellerProfile } from 'src/seller/seller-profile.entity';
+import { AdminProfile } from 'src/admin/admin-profile.entity';
 import { MailerService } from 'src/mailer/mailer.service';
 import * as bcrypt from 'bcrypt';
-import { profile } from 'console';
-import { Profile } from 'passport';
-import { CreateAdminDto } from 'src/admin/dto/create-admin.dto';
-import { CreateSellerDto } from 'src/seller/dto/create-seller.dto';
-import { IsPhoneNumber } from 'class-validator';
+import { User } from 'src/users/user.entity';
+import { Role } from 'src/common/enums/role.enum';
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly jwtService: JwtService,
         private readonly mailerService: MailerService,
+        @InjectRepository(User)
+        private userRepo: Repository<User>,
         @InjectRepository(BuyerProfile)
-        private buyerRepo: Repository<BuyerProfile>,
-        @InjectRepository(Seller)
-        private sellerRepo: Repository<Seller>,
-        @InjectRepository(Admin)
-        private adminRepo: Repository<Admin>,
+        private buyerProfileRepo: Repository<BuyerProfile>,
+        @InjectRepository(SellerProfile)
+        private sellerProfileRepo: Repository<SellerProfile>,
+        @InjectRepository(AdminProfile)
+        private adminProfileRepo: Repository<AdminProfile>,
     ) { }
 
-    private async validateBuyer(email: string, password: string) {
-        const user = await this.buyerRepo.findOne({ where: { email } });
-        if (!user) return null;
-        const match = await bcrypt.compare(password, user.password || '');
-        if (!match) return null;
-        return { id: user.buyerId, email: user.email, role: 'buyer' };
-    }
+    // Store only a hash of the refresh token to support rotation and revoke.
+    private async buildTokens(user: User) {
+        const payload = { sub: user.id, email: user.email, role: user.role };
+        const accessToken = this.jwtService.sign(payload);
+        const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
-    private async validateSeller(email: string, password: string) {
-        const user = await this.sellerRepo.findOne({ where: { email } });
-        if (!user) return null;
-        const match = await bcrypt.compare(password, user.password || '');
-        if (!match) return null;
-        return { id: user.id, email: user.email, role: 'seller' };
-    }
+        const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+        await this.userRepo.update({ id: user.id }, { refreshTokenHash });
 
-    private async validateAdmin(email: string, password: string) {
-        const user = await this.adminRepo.findOne({ where: { email } });
-        if (!user) return null;
-        const match = await bcrypt.compare(password, (user as any).password || '');
-        if (!match) return null;
-        return { id: user.id, email: user.email, role: 'admin' };
+        return { accessToken, refreshToken };
     }
 
     async login(email: string, password: string) {
-        // Try buyer, seller, admin in that order (simple approach)
-        const validators = [
-            this.validateBuyer.bind(this),
-            this.validateSeller.bind(this),
-            this.validateAdmin.bind(this),
-        ];
-
-        for (const validate of validators) {
-            const user = await validate(email, password);
-            if (user) {
-                const payload = { sub: user.id, email: user.email, role: user.role };
-                return { access_token: this.jwtService.sign(payload) };
-            }
+        const user = await this.userRepo.findOne({ where: { email } });
+        if (!user) {
+            throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+        }
+        if (!user.isActive) {
+            throw new HttpException('Account is inactive', HttpStatus.FORBIDDEN);
         }
 
-        throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+        const match = await bcrypt.compare(password, user.passwordHash || '');
+        if (!match) {
+            throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+        }
+
+        const tokens = await this.buildTokens(user);
+        return { access_token: tokens.accessToken, refresh_token: tokens.refreshToken };
     }
 
-    async registerBuyer(dto: CreateBuyerDto) {
-        const existing = await this.buyerRepo.findOne({ where: { email: dto.email } });
+    async register(dto: RegisterDto) {
+        const existing = await this.userRepo.findOne({ where: { email: dto.email } });
         if (existing) {
             throw new HttpException('Email already registered', HttpStatus.BAD_REQUEST);
         }
 
-        const saltRounds = 10;
-        const hashed = await bcrypt.hash(dto.password, saltRounds);
-
-        const toSave = this.buyerRepo.create({
-            name: dto.name,
-            email: dto.email,
-            password: hashed,
-            phone: dto.phone,
-            age: dto.age,
-            status: dto.status,
-            defaultAddressId: dto.defaultAddressId,
-        } as any);
-
-        const saved = (await this.buyerRepo.save(toSave)) as unknown as BuyerProfile;
-        
-        // Send welcome email
-        await this.mailerService.sendWelcomeEmail(saved.email, saved.name);
-        
-        return { message: 'Buyer registered', buyerId: saved.buyerId, email: saved.email };
-    }
-
-    async registerAdmin(dto: CreateAdminDto) {
-        const existing = await this.adminRepo.findOne({ where: { email: dto.email } });
-        if (existing) {
-            throw new HttpException('Email already registered', HttpStatus.BAD_REQUEST);
+        if (dto.role === Role.ADMIN && process.env.ALLOW_ADMIN_SIGNUP !== 'true') {
+            throw new HttpException('Admin signup is disabled', HttpStatus.FORBIDDEN);
         }
-        const saltRounds = 10;
-        const hashed = await bcrypt.hash(dto.password, saltRounds);
-        const toSave = this.adminRepo.create({
+
+        if (dto.role === Role.BUYER && !dto.buyerProfile) {
+            throw new HttpException('Buyer profile is required', HttpStatus.BAD_REQUEST);
+        }
+        if (dto.role === Role.SELLER && !dto.sellerProfile) {
+            throw new HttpException('Seller profile is required', HttpStatus.BAD_REQUEST);
+        }
+        if (dto.role === Role.ADMIN && !dto.adminProfile) {
+            throw new HttpException('Admin profile is required', HttpStatus.BAD_REQUEST);
+        }
+
+        const hashed = await bcrypt.hash(dto.password, 10);
+        const user = this.userRepo.create({
             email: dto.email,
-            password: hashed,
-            name: dto.name,
-            phone: dto.phone,
-            nid: dto.nid,
+            passwordHash: hashed,
             role: dto.role,
-            profileName: dto.profileName,
-            isActive: dto.isActive,
-        } as any);
-        const saved = (await this.adminRepo.save(toSave)) as unknown as Admin;
-        
-        // Send admin credentials email
-        await this.mailerService.sendAdminCredentialsEmail(saved.email, saved.name, saved.id, dto.password);
-        
-        return { message: 'Admin registered', adminId: saved.id, email: saved.email };
+            isActive: true,
+        });
+        const savedUser = await this.userRepo.save(user);
+
+        if (dto.role === Role.BUYER) {
+            const profile = this.buyerProfileRepo.create({
+                user: savedUser,
+                fullName: dto.buyerProfile.fullName,
+                phone: dto.buyerProfile.phone,
+                age: dto.buyerProfile.age,
+                status: dto.buyerProfile.status ?? 'active',
+                defaultAddressId: dto.buyerProfile.defaultAddressId,
+            });
+            const savedProfile = await this.buyerProfileRepo.save(profile);
+            await this.mailerService.sendBuyerWelcomeEmail(savedUser.email, savedProfile.fullName);
+            return { message: 'Buyer registered', userId: savedUser.id, profileId: savedProfile.id };
+        }
+
+        if (dto.role === Role.SELLER) {
+            const profile = this.sellerProfileRepo.create({
+                user: savedUser,
+                storeName: dto.sellerProfile.storeName,
+                phone: dto.sellerProfile.phone,
+                status: dto.sellerProfile.status ?? 'PENDING',
+            });
+            const savedProfile = await this.sellerProfileRepo.save(profile);
+            await this.mailerService.sendSellerApplicationReceivedEmail(savedUser.email, savedProfile.storeName);
+            return { message: 'Seller registered', userId: savedUser.id, profileId: savedProfile.id };
+        }
+
+        if (dto.role === Role.ADMIN) {
+            const profile = this.adminProfileRepo.create({
+                user: savedUser,
+                displayName: dto.adminProfile.displayName,
+                profileName: dto.adminProfile.profileName,
+            });
+            const savedProfile = await this.adminProfileRepo.save(profile);
+            await this.mailerService.sendAdminWelcomeEmail(
+                savedUser.email,
+                savedProfile.displayName,
+            );
+            return { message: 'Admin registered', userId: savedUser.id, profileId: savedProfile.id };
+        }
+
+        throw new HttpException('Unsupported role', HttpStatus.BAD_REQUEST);
     }
 
-    async registerSeller(dto: CreateSellerDto) {
-        const existing = await this.sellerRepo.findOne({ where: { email: dto.email } });
-        if (existing) {
-            throw new HttpException('Email already registered', HttpStatus.BAD_REQUEST);
+    async refreshToken(userId: string, refreshToken: string) {
+        const user = await this.userRepo.findOne({ where: { id: userId } });
+        if (!user || !user.refreshTokenHash) {
+            throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
         }
-        const saltRounds = 10;
-        const hashed = await bcrypt.hash(dto.password, saltRounds);
-        const toSave = this.sellerRepo.create({
-            email: dto.email,
-            password: hashed,
-            username: dto.username,
-            fullName: dto.fullName,
-            phoneNumber: dto.phoneNumber,
-            isActive: dto.isActive,
-            gender: dto.gender,
-        } as any);
-        const saved = (await this.sellerRepo.save(toSave)) as unknown as Seller;
-        
-        // Send seller activation email
-        await this.mailerService.sendSellerActivationEmail(saved.email, saved.fullName);
-        
-        return { message: 'Seller registered', sellerId: saved.id, email: saved.email };
+        if (!user.isActive) {
+            throw new HttpException('Account is inactive', HttpStatus.FORBIDDEN);
+        }
+
+        const match = await bcrypt.compare(refreshToken, user.refreshTokenHash);
+        if (!match) {
+            throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
+        }
+
+        const tokens = await this.buildTokens(user);
+        return { access_token: tokens.accessToken, refresh_token: tokens.refreshToken };
+    }
+
+    async logout(userId: string) {
+        await this.userRepo.update({ id: userId }, { refreshTokenHash: null });
+        return { message: 'Logged out' };
     }
 }

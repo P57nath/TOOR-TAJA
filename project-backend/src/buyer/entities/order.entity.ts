@@ -11,7 +11,7 @@ export class Order {
 
   @Column()
   @Index()
-  buyerId: string;
+  userId: string;
 
   @OneToMany(() => OrderItem, orderItem => orderItem.order, { cascade: true, eager: true })
   items: OrderItem[];

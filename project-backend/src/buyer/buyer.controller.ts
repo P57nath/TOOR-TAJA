@@ -1,22 +1,25 @@
-import { Body, Controller, DefaultValuePipe, Delete, Get, Header, Param, ParseIntPipe, Patch, Post, Put, Query, Res, UploadedFile, UseInterceptors, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
-import { RoleGuard } from 'src/auth/raw-jwt.guard';
+import { Body, Controller, Delete, Get, Header, Param, ParseIntPipe, Patch, Post, Put, Query, Res, UploadedFile, UseInterceptors, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
 import { BuyerService } from './buyer.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderQueryDto } from './dto/order-query.dto';
-import { BuyerProfileDto } from './dto/buyerProfileDtos/profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage, MulterError } from 'multer';
-import * as orderEntity from './entities/order.entity';
 import { UpdateBuyerStatusDto } from './dto/buyerProfileDtos/update-buyerStatus.dto';
 import { GetInactiveBuyersDto } from './dto/buyerProfileDtos/getInactive-buyer.dto';
 import { GetBuyersOverAgeDto } from './dto/buyerProfileDtos/getOverage-buyer.dto';
 import { UpdateBuyerDto } from './dto/buyerProfileDtos/update-buyer.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/common/enums/role.enum';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @Controller('buyer')
 @UsePipes(new ValidationPipe({ transform: true }))
-@UseGuards(RoleGuard('buyer'))
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Role.BUYER)
 export class BuyerController {
   constructor(private readonly buyerService: BuyerService) { }
 
@@ -31,20 +34,20 @@ export class BuyerController {
   getAllBuyerProfiles() {
     return this.buyerService.getAllBuyerProfiles();
   }
-  // PUT /buyer/:buyerId/profile -> update profile
+  // PUT /buyer/profile -> update profile
 
-  @Put(':buyerId/profile')
-  replaceProfile(@Param('buyerId') buyerId: string, @Body() dto: UpdateBuyerDto) {
-    return this.buyerService.replaceProfile(buyerId, dto);
+  @Put('profile')
+  replaceProfile(@CurrentUser() user: { id: string }, @Body() dto: UpdateBuyerDto) {
+    return this.buyerService.replaceProfile(user.id, dto);
   }
 
-  // PATCH /buyer/:buyerId/status -> change user status (active/inactive)
-  @Patch(':buyerId/status')
+  // PATCH /buyer/status -> change user status (active/inactive)
+  @Patch('status')
   updateBuyerStatus(
-    @Param('buyerId') buyerId: string,
+    @CurrentUser() user: { id: string },
     @Body() dto: UpdateBuyerStatusDto,
   ) {
-    return this.buyerService.updateBuyerStatus(buyerId, dto);
+    return this.buyerService.updateBuyerStatus(user.id, dto);
   }
 
   // GET /buyer/inactive -> retrieve list of inactive users
@@ -68,48 +71,48 @@ export class BuyerController {
     return this.buyerService.getBuyersOverAge(age, query);
   }
 
-  // 3) POST /buyer/:buyerId/cart/items  -> add to cart
+  // 3) POST /buyer/cart/items  -> add to cart
 
-  @Post(':buyerId/cart/items')
-  addToCart(@Param('buyerId') buyerId: string, @Body() dto: AddToCartDto) {
-    return this.buyerService.addToCart(buyerId, dto);
+  @Post('cart/items')
+  addToCart(@CurrentUser() user: { id: string }, @Body() dto: AddToCartDto) {
+    return this.buyerService.addToCart(user.id, dto);
   }
-  // 4) PATCH /buyer/:buyerId/cart/items/:productId -> update quantity
+  // 4) PATCH /buyer/cart/items/:productId -> update quantity
 
-  @Patch(':buyerId/cart/items/:productId')
+  @Patch('cart/items/:itemId')
   updateCartItem(
-    @Param('buyerId') buyerId: string,
-    @Param('productId') productId: string,
+    @CurrentUser() user: { id: string },
+    @Param('itemId', ParseIntPipe) itemId: number,
     @Body() dto: UpdateCartItemDto,
   ) {
-    return this.buyerService.updateCartItem(buyerId, productId, dto);
+    return this.buyerService.updateCartItem(user.id, itemId, dto);
   }
-  // 5) DELETE /buyer/:buyerId/cart/items/:productId -> remove item
+  // 5) DELETE /buyer/cart/items/:productId -> remove item
 
-  @Delete(':buyerId/cart/items/:productId')
-  removeCartItem(@Param('buyerId') buyerId: string, @Param('productId') productId: string) {
-    return this.buyerService.removeCartItem(buyerId, productId);
+  @Delete('cart/items/:itemId')
+  removeCartItem(@CurrentUser() user: { id: string }, @Param('itemId', ParseIntPipe) itemId: number) {
+    return this.buyerService.removeCartItem(user.id, itemId);
   }
 
-  // 6) GET /buyer/:buyerId/cart?coupon=SAVE10 -> fetch cart
-  @Get(':buyerId/cart')
-  getCart(@Param('buyerId') buyerId: string, @Query('coupon') coupon?: string) {
-    return this.buyerService.getCart(buyerId, coupon);
+  // 6) GET /buyer/cart?coupon=SAVE10 -> fetch cart
+  @Get('cart')
+  getCart(@CurrentUser() user: { id: string }, @Query('coupon') coupon?: string) {
+    return this.buyerService.getCart(user.id, coupon);
   }
 
   // 7) POST /buyer/orders -> create order
 
   @Post('orders')
-  createOrder(@Body() dto: CreateOrderDto) {
-    return this.buyerService.createOrder(dto);
+  createOrder(@CurrentUser() user: { id: string }, @Body() dto: CreateOrderDto) {
+    return this.buyerService.createOrder(user.id, dto);
   }
 
 
   
 
-  // 10) POST /buyer/:buyerId/documents -> upload document
+  // 10) POST /buyer/documents -> upload document
 
-  @Post(':buyerId/documents')
+  @Post('documents')
   @UseInterceptors(
     FileInterceptor('document', {
       fileFilter: (req, file, cb) => {
@@ -132,53 +135,53 @@ export class BuyerController {
     }),
   )
   uploadDocument(
-    @Param('buyerId') buyerId: string,
+    @CurrentUser() user: { id: string },
     @Body() dto: any,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.buyerService.uploadDocument(buyerId, dto, file);
+    return this.buyerService.uploadDocument(user.id, dto, file);
   }
 
-  // 11) GET /buyer/:buyerId/documents/:filename -> get document info
-  @Get(':buyerId/documents/:filename')
+  // 11) GET /buyer/documents/:filename -> get document info
+  @Get('documents/:filename')
   getDocumentInfo(
-    @Param('buyerId') buyerId: string,
+    @CurrentUser() user: { id: string },
     @Param('filename') filename: string,
   ) {
-    return this.buyerService.getDocumentInfo(buyerId, filename);
+    return this.buyerService.getDocumentInfo(user.id, filename);
   }
-  // 12) GET /buyer/:buyerId/documents/:filename/download -> download document
-  @Get(':buyerId/documents/:filename/download')
+  // 12) GET /buyer/documents/:filename/download -> download document
+  @Get('documents/:filename/download')
   @Header('Content-Type', 'application/pdf')
   @Header('Content-Disposition', 'attachment; filename="document.pdf"')
   downloadDocument(
-    @Param('buyerId') buyerId: string,
+    @CurrentUser() user: { id: string },
     @Param('filename') filename: string,
     @Res() res: any,
   ) {
-    return this.buyerService.downloadDocument(buyerId, filename, res);
+    return this.buyerService.downloadDocument(user.id, filename, res);
   }
 
 
-  // 9) GET /buyer/:buyerId/orders?status=&page=&limit= -> order list
+  // 9) GET /buyer/orders?status=&page=&limit= -> order list
 
 
-  // 8) GET /buyer/:buyerId/orders/:id -> order detail
+  // 8) GET /buyer/orders/:id -> order detail
 
-  @Get(':buyerId/orders/:id')
-  getOrder(@Param('buyerId') buyerId: string, @Param('id') id: string) {
-    return this.buyerService.getOrder(buyerId, id);
+  @Get('orders/:id')
+  getOrder(@CurrentUser() user: { id: string }, @Param('id') id: string) {
+    return this.buyerService.getOrder(user.id, id);
   }
 
 
 
-  @Get(':buyerId/orders')
+  @Get('orders')
   listOrders(
-    @Param('buyerId') buyerId: string,
+    @CurrentUser() user: { id: string },
     @Query('page', ParseIntPipe)
     @Query('limit', ParseIntPipe) q: OrderQueryDto
   ) {
-    return this.buyerService.listOrders(buyerId, q);
+    return this.buyerService.listOrders(user.id, q);
   }
 
   @Get(':orderId/buyer-orders')

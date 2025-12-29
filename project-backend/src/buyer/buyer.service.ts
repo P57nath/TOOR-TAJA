@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan, LessThan } from 'typeorm';
 import { Cart, CartItem } from './entities/cart.entity';
 import { Order, OrderStatus } from './entities/order.entity';
-import { BuyerProfile } from './entities/buyer-profile.entity';
+import { BuyerProfile } from './buyer-profile.entity';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -16,6 +16,10 @@ import * as fs from 'fs';
 import { Response } from 'express';
 import { UpdateBuyerDto } from './dto/buyerProfileDtos/update-buyer.dto';
 import { OrderItem } from './entities/order-items.entity';
+import { User } from 'src/users/user.entity';
+import { Product } from 'src/seller/entities/product.entity';
+import { Review } from 'src/products/review.entity';
+import { CreateReviewDto } from './dto/create-review.dto';
 
 @Injectable()
 export class BuyerService {
@@ -34,6 +38,12 @@ export class BuyerService {
 
     @InjectRepository(CartItem)
     private cartItemRepository: Repository<CartItem>,
+
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>,
+
+    @InjectRepository(Review)
+    private reviewRepository: Repository<Review>,
   ) { }
 
   private Success(data: any, extra: Record<string, any> = {}) {
@@ -41,13 +51,16 @@ export class BuyerService {
   }
 
   // --- Buyer Profile ---
-  async createBuyer(dto: BuyerProfileDto) {
-    const buyerProfile = this.buyerProfileRepository.create(dto);
+  async createBuyer(userId: string, dto: BuyerProfileDto) {
+    const buyerProfile = this.buyerProfileRepository.create({
+      ...dto,
+      user: { id: userId } as User,
+    });
     const savedProfile = await this.buyerProfileRepository.save(buyerProfile);
 
     return this.Success(savedProfile, {
       message: 'Buyer created successfully',
-      buyerId: savedProfile.buyerId
+      profileId: savedProfile.id
     });
   }
   // --- Get all buyer profiles ---
@@ -60,9 +73,10 @@ export class BuyerService {
   }
 
   // --- Profile operations ---
-  async replaceProfile(buyerId: string, dto: UpdateBuyerDto) {
+  async replaceProfile(userId: string, dto: UpdateBuyerDto) {
     const existingProfile = await this.buyerProfileRepository.findOne({
-      where: { buyerId }
+      where: { user: { id: userId } },
+      relations: ['user'],
     });
 
     if (!existingProfile) {
@@ -88,26 +102,23 @@ export class BuyerService {
 
     return this.Success(updatedProfile, {
       message: 'Profile updated successfully',
-      buyerId
+      userId
     });
   }
   //Change buyer status to active/inactive
-  async updateBuyerStatus(buyerId: string, dto: UpdateBuyerStatusDto) {
-    const result = await this.buyerProfileRepository.update(
-      { buyerId },
-      {
-        status: dto.status,
-        updatedAt: new Date()
-      }
-    );
+  async updateBuyerStatus(userId: string, dto: UpdateBuyerStatusDto) {
+    const profile = await this.buyerProfileRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
 
-    if (result.affected === 0) {
+    if (!profile) {
       throw new NotFoundException('Buyer not found');
     }
 
-    const updatedProfile = await this.buyerProfileRepository.findOne({
-      where: { buyerId }
-    });
+    profile.status = dto.status;
+    profile.updatedAt = new Date();
+    const updatedProfile = await this.buyerProfileRepository.save(profile);
 
     return this.Success(updatedProfile, {
       message: `Buyer status updated to ${dto.status}`
@@ -205,30 +216,39 @@ export class BuyerService {
   // }
 
   // --- Cart operations ---
-  async addToCart(buyerId: string, dto: AddToCartDto) {
+  async addToCart(userId: string, dto: AddToCartDto) {
+    const product = await this.productRepository.findOne({ where: { id: dto.productId } });
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
     let cart = await this.cartRepository.findOne({
-      where: { buyerId },
+      where: { userId },
       relations: ['items']
     });
 
     if (!cart) {
-      cart = this.cartRepository.create({ buyerId });
+      cart = this.cartRepository.create({ userId });
       await this.cartRepository.save(cart);
     }
 
     let cartItem = await this.cartItemRepository.findOne({
-      where: { cartBuyerId: buyerId, productId: dto.productId }
+      where: { cartUserId: userId, productId: dto.productId }
     });
 
     if (cartItem) {
       // Update existing item
       cartItem.quantity += dto.quantity;
-      cartItem.price = dto.price;
+      cartItem.price = product.price;
+      cartItem.name = product.name;
     } else {
       // Create new item
       cartItem = this.cartItemRepository.create({
-        ...dto,
-        cartBuyerId: buyerId,
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: dto.quantity,
+        cartUserId: userId,
         cart: cart
       });
     }
@@ -237,7 +257,7 @@ export class BuyerService {
 
     // Reload cart with items
     const updatedCart = await this.cartRepository.findOne({
-      where: { buyerId },
+      where: { userId },
       relations: ['items']
     });
 
@@ -251,14 +271,14 @@ export class BuyerService {
     }));
 
     return this.Success(
-      { buyerId: updatedCart.buyerId, items: filteredItems },
+      { userId: updatedCart.userId, items: filteredItems },
       { message: 'Item added to cart' }
     );
   }
 
-  async updateCartItem(buyerId: string, productId: string, dto: UpdateCartItemDto) {
+  async updateCartItem(userId: string, itemId: number, dto: UpdateCartItemDto) {
     const cartItem = await this.cartItemRepository.findOne({
-      where: { cartBuyerId: buyerId, productId: productId }
+      where: { id: itemId, cartUserId: userId }
     });
 
     if (!cartItem) {
@@ -269,17 +289,17 @@ export class BuyerService {
     await this.cartItemRepository.save(cartItem);
 
     const updatedCart = await this.cartRepository.findOne({
-      where: { buyerId },
+      where: { userId },
       relations: ['items']
     });
 
     return this.Success(updatedCart, { message: 'Cart item updated' });
   }
 
-  async removeCartItem(buyerId: string, productId: string) {
+  async removeCartItem(userId: string, itemId: number) {
     const result = await this.cartItemRepository.delete({
-      cartBuyerId: buyerId,
-      productId: productId
+      id: itemId,
+      cartUserId: userId
     });
 
     if (result.affected === 0) {
@@ -287,7 +307,7 @@ export class BuyerService {
     }
 
     const updatedCart = await this.cartRepository.findOne({
-      where: { buyerId },
+      where: { userId },
       relations: ['items']
     });
 
@@ -297,14 +317,14 @@ export class BuyerService {
     );
   }
 
-  async getCart(buyerId: string, coupon?: string) {
+  async getCart(userId: string, coupon?: string) {
     let cart = await this.cartRepository.findOne({
-      where: { buyerId },
+      where: { userId },
       relations: ['items']
     });
 
     if (!cart) {
-      cart = this.cartRepository.create({ buyerId, items: [] });
+      cart = this.cartRepository.create({ userId, items: [] });
       await this.cartRepository.save(cart);
     }
 
@@ -317,9 +337,9 @@ export class BuyerService {
   }
 
   // --- Orders operations ---
-  async createOrder(dto: CreateOrderDto) {
+  async createOrder(userId: string, dto: CreateOrderDto) {
     const order = this.orderRepository.create({
-      buyerId: dto.buyerId,
+      userId,
       addressId: dto.addressId,
       note: dto.note,
       total: 0, // Will be calculated from items
@@ -328,13 +348,25 @@ export class BuyerService {
 
     const savedOrder = await this.orderRepository.save(order);
 
-    // Create order items
-    const orderItems = dto.items.map(itemDto =>
-      this.orderItemRepository.create({
-        ...itemDto,
-        orderId: savedOrder.id,
-        order: savedOrder
-      })
+    // Create order items with seller linkage
+    const orderItems = await Promise.all(
+      dto.items.map(async (itemDto) => {
+        const product = await this.productRepository.findOne({
+          where: { id: itemDto.productId },
+        });
+        if (!product) {
+          throw new NotFoundException(`Product ${itemDto.productId} not found`);
+        }
+        return this.orderItemRepository.create({
+          productId: itemDto.productId,
+          name: product.name,
+          price: product.price,
+          quantity: itemDto.quantity,
+          sellerUserId: product.sellerUserId,
+          orderId: savedOrder.id,
+          order: savedOrder,
+        });
+      }),
     );
 
     await this.orderItemRepository.save(orderItems);
@@ -344,8 +376,8 @@ export class BuyerService {
     await this.orderRepository.save(savedOrder);
 
     // Clear cart for buyer
-    await this.cartItemRepository.delete({ cartBuyerId: dto.buyerId });
-    await this.cartRepository.delete({ buyerId: dto.buyerId });
+    await this.cartItemRepository.delete({ cartUserId: userId });
+    await this.cartRepository.delete({ userId });
 
     // Reload order with items for response
     const completeOrder = await this.orderRepository.findOne({
@@ -357,9 +389,9 @@ export class BuyerService {
   }
 
 
-  async getOrder(buyerId: string, id: string) {
+  async getOrder(userId: string, id: string) {
     const order = await this.orderRepository.findOne({
-      where: { id, buyerId },
+      where: { id, userId },
       relations: ['items']
     });
 
@@ -370,12 +402,12 @@ export class BuyerService {
     return this.Success(order);
   }
 
-  async listOrders(buyerId: string, q: OrderQueryDto) {
+  async listOrders(userId: string, q: OrderQueryDto) {
     const page = Number(q.page ?? 1);
     const limit = Number(q.limit ?? 20);
     const skip = (page - 1) * limit;
 
-    const where: any = { buyerId };
+    const where: any = { userId };
     if (q.status) {
       where.status = q.status;
     }
@@ -398,7 +430,7 @@ export class BuyerService {
       relations: ['order'],
     });
 
-    const buyers = orderItems.map(item => item.order.buyerId);
+    const buyers = orderItems.map(item => item.order.userId);
 
     const total = await this.orderItemRepository.count({
       where: { orderId },
@@ -408,9 +440,9 @@ export class BuyerService {
   }
 
   // --- Document operations ---
-  async uploadDocument(buyerId: string, dto: any, file: Express.Multer.File) {
+  async uploadDocument(userId: string, dto: any, file: Express.Multer.File) {
     const documentInfo = {
-      buyerId,
+      userId,
       documentType: dto.documentType,
       fileName: file.filename,
       originalName: file.originalname,
@@ -422,7 +454,7 @@ export class BuyerService {
     return this.Success(documentInfo, { message: 'PDF document uploaded successfully' });
   }
 
-  async getDocumentInfo(buyerId: string, filename: string) {
+  async getDocumentInfo(userId: string, filename: string) {
     const filePath = `./upload/buyer-documents/${filename}`;
 
     if (!fs.existsSync(filePath)) {
@@ -431,7 +463,7 @@ export class BuyerService {
 
     const stats = fs.statSync(filePath);
     const documentInfo = {
-      buyerId,
+      userId,
       filename,
       filePath,
       fileSize: stats.size,
@@ -442,7 +474,7 @@ export class BuyerService {
     return this.Success(documentInfo, { message: 'Document info retrieved' });
   }
 
-  async downloadDocument(buyerId: string, filename: string, res: Response) {
+  async downloadDocument(userId: string, filename: string, res: Response) {
     const filePath = `./upload/buyer-documents/${filename}`;
 
     if (!fs.existsSync(filePath)) {
@@ -450,5 +482,40 @@ export class BuyerService {
     }
 
     res.sendFile(require('path').resolve(filePath));
+  }
+
+  async listMyOrders(userId: string) {
+    const orders = await this.orderRepository.find({
+      where: { userId },
+      relations: ['items'],
+      order: { createdAt: 'DESC' },
+    });
+    return this.Success(orders, { total: orders.length });
+  }
+
+  async createReview(userId: string, dto: CreateReviewDto) {
+    const existing = await this.reviewRepository.findOne({
+      where: { userId, productId: dto.productId },
+    });
+    if (existing) {
+      throw new BadRequestException('Review already exists');
+    }
+
+    const purchased = await this.orderItemRepository.findOne({
+      where: { productId: dto.productId, order: { userId } as any },
+      relations: ['order'],
+    });
+    if (!purchased) {
+      throw new ForbiddenException('Only purchased products can be reviewed');
+    }
+
+    const review = this.reviewRepository.create({
+      userId,
+      productId: dto.productId,
+      rating: dto.rating,
+      comment: dto.comment,
+    });
+    const saved = await this.reviewRepository.save(review);
+    return this.Success(saved, { message: 'Review created' });
   }
 }

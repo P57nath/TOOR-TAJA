@@ -2,16 +2,18 @@ import { Module } from '@nestjs/common';
 import { SellerController } from './seller.controller';
 import { SellerService } from './seller.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Seller } from './entities/seller.entity';
 import { Product } from './entities/product.entity';
 import { MailerModuleCustom } from 'src/mailer/mailer.module';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from 'src/auth/constants';
+import { SellerProfile } from './seller-profile.entity';
+import { Order } from 'src/buyer/entities/order.entity';
+import { OrderItem } from 'src/buyer/entities/order-items.entity';
 
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Seller, Product]), 
+    TypeOrmModule.forFeature([SellerProfile, Product, Order, OrderItem]), 
     MailerModuleCustom,
     JwtModule.register({
       secret: jwtConstants.secret,

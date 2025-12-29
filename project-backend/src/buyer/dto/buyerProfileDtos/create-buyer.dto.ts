@@ -5,7 +5,7 @@ export class CreateBuyerDto {
   @Matches(/^[a-zA-Z\s]*$/, { 
     message: 'Name must not contain any special characters or numbers' 
   })
-  name: string;
+  fullName: string;
 
   @IsString()
   @IsEmail() 

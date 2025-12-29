@@ -1,15 +1,6 @@
-import {
-  Entity,
-  PrimaryColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  BeforeInsert,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import {Entity,PrimaryColumn,Column,CreateDateColumn,UpdateDateColumn,BeforeInsert,ManyToOne,JoinColumn,} from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { Seller } from './seller.entity';
+import { User } from 'src/users/user.entity';
 
 @Entity('products') 
 export class Product {
@@ -40,7 +31,7 @@ export class Product {
   description?: string;
 
   @Column() 
-  sellerId: string;
+  sellerUserId: string;
 
   @CreateDateColumn() 
   createdAt: Date;
@@ -48,8 +39,8 @@ export class Product {
   @UpdateDateColumn() 
   updatedAt: Date;
 
-  // Many-to-One relationship with Seller
-  @ManyToOne(() => Seller, seller => seller.products)
-  @JoinColumn({ name: 'sellerId' }) // This links sellerId column to Seller's primary key
-  seller: Seller;
+  // Many-to-One relationship with seller user
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'sellerUserId' })
+  seller: User;
 }

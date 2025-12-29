@@ -4,7 +4,7 @@ import { CartItem } from "./cart-items.entity";
 @Entity('carts')
 export class Cart {
   @PrimaryColumn()
-  buyerId: string;
+  userId: string;
 
   @OneToMany(() => CartItem, cartItem => cartItem.cart, { cascade: true, eager: true })
   items: CartItem[];

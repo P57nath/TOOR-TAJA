@@ -11,6 +11,10 @@ export class OrderItem {
   productId: string;
 
   @Column()
+  @Index()
+  sellerUserId: string;
+
+  @Column()
   name: string;
 
   @Column('decimal', { precision: 10, scale: 2 })

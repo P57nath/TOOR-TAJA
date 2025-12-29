@@ -1,61 +1,38 @@
-import { Body, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
-import passport from 'passport';
-import { CreateBuyerDto } from 'src/buyer/dto/buyerProfileDtos/create-buyer.dto';
-import { CreateAdminDto } from 'src/admin/dto/create-admin.dto';
-import { CreateSellerDto } from 'src/seller/dto/create-seller.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { RegisterDto } from './dto/register.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+    constructor(
+        private readonly authService: AuthService,
+        private readonly jwtService: JwtService,
+    ) { }
 
     @Post('login')
     async login(@Body() dto: LoginDto) {
         return this.authService.login(dto.email, dto.password);
     }
 
-    @Post('register/buyer')
-    async registerBuyer(@Body() dto: CreateBuyerDto) {
-        return this.authService.registerBuyer(dto);
-        // return await this.mailerService.sendWelcomeEmail(data.email, data.name);
+    @Post('register')
+    async register(@Body() dto: RegisterDto) {
+        return this.authService.register(dto);
     }
 
-    
-    @Post('register/admin')
-    @UseInterceptors(
-        FileInterceptor('profileFile', {
-          fileFilter: (req, file, cb) => {
-            if (!file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
-              return cb(new Error('Only image files are allowed!'), false);
-            }
-    
-    
-            if (file.size > 2_000_000) {
-              return cb(new Error('File size too large! Maximum is 2MB'), false);
-            }
-    
-            cb(null, true);
-          },
-          storage: diskStorage({
-            destination: './upload',
-            filename: (_req, file, cb) => cb(null, Date.now() + file.originalname),
-          }),
-          limits: {
-            fileSize: 2_000_000, // 2 MB
-          },
-        }),
-      )
-    async registerAdmin(@Body() dto: CreateAdminDto,
-    @UploadedFile() file?: Express.Multer.File,) {
-        dto.profileName = file?.filename;
-        return this.authService.registerAdmin(dto);
+    @Post('refresh')
+    async refresh(@Body() dto: RefreshTokenDto) {
+        const decoded = this.jwtService.verify(dto.refreshToken);
+        return this.authService.refreshToken(decoded.sub, dto.refreshToken);
     }
 
-    @Post('register/seller')
-    async registerSeller(@Body() dto: CreateSellerDto) {
-        return this.authService.registerSeller(dto);
+    @Post('logout')
+    @UseGuards(JwtAuthGuard)
+    async logout(@CurrentUser() user: { id: string }) {
+        return this.authService.logout(user.id);
     }
 }

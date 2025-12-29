@@ -1,303 +1,137 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository,IsNull, And, Not } from 'typeorm';
-import { CreateAdminDto } from './dto/create-admin.dto';
-import { UpdateAdminDto } from './dto/update-admin.dto';
-import { UpdateRoleDto } from './dto/update-role.dto';
-import { AuditQueryDto, PageQueryDto } from './dto/query.dto';
-import { Admin } from './entities/admin.entity';
-import { Role } from './enums/role';
-import { UpdatePhoneDto } from './dto/update-phone.dto';
-import { GetNullNamesDto } from './dto/getNullNames.dto';
-import { BuyerProfile } from 'src/buyer/entities/buyer-profile.entity';
+import { Repository } from 'typeorm';
+import { User } from 'src/users/user.entity';
+import { Role } from 'src/common/enums/role.enum';
+import { SellerProfile, SellerStatus } from 'src/seller/seller-profile.entity';
+import { Order } from 'src/buyer/entities/order.entity';
+import { Category } from 'src/products/category.entity';
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { Dispute } from 'src/orders/dispute.entity';
 import { MailerService } from 'src/mailer/mailer.service';
 @Injectable()
 export class AdminService {
   constructor(
-    @InjectRepository(Admin)
-    private adminRepository: Repository<Admin>,
-    @InjectRepository(BuyerProfile)
-    private buyerRepository: Repository<any>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    @InjectRepository(SellerProfile)
+    private sellerProfileRepository: Repository<SellerProfile>,
+    @InjectRepository(Order)
+    private orderRepository: Repository<Order>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
+    @InjectRepository(Dispute)
+    private disputeRepository: Repository<Dispute>,
     private readonly mailerService: MailerService,
   ) { }
-
-  private audits: any[] = [];
 
   private ok(data: any, extra: Record<string, any> = {}) {
     return { success: true, ...extra, data };
   }
 
-  // // Create a user
-  // async create(dto: CreateAdminDto) {
-  //   const admin = this.adminRepository.create({
-  //     email: dto.email,
-  //     name: dto.name,
-  //     nid: dto.nid.trim(),
-  //     phone: dto.phone,
-  //     role: dto.role,
-  //     profileName: dto.profileName ?? '',
-  //     isActive: true,
-  //   });
+  async dashboard() {
+    const [sellerCount, pendingSellers, orderCount, disputeCount] = await Promise.all([
+      this.userRepository.count({ where: { role: Role.SELLER } }),
+      this.sellerProfileRepository.count({ where: { status: 'PENDING' } }),
+      this.orderRepository.count(),
+      this.disputeRepository.count({ where: { status: 'OPEN' } }),
+    ]);
 
-  //   const savedAdmin = await this.adminRepository.save(admin);
-
-  //   this.audits.push({
-  //     id: 'log_' + Date.now(),
-  //     type: 'create',
-  //     adminId: savedAdmin.id,
-  //     at: new Date()
-  //   });
-
-  //   return this.ok(savedAdmin, { message: 'Admin created' });
-  // }
-
-//   async findAll() {
-//   const admins = await this.adminRepository.find();
-//   return this.ok(admins);
-// }
-//  async findActive(q: PageQueryDto, isActive: string) {
-//   const page = Number(q.page) || 1;
-//   const limit = Number(q.limit) || 20;
-//   const skip = (page - 1) * limit;
-
-//   const [admins, total] = await this.adminRepository.findAndCount({
-//     where: {
-//       isActive: isActive === 'true' ? true : false,
-//     },
-   
-//     skip,
-//     take: limit,
-//     order: { createdAt: 'DESC' },
-//   });
-
-//   return this.ok(admins, {
-//     page,
-//     limit,
-//     total,
-//     message: `Admins retrieved successfully`,
-//   });
-// }
-
-
-
-  async findOne(id: string) {
-    const item = await this.adminRepository.findOne({ where: { id } });
-    return this.ok(item ?? null);
+    return this.ok({
+      sellers: sellerCount,
+      pendingSellers,
+      orders: orderCount,
+      openDisputes: disputeCount,
+    });
   }
-  
 
-
-  
-
-  // async replace(id: string, dto: CreateAdminDto) {
-  //   const existingAdmin = await this.adminRepository.findOne({ where: { id } });
-  //   const now = new Date();
-
-  //   if (existingAdmin) {
-  //     Object.assign(existingAdmin, {
-  //       email: dto.email,
-  //       name: dto.name,
-  //       nid: dto.nid,
-  //       phone: dto.phone,
-  //       role: dto.role,
-  //       profileName: dto.profileName ?? existingAdmin.profileName,
-  //       updatedAt: now,
-  //     });
-
-  //     const updatedAdmin = await this.adminRepository.save(existingAdmin);
-  //     this.audits.push({
-  //       id: 'log_' + Date.now(),
-  //       type: 'replace',
-  //       adminId: id,
-  //       at: now
-  //     });
-
-  //     return this.ok(updatedAdmin, { message: 'Admin replaced' });
-  //   } else {
-  //     const newAdmin = this.adminRepository.create({
-  //       id,
-  //       email: dto.email,
-  //       name: dto.name,
-  //       nid: dto.nid,
-  //       phone: dto.phone,
-  //       role: dto.role,
-  //       profileName: dto.profileName ?? '',
-  //       isActive: true,
-  //     });
-
-  //     const savedAdmin = await this.adminRepository.save(newAdmin);
-  //     this.audits.push({
-  //       id: 'log_' + Date.now(),
-  //       type: 'replace',
-  //       adminId: id,
-  //       at: now
-  //     });
-
-  //     return this.ok(savedAdmin, { message: 'Admin replaced' });
-  //   }
-  // }
-
-  async update(id: string, dto: UpdateAdminDto) {
-    const item = await this.adminRepository.findOne({ where: { id } });
-    if (!item) return this.ok(null, { message: 'Not found' });
-
-    const patch = { ...dto };
-    if (Object.prototype.hasOwnProperty.call(dto, 'profileName')) {
-      patch.profileName = dto.profileName ?? item.profileName;
+  async listSellers(status?: string) {
+    let normalized: SellerStatus | undefined;
+    if (status) {
+      const upper = status.toUpperCase();
+      if (!['PENDING', 'APPROVED', 'SUSPENDED'].includes(upper)) {
+        throw new BadRequestException('Invalid status');
+      }
+      normalized = upper as SellerStatus;
     }
 
-    Object.assign(item, patch, { updatedAt: new Date() });
-    const updatedAdmin = await this.adminRepository.save(item);
-
-    this.audits.push({
-      id: 'log_' + Date.now(),
-      type: 'update',
-      adminId: id,
-      at: new Date()
+    const sellers = await this.sellerProfileRepository.find({
+      where: normalized ? { status: normalized } : {},
+      relations: ['user'],
     });
 
-    return this.ok(updatedAdmin, { message: 'Admin updated' });
+    return this.ok(sellers, { total: sellers.length });
   }
 
-  // Remove a user from the system based on their id
-  async remove(id: string) {
-    const result = await this.adminRepository.delete(id);
-    this.audits.push({
-      id: 'log_' + Date.now(),
-      type: 'delete',
-      adminId: id,
-      at: new Date()
+  async approveSeller(sellerProfileId: string) {
+    const profile = await this.sellerProfileRepository.findOne({
+      where: { id: sellerProfileId },
+      relations: ['user'],
     });
+    if (!profile) throw new NotFoundException('Seller not found');
+    if (profile.status === 'APPROVED') {
+      throw new BadRequestException('Seller already approved');
+    }
 
-    return this.ok(
-      { removed: result.affected },
-      { message: 'Admin deleted' }
-    );
+    profile.status = 'APPROVED';
+    await this.sellerProfileRepository.save(profile);
+    await this.mailerService.sendSellerApprovedEmail(profile.user.email, profile.storeName);
+    return this.ok(profile, { message: 'Seller approved' });
   }
 
-  async updateRole(id: string, dto: UpdateRoleDto) {
-    const item = await this.adminRepository.findOne({ where: { id } });
-    if (!item) return this.ok(null, { message: 'Not found' });
+  async suspendSeller(sellerProfileId: string) {
+    const profile = await this.sellerProfileRepository.findOne({ where: { id: sellerProfileId } });
+    if (!profile) throw new NotFoundException('Seller not found');
+    if (profile.status === 'SUSPENDED') {
+      throw new BadRequestException('Seller already suspended');
+    }
 
-    item.role = dto.role;
-    item.updatedAt = new Date();
-
-    const updatedAdmin = await this.adminRepository.save(item);
-
-    this.audits.push({
-      id: 'log_' + Date.now(),
-      type: 'role-change',
-      adminId: id,
-      detail: dto.reason,
-      at: new Date(),
-    });
-
-    return this.ok(updatedAdmin, { message: 'Role updated' });
+    profile.status = 'SUSPENDED';
+    await this.sellerProfileRepository.save(profile);
+    return this.ok(profile, { message: 'Seller suspended' });
   }
 
-  getAuditLogs(q: AuditQueryDto) {
-    let res = [...this.audits];
-    if (q.type) res = res.filter(l => l.type === q.type);
-    if (q.from) res = res.filter(l => new Date(l.at) >= new Date(q.from!));
-    if (q.to) res = res.filter(l => new Date(l.at) <= new Date(q.to!));
-    return this.ok(res, { count: res.length });
+  async createCategory(dto: CreateCategoryDto) {
+    const existing = await this.categoryRepository.findOne({ where: { name: dto.name } });
+    if (existing) {
+      throw new BadRequestException('Category already exists');
+    }
+    const category = this.categoryRepository.create({ name: dto.name });
+    const saved = await this.categoryRepository.save(category);
+    return this.ok(saved, { message: 'Category created' });
   }
 
-
-  // 2. Modify the phone number of an existing user
-  async updatePhone(id: string, dto:UpdatePhoneDto) {
-    const result = await this.adminRepository.update(id, { phone: dto.phone, updatedAt: new Date() });
-
+  async deleteCategory(id: string) {
+    const result = await this.categoryRepository.delete(id);
     if (result.affected === 0) {
-      return this.ok(null, { message: 'Admin not found' });
+      throw new NotFoundException('Category not found');
     }
+    return this.ok(null, { message: 'Category deleted' });
+  }
 
-    const updatedAdmin = await this.adminRepository.findOne({ where: { id } });
-    this.audits.push({
-      id: 'log_' + Date.now(),
-      type: 'phone-update',
-      adminId: id,
-      at: new Date(),
+  async listOrders() {
+    const orders = await this.orderRepository.find({
+      order: { createdAt: 'DESC' },
     });
-
-    return this.ok(updatedAdmin, { message: 'Phone number updated' });
+    return this.ok(orders, { total: orders.length });
   }
 
-  //admin search by id
-async search(id: string) {
-  const admins = await this.adminRepository.find({
-     where: { 
-     
-    id: Like(`%${id}%`)}, 
-    select: ['id', 'name'],
-   
-
-  }); 
-  return this.ok(admins);
-
-}
-
-// //NUll names admin fetch
-private Success(data: any, extra: Record<string, any> = {}) {
-    return { success: true, ...extra, data };
+  async listDisputes() {
+    const disputes = await this.disputeRepository.find({
+      order: { createdAt: 'DESC' },
+    });
+    return this.ok(disputes, { total: disputes.length });
   }
 
-async findAdminsWithNullName(query: GetNullNamesDto) {
-  const page = query.page || 1;
-  const limit = query.limit || 10;
-  const skip = (page - 1) * limit;
+  async resolveDispute(id: string, resolutionNote?: string) {
+    const dispute = await this.disputeRepository.findOne({ where: { id } });
+    if (!dispute) throw new NotFoundException('Dispute not found');
 
-  const [admins, total] = await this.adminRepository.findAndCount({
-    where: {
-      name:IsNull(),   // <-- ONLY THIS NEEDED
-    },
-    skip,
-    take: limit,
-  });
-
-  return this.Success(admins, {
-    page,
-    limit,
-    total,
-    message: `Admins with null names retrieved successfully`,
-  });
-}
-
-
-async assignBuyer(adminId: string, buyerId: string) {
-  const admin = await this.adminRepository.findOne({ where: { id: adminId } });
-  const buyer = await this.buyerRepository.findOne({ where: { buyerId } });
-
-  if (!admin || !buyer) {
-    return { success: false, message: 'Admin or Buyer not found' };
+    dispute.status = 'RESOLVED';
+    dispute.resolutionNote = resolutionNote;
+    dispute.resolvedAt = new Date();
+    const saved = await this.disputeRepository.save(dispute);
+    return this.ok(saved, { message: 'Dispute resolved' });
   }
-
-  buyer.admin = admin;
-  await this.buyerRepository.save(buyer);
-
-  return { success: true, message: 'Buyer assigned to Admin', data: buyer };
-}
-
-async getBuyers(adminId: string) {
-  return this.buyerRepository.find({
-    where: { admin: { id: adminId } },
-  });
-}
-
-async sendShipmentEmailToBuyer(buyerEmail: string, buyerName: string, orderId: string, trackingNumber: string) {
-  return await this.mailerService.sendShipmentNotificationEmail(buyerEmail, buyerName, orderId, trackingNumber);
-}
-
-async notifyAllBuyersOfPromotion(subject: string, message: string) {
-  const buyers = await this.buyerRepository.find();
-  const results: any[] = [];
-  
-  for (const buyer of buyers) {
-    const result = await this.mailerService.sendGenericEmail(buyer.email, subject, message);
-    results.push(result);
-  }
-  
-  return { success: true, message: `Promotion email sent to ${results.length} buyers`, results };
-}
 
 }
