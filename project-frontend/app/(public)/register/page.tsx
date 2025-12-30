@@ -142,11 +142,11 @@ export default function RegisterPage() {
         <div className="flex flex-col justify-center gap-6 p-10">
           <div className="flex flex-col items-center gap-3 text-center">
             <Image
-              src="/file.svg"
+              src="/toortaja-logo.png"
               width={36}
               height={36}
               alt="Toor-Taja logo"
-              className="h-9 w-9"
+              className="h-9 w-9 object-contain"
             />
             <h2 className="text-2xl font-semibold text-emerald-950">
               ToorTaja

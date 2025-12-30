@@ -1,8 +1,12 @@
-export const dynamic = "force-static";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+
 import Footer from "@/components/Footer";
+
+export const dynamic = "force-static";
 
 const sidebarItems = [
   { label: "Vegetables", icon: "??" },
@@ -45,20 +49,34 @@ const collageImages = [
 ];
 
 export default function Home() {
+  const [isNavOpen, setIsNavOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-[#C5D89D] text-zinc-900">
       <div className="relative">
-        <header className="flex items-center justify-between gap-4 px-6 py-5 sm:px-8">
+        <header className="flex items-center justify-between gap-4 border-b border-zinc-900/10 bg-[#C5D89D] px-6 py-5 sm:px-8">
           <div className="flex items-center gap-4">
             <button
-              aria-label="Open menu"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-900/10 bg-white/70 text-2xl"
+              aria-label={isNavOpen ? "Close menu" : "Open menu"}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-900/10 bg-white/70"
               type="button"
+              onClick={() => setIsNavOpen((open) => !open)}
             >
-              ?
+              <Image
+                src={isNavOpen ? "/cross.png" : "/left-side-nav.png"}
+                alt={isNavOpen ? "Close navigation" : "Open navigation"}
+                width={22}
+                height={22}
+              />
             </button>
             <div className="flex items-center gap-2 text-2xl font-semibold">
-              <span className="text-2xl">??</span>
+              <Image
+                src="/toortaja-logo.png"
+                width={36}
+                height={36}
+                alt="Toor-Taja logo"
+                className="h-9 w-9 object-contain"
+              />
               <span className="font-semibold">ToorTaja</span>
             </div>
           </div>
@@ -89,17 +107,39 @@ export default function Home() {
         </header>
 
         <main className="relative mx-auto flex w-full max-w-7xl gap-6 px-6 pb-16 sm:px-8">
-          <aside className="hidden w-20 flex-col items-center gap-4 pt-6 sm:flex">
-            {sidebarItems.map((item) => (
+          {isNavOpen ? (
+            <div className="absolute inset-0 z-40 flex">
               <button
-                key={item.label}
-                className="flex h-14 w-14 flex-col items-center justify-center rounded-2xl border border-zinc-900/10 bg-white/70 text-xs font-semibold text-zinc-900 shadow-sm transition hover:-translate-y-0.5"
+                className="absolute inset-0 bg-zinc-900/20"
                 type="button"
-              >
-                <span className="text-lg">{item.icon}</span>
-              </button>
-            ))}
-          </aside>
+                aria-label="Close navigation"
+                onClick={() => setIsNavOpen(false)}
+              />
+              <aside className="relative h-full w-24 bg-white/95 px-4 py-6 shadow-xl">
+                <div className="flex flex-col items-center gap-4 pt-6">
+                  {sidebarItems.map((item) => (
+                    <button
+                      key={item.label}
+                      className="flex h-12 w-12 flex-col items-center justify-center rounded-2xl border border-zinc-900/10 bg-white text-xs font-semibold text-zinc-900 shadow-sm transition hover:-translate-y-0.5"
+                      type="button"
+                      aria-label={item.label}
+                      title={item.label}
+                    >
+                      <span className="text-lg">{item.icon}</span>
+                    </button>
+                  ))}
+                  <button
+                    className="mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-zinc-900/10 bg-white text-xs font-semibold shadow-sm"
+                    type="button"
+                    aria-label="Help"
+                    title="Help"
+                  >
+                    ?
+                  </button>
+                </div>
+              </aside>
+            </div>
+          ) : null}
 
           <section className="flex-1">
             <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">

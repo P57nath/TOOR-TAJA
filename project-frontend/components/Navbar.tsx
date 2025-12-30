@@ -23,11 +23,11 @@ export default function Navbar() {
           </button>
           <Link className="flex items-center gap-2 text-2xl font-semibold text-emerald-950" href="/">
             <Image
-              src="/file.svg"
+              src="/toortaja-logo.png"
               width={32}
               height={32}
               alt="Toor-Taja logo"
-              className="h-8 w-8"
+              className="h-8 w-8 object-contain"
             />
             <span>ToorTaja</span>
           </Link>
