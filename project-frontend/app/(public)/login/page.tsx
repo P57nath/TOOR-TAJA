@@ -118,8 +118,7 @@ export default function LoginPage() {
                 required
               />
             </FormField>
-            <div className="flex items-center justify-between text-xs text-emerald-900/70">
-              <span>Guest mode active</span>
+            <div className="flex items-center justify-end text-xs text-emerald-900/70">
               <button
                 className="font-semibold text-emerald-700 hover:text-emerald-600"
                 type="button"
