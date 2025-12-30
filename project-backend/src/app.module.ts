@@ -4,13 +4,12 @@ import { AuthModule } from './auth/auth.module';
 import { SellerModule } from './seller/seller.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BuyerModule } from './buyer/buyer.module';
-import { GuestModule } from './guest/guest.module';
 import { MailerModuleCustom } from './mailer/mailer.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 @Module({
-  imports: [AdminModule, SellerModule , BuyerModule, GuestModule,SellerModule,AuthModule,MailerModuleCustom,TypeOrmModule.forRoot(
+  imports: [AdminModule, SellerModule , BuyerModule,SellerModule,AuthModule,MailerModuleCustom,TypeOrmModule.forRoot(
     {
       type: 'postgres',
       host: 'localhost',
