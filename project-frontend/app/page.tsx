@@ -54,7 +54,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#C5D89D] text-zinc-900">
       <div className="relative">
-        <header className="flex items-center justify-between gap-4 border-b border-zinc-900/10 bg-[#C5D89D] px-6 py-5 sm:px-8">
+        <header className="flex items-center justify-between gap-4 border-b border-zinc-900/10 bg-[#C5D89D] px-6 py-3 sm:px-8">
           <div className="flex items-center gap-4">
             <button
               aria-label={isNavOpen ? "Close menu" : "Open menu"}
@@ -115,7 +115,7 @@ export default function Home() {
                 aria-label="Close navigation"
                 onClick={() => setIsNavOpen(false)}
               />
-              <aside className="relative h-full w-24 bg-white/95 px-4 py-6 shadow-xl">
+              <aside className="relative h-full w-24 bg-[#F6F0D7] px-4 py-6 shadow-xl">
                 <div className="flex flex-col items-center gap-4 pt-6">
                   {sidebarItems.map((item) => (
                     <button
