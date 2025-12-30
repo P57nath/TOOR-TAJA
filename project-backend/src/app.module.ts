@@ -38,7 +38,7 @@ import { PaymentsModule } from './payments/payments.module';
       port: 5432,
       username: 'postgres',
       password: 'DBweb012@',// add your database password here
-      database: 'toortaja',// add your database name here
+      database: 'toortajabackup',// add your database name here
       autoLoadEntities: true,
       synchronize: true,
     }),
