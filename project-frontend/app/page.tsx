@@ -1,7 +1,8 @@
 export const dynamic = "force-static";
 
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import InfoCard from "@/components/InfoCard";
+import Navbar from "@/components/Navbar";
 
 export default function Home() {
   return (
@@ -133,17 +134,11 @@ function FeaturedSection() {
             detail: "Chef-prepared meals for quick, healthy dining.",
           },
         ].map((item) => (
-          <article
+          <InfoCard
             key={item.title}
-            className="rounded-2xl border border-emerald-100 bg-white/80 p-5 shadow-sm backdrop-blur"
-          >
-            <h3 className="text-lg font-semibold text-emerald-950">
-              {item.title}
-            </h3>
-            <p className="mt-2 text-sm text-emerald-900/70">
-              {item.detail}
-            </p>
-          </article>
+            title={item.title}
+            description={item.detail}
+          />
         ))}
       </div>
     </section>

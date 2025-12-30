@@ -1,8 +1,12 @@
 "use client";
 
-import { registerAdmin, registerBuyer, registerSeller } from "@/lib/auth-client";
+import {
+  registerAdminSchema,
+  registerBuyerSchema,
+  registerSellerSchema,
+} from "@/lib/validation";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const dynamic = "force-static";
 
@@ -10,6 +14,13 @@ export default function RegisterPage() {
   const [role, setRole] = useState<"admin" | "buyer" | "seller">("admin");
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
   const [message, setMessage] = useState("");
+  const [toast, setToast] = useState("");
+
+  useEffect(() => {
+    if (!toast) return;
+    const timeout = setTimeout(() => setToast(""), 2500);
+    return () => clearTimeout(timeout);
+  }, [toast]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -17,11 +28,10 @@ export default function RegisterPage() {
     setMessage("");
 
     const formData = new FormData(event.currentTarget);
-    const profileFile = formData.get("profileFile");
 
     try {
       if (role === "buyer") {
-        await registerBuyer({
+        const parsed = registerBuyerSchema.safeParse({
           name: String(formData.get("buyerName") ?? ""),
           email: String(formData.get("buyerEmail") ?? ""),
           password: String(formData.get("buyerPassword") ?? ""),
@@ -35,10 +45,15 @@ export default function RegisterPage() {
             | null) ?? undefined,
           defaultAddressId: String(formData.get("buyerAddress") ?? "") || undefined,
         });
+        if (!parsed.success) {
+          setStatus("idle");
+          setMessage(parsed.error.issues[0]?.message ?? "Invalid buyer data.");
+          return;
+        }
       }
 
       if (role === "seller") {
-        await registerSeller({
+        const parsed = registerSellerSchema.safeParse({
           username: String(formData.get("sellerUsername") ?? ""),
           fullName: String(formData.get("sellerFullName") ?? ""),
           email: String(formData.get("sellerEmail") ?? ""),
@@ -52,30 +67,38 @@ export default function RegisterPage() {
             | "inactive"
             | null) ?? undefined,
         });
+        if (!parsed.success) {
+          setStatus("idle");
+          setMessage(parsed.error.issues[0]?.message ?? "Invalid seller data.");
+          return;
+        }
       }
 
       if (role === "admin") {
-        await registerAdmin(
-          {
-            name: String(formData.get("adminName") ?? ""),
-            email: String(formData.get("adminEmail") ?? ""),
-            password: String(formData.get("adminPassword") ?? ""),
-            nid: String(formData.get("adminNid") ?? ""),
-            role: String(formData.get("adminRole") ?? "manager") as
-              | "superadmin"
-              | "manager"
-              | "support",
-            phone: String(formData.get("adminPhone") ?? ""),
-            isActive: (formData.get("adminStatus") as
-              | "active"
-              | "inactive"
-              | null) ?? undefined,
-          },
-          profileFile instanceof File ? profileFile : undefined,
-        );
+        const parsed = registerAdminSchema.safeParse({
+          name: String(formData.get("adminName") ?? ""),
+          email: String(formData.get("adminEmail") ?? ""),
+          password: String(formData.get("adminPassword") ?? ""),
+          nid: String(formData.get("adminNid") ?? ""),
+          role: String(formData.get("adminRole") ?? "manager") as
+            | "superadmin"
+            | "manager"
+            | "support",
+          phone: String(formData.get("adminPhone") ?? ""),
+          isActive: (formData.get("adminStatus") as
+            | "active"
+            | "inactive"
+            | null) ?? undefined,
+        });
+        if (!parsed.success) {
+          setStatus("idle");
+          setMessage(parsed.error.issues[0]?.message ?? "Invalid admin data.");
+          return;
+        }
       }
       setStatus("success");
-      setMessage("Registration submitted. Check your email for next steps.");
+      setMessage("");
+      setToast("Registration validated successfully.");
     } catch (error) {
       setStatus("idle");
       setMessage(
@@ -88,6 +111,11 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-emerald-50 to-sky-50 text-zinc-900">
+      {toast ? (
+        <div className="fixed right-6 top-6 z-50 rounded-2xl border border-emerald-200 bg-white px-5 py-3 text-sm font-semibold text-emerald-800 shadow-lg">
+          {toast}
+        </div>
+      ) : null}
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12 sm:py-16">
         <section className="grid overflow-hidden rounded-3xl border border-emerald-100 bg-white/90 shadow-sm backdrop-blur md:grid-cols-[1.1fr_0.9fr]">
           <aside className="relative min-h-[420px] overflow-hidden bg-emerald-100/80">

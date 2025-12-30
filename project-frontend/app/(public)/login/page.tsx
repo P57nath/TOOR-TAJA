@@ -1,17 +1,21 @@
 "use client";
 
-import { loginSchema } from "@/lib/auth-client";
-import axios from "axios";
+import { loginSchema } from "@/lib/validation";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const dynamic = "force-static";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
   const [message, setMessage] = useState("");
+  const [toast, setToast] = useState("");
+
+  useEffect(() => {
+    if (!toast) return;
+    const timeout = setTimeout(() => setToast(""), 2500);
+    return () => clearTimeout(timeout);
+  }, [toast]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -23,23 +27,16 @@ export default function LoginPage() {
     const password = String(formData.get("password") ?? "");
 
     try {
-      const payload = loginSchema.parse({ email, password });
-      const response = await axios.post<{ role: string }>(
-        "/api/auth/login",
-        payload,
-        {
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-      setStatus("success");
-      setMessage("Signed in successfully.");
-      if (response.data.role === "buyer") {
-        router.push("/buyer");
-      } else if (response.data.role === "seller") {
-        router.push("/seller");
-      } else if (response.data.role === "admin") {
-        router.push("/admin");
+      const payload = loginSchema.safeParse({ email, password });
+      if (!payload.success) {
+        setStatus("idle");
+        setMessage(payload.error.issues[0]?.message ?? "Invalid login details.");
+        return;
       }
+      setStatus("success");
+      setMessage("");
+      setToast("Login validated successfully.");
+      window.location.href = "/products";
     } catch (error) {
       setStatus("idle");
       setMessage(
@@ -50,6 +47,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-emerald-50 to-sky-50 text-zinc-900">
+      {toast ? (
+        <div className="fixed right-6 top-6 z-50 rounded-2xl border border-emerald-200 bg-white px-5 py-3 text-sm font-semibold text-emerald-800 shadow-lg">
+          {toast}
+        </div>
+      ) : null}
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12 sm:py-16">
         <section className="grid overflow-hidden rounded-3xl border border-emerald-100 bg-white/90 shadow-sm backdrop-blur md:grid-cols-[1.1fr_0.9fr]">
           <aside className="relative min-h-[420px] overflow-hidden bg-emerald-100/80">

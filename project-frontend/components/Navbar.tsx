@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-const navigation = ["Product", "Features", "Pricing", "Company", "Blog"];
+const navigation = [{ label: "Home", href: "/" }];
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,9 +19,14 @@ export default function Navbar() {
             type="button"
             onClick={() => setIsOpen((open) => !open)}
           >
-            <span className="text-xl">{isOpen ? "×" : "≡"}</span>
+            <span className="text-xs font-semibold">
+              {isOpen ? "Close" : "Menu"}
+            </span>
           </button>
-          <Link className="flex items-center gap-2 text-2xl font-semibold text-emerald-950" href="/">
+          <Link
+            className="flex items-center gap-2 text-2xl font-semibold text-emerald-950"
+            href="/"
+          >
             <Image
               src="/file.svg"
               width={32}
@@ -36,11 +41,11 @@ export default function Navbar() {
         <div className="hidden items-center gap-3 text-sm font-semibold lg:flex">
           {navigation.map((item) => (
             <Link
-              key={item}
+              key={item.label}
               className="rounded-full px-4 py-2 text-emerald-900/80 transition hover:bg-emerald-50 hover:text-emerald-700"
-              href="/"
+              href={item.href}
             >
-              {item}
+              {item.label}
             </Link>
           ))}
         </div>
@@ -64,11 +69,11 @@ export default function Navbar() {
           <div className="flex w-full flex-col gap-3 lg:hidden">
             {navigation.map((item) => (
               <Link
-                key={item}
+                key={item.label}
                 className="rounded-2xl border border-emerald-100 bg-white px-4 py-2 text-sm font-semibold text-emerald-900/80 shadow-sm"
-                href="/"
+                href={item.href}
               >
-                {item}
+                {item.label}
               </Link>
             ))}
           </div>
