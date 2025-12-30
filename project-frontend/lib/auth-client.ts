@@ -9,6 +9,11 @@ const client: AxiosInstance = axios.create({
   },
 });
 
+const multipartClient: AxiosInstance = axios.create({
+  baseURL: "",
+  withCredentials: true,
+});
+
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
@@ -117,7 +122,7 @@ export async function registerAdmin(
   if (profileFile) {
     formData.append("profileFile", profileFile);
   }
-  const response = await client.post<RegisterAdminResponse>(
+  const response = await multipartClient.post<RegisterAdminResponse>(
     "/api/auth/register/admin",
     formData,
   );
