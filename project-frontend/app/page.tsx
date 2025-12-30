@@ -159,7 +159,13 @@ export default function Home() {
                     placeholder="Search for products (eggs, milk, potato)"
                     type="search"
                   />
-                  <span className="text-lg text-zinc-500">??</span>
+                  <Image
+                    src="/search.png"
+                    alt="Search"
+                    width={20}
+                    height={20}
+                    className="h-5 w-5"
+                  />
                 </div>
                 <div className="flex flex-wrap gap-3">
                   <span className="rounded-full border border-zinc-900/10 bg-white/70 px-4 py-2 text-xs font-semibold">
