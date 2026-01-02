@@ -1,3 +1,4 @@
+import Navbar from "@/components/Navbar";
 import { apiFetch } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 
@@ -29,32 +30,14 @@ export default async function BuyerDashboard() {
 
   return (
     <div className="min-h-screen bg-amber-50 text-zinc-900">
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-10 sm:py-14">
-        <nav className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <button
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-amber-200 bg-white shadow-sm"
-              type="button"
-            >
-              <span className="text-xl">≡</span>
-            </button>
-            <a className="text-2xl font-semibold text-amber-900" href="/">
-              Toor-Taja
-            </a>
-          </div>
-          <div className="flex items-center gap-3 text-sm font-semibold">
-            <span className="rounded-full bg-white px-4 py-2 text-amber-700 shadow-sm">
-              Dhaka
-            </span>
-            <a
-              className="rounded-full bg-amber-500 px-4 py-2 text-white shadow-sm"
-              href="/login"
-            >
-              Login
-            </a>
-          </div>
-        </nav>
+      <Navbar
+        showSearch
+        showAuthButton={false}
+        showUserActions
+        searchPlaceholder="Search for products (e.g. eggs, milk, potato)"
+      />
 
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-10 sm:py-14">
         <section className="grid gap-10 rounded-3xl bg-amber-200/80 p-8 shadow-sm md:grid-cols-[1.3fr_0.7fr]">
           <div className="space-y-6">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-800">
@@ -67,16 +50,6 @@ export default async function BuyerDashboard() {
               Welcome back, {session.displayName}. Track fresh picks, manage
               your cart, and reorder favorites in one place.
             </p>
-            <div className="relative">
-              <input
-                className="w-full rounded-2xl border border-amber-100 bg-white px-4 py-3 text-sm shadow-sm focus:border-amber-400 focus:outline-none"
-                placeholder="Search for products (e.g. eggs, milk, potato)"
-                type="search"
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-400">
-                🔍
-              </span>
-            </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {[
                 "+15000 products to shop from",
@@ -112,12 +85,7 @@ export default async function BuyerDashboard() {
             </a>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              "Fresh produce",
-              "Staples",
-              "Snacks",
-              "Household",
-            ].map((item) => (
+            {["Fresh produce", "Staples", "Snacks", "Household"].map((item) => (
               <div
                 key={item}
                 className="rounded-2xl border border-amber-200 bg-white p-4 shadow-sm"

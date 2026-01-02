@@ -9,6 +9,23 @@ import { useState } from "react";
 
 export const dynamic = "force-static";
 
+type TokenPayload = {
+  role?: string;
+};
+
+function getRoleFromToken(token: string): string | null {
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  try {
+    const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const decoded = atob(payload.padEnd(payload.length + ((4 - (payload.length % 4)) % 4), "="));
+    const data = JSON.parse(decoded) as TokenPayload;
+    return data.role ? data.role.toLowerCase() : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
@@ -45,10 +62,19 @@ export default function LoginPage() {
         return;
       }
 
-      await login(parsed.data);
+      const response = await login(parsed.data);
       setStatus("success");
       setMessage("Signed in successfully. Redirecting...");
-      router.push("/");
+      const role = getRoleFromToken(response.access_token);
+      if (role === "buyer") {
+        router.push("/buyer");
+      } else if (role === "seller") {
+        router.push("/seller");
+      } else if (role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/");
+      }
     } catch (error) {
       setStatus("idle");
       setMessage("");
