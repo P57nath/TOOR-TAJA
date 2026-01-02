@@ -9,18 +9,224 @@ import Navbar from "@/components/Navbar";
 export const dynamic = "force-static";
 
 const sidebarItems = [
-  { label: "Favourites", icon: "❤️" },
-  { label: "Winter Collection", icon: "❄️" },
-  { label: "Flash Sales", icon: "⚡" },
-  { label: "Food", icon: "🧺", hasChevron: true },
-  { label: "Cleaning Supplies", icon: "🧴", hasChevron: true },
-  { label: "Home & Kitchen", icon: "🏠", hasChevron: true },
-  { label: "Fashion & Lifestyle", icon: "👗", hasChevron: true },
-  { label: "Baby Care", icon: "🍼", hasChevron: true },
-  { label: "Personal Care", icon: "🧴", hasChevron: true },
-  { label: "Stationery & Office", icon: "📚", hasChevron: true },
-  { label: "Pet Care", icon: "🐾", hasChevron: true },
-  { label: "Toys & Sports", icon: "🧸", hasChevron: true },
+  {
+    label: "Favourites",
+    icon: (
+      <svg
+        className="h-4 w-4 text-rose-500"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Winter Collection",
+    icon: (
+      <svg
+        className="h-4 w-4 text-sky-500"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M12 2v20" />
+        <path d="M4 6l16 12" />
+        <path d="M20 6L4 18" />
+      </svg>
+    ),
+  },
+  {
+    label: "Flash Sales",
+    icon: (
+      <svg
+        className="h-4 w-4 text-amber-500"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Food",
+    hasChevron: true,
+    icon: (
+      <svg
+        className="h-4 w-4 text-emerald-600"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M3 7h18" />
+        <path d="M5 7l1 13h12l1-13" />
+        <path d="M9 7a3 3 0 0 1 6 0" />
+      </svg>
+    ),
+  },
+  {
+    label: "Cleaning Supplies",
+    hasChevron: true,
+    icon: (
+      <svg
+        className="h-4 w-4 text-sky-600"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M9 3h6l1 4H8l1-4z" />
+        <path d="M7 7h10l-1 14H8L7 7z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Home & Kitchen",
+    hasChevron: true,
+    icon: (
+      <svg
+        className="h-4 w-4 text-emerald-700"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M3 11l9-8 9 8" />
+        <path d="M5 10v10h14V10" />
+      </svg>
+    ),
+  },
+  {
+    label: "Fashion & Lifestyle",
+    hasChevron: true,
+    icon: (
+      <svg
+        className="h-4 w-4 text-pink-500"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M9 3l3 3 3-3 3 4-3 4v10H9V10L6 7l3-4z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Baby Care",
+    hasChevron: true,
+    icon: (
+      <svg
+        className="h-4 w-4 text-rose-400"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="8" r="4" />
+        <path d="M5 21a7 7 0 0 1 14 0" />
+      </svg>
+    ),
+  },
+  {
+    label: "Personal Care",
+    hasChevron: true,
+    icon: (
+      <svg
+        className="h-4 w-4 text-teal-600"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="7" r="4" />
+        <path d="M5 21a7 7 0 0 1 14 0" />
+      </svg>
+    ),
+  },
+  {
+    label: "Stationery & Office",
+    hasChevron: true,
+    icon: (
+      <svg
+        className="h-4 w-4 text-indigo-500"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M4 4h12v16H4z" />
+        <path d="M8 4v16" />
+        <path d="M16 7h4v13h-4" />
+      </svg>
+    ),
+  },
+  {
+    label: "Pet Care",
+    hasChevron: true,
+    icon: (
+      <svg
+        className="h-4 w-4 text-amber-600"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="7" cy="7" r="2" />
+        <circle cx="17" cy="7" r="2" />
+        <circle cx="5" cy="13" r="2" />
+        <circle cx="19" cy="13" r="2" />
+        <path d="M12 12a4 4 0 0 0-4 4 4 4 0 0 0 8 0 4 4 0 0 0-4-4z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Toys & Sports",
+    hasChevron: true,
+    icon: (
+      <svg
+        className="h-4 w-4 text-orange-500"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="8" />
+        <path d="M4 12h16" />
+        <path d="M12 4a16 16 0 0 0 0 16" />
+        <path d="M12 4a16 16 0 0 1 0 16" />
+      </svg>
+    ),
+  },
 ];
 
 const featureCards = [
@@ -213,11 +419,13 @@ export default function Home() {
                       title={item.label}
                     >
                       <span className="flex items-center gap-3">
-                        <span className="text-lg">{item.icon}</span>
+                        <span className="flex h-4 w-4 items-center justify-center">
+                          {item.icon}
+                        </span>
                         <span>{item.label}</span>
                       </span>
                       {item.hasChevron ? (
-                        <span className="text-xs text-zinc-500">›</span>
+                        <span className="text-xs text-zinc-500">{">"}</span>
                       ) : null}
                     </button>
                   ))}
@@ -233,7 +441,7 @@ export default function Home() {
                       className="flex items-center gap-2 rounded-full border border-zinc-900/10 bg-white/80 px-3 py-1.5 text-[11px] font-semibold shadow-sm"
                       type="button"
                     >
-                      <span className="text-rose-500">✉️</span>
+                      <span className="text-rose-500">!</span>
                       Complaint
                     </button>
                   </div>
@@ -356,7 +564,7 @@ export default function Home() {
                 </p>
               </div>
               <p className="mt-3 flex items-center justify-center gap-1 text-sm font-semibold text-zinc-900">
-                <span className="text-[10px] text-zinc-700">৳</span> 0
+                <span className="text-[10px] text-zinc-700">BDT</span> 0
               </p>
               <button
                 className="mt-3 w-full rounded-full bg-emerald-600 px-3 py-2 text-[10px] font-semibold text-white"
