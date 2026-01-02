@@ -3,6 +3,8 @@
 import { loginSchema } from "@/lib/validation";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 
 export const dynamic = "force-static";
 
@@ -10,6 +12,7 @@ export default function LoginPage() {
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
   const [message, setMessage] = useState("");
   const [toast, setToast] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     if (!toast) return;
@@ -25,6 +28,8 @@ export default function LoginPage() {
     const formData = new FormData(event.currentTarget);
     const email = String(formData.get("email") ?? "");
     const password = String(formData.get("password") ?? "");
+    const API_BASE =
+      process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5010";
 
     try {
       const payload = loginSchema.safeParse({ email, password });
@@ -33,14 +38,26 @@ export default function LoginPage() {
         setMessage(payload.error.issues[0]?.message ?? "Invalid login details.");
         return;
       }
+      await axios.post(
+        `${API_BASE}/auth/login`,
+        { email: payload.data.email, password: payload.data.password },
+        { withCredentials: true },
+      );
+
       setStatus("success");
       setMessage("");
-      setToast("Login validated successfully.");
-      window.location.href = "/products";
+      setToast("Login successful. Redirecting...");
+      setTimeout(() => router.push("/products"), 600);
     } catch (error) {
       setStatus("idle");
+      const serverMsg =
+        (error as any)?.response?.data?.message ||
+        (error as any)?.response?.data ||
+        (error as any)?.message;
       setMessage(
-        error instanceof Error ? error.message : "Unable to sign in right now.",
+        typeof serverMsg === "string"
+          ? serverMsg
+          : "Unable to sign in right now.",
       );
     }
   }
