@@ -9,12 +9,18 @@ import Navbar from "@/components/Navbar";
 export const dynamic = "force-static";
 
 const sidebarItems = [
-  { label: "Vegetables", icon: "??" },
-  { label: "Fruits", icon: "??" },
-  { label: "Meat", icon: "??" },
-  { label: "Dairy", icon: "??" },
-  { label: "Bakery", icon: "??" },
-  { label: "Pantry", icon: "??" },
+  { label: "Favourites", icon: "❤️" },
+  { label: "Winter Collection", icon: "❄️" },
+  { label: "Flash Sales", icon: "⚡" },
+  { label: "Food", icon: "🧺", hasChevron: true },
+  { label: "Cleaning Supplies", icon: "🧴", hasChevron: true },
+  { label: "Home & Kitchen", icon: "🏠", hasChevron: true },
+  { label: "Fashion & Lifestyle", icon: "👗", hasChevron: true },
+  { label: "Baby Care", icon: "🍼", hasChevron: true },
+  { label: "Personal Care", icon: "🧴", hasChevron: true },
+  { label: "Stationery & Office", icon: "📚", hasChevron: true },
+  { label: "Pet Care", icon: "🐾", hasChevron: true },
+  { label: "Toys & Sports", icon: "🧸", hasChevron: true },
 ];
 
 const featureCards = [
@@ -131,8 +137,11 @@ export default function Home() {
 
   useEffect(() => {
     if (hasCartPosition) return;
-    const defaultX = Math.max(window.innerWidth - 180, 24);
-    const defaultY = 180;
+    const element = cartRef.current;
+    const width = element?.offsetWidth ?? 120;
+    const height = element?.offsetHeight ?? 160;
+    const defaultX = Math.max(window.innerWidth - width - 24, 12);
+    const defaultY = Math.max((window.innerHeight - height) / 2, 80);
     setCartPos({ x: defaultX, y: defaultY });
     setHasCartPosition(true);
   }, [hasCartPosition]);
@@ -184,7 +193,7 @@ export default function Home() {
           showMenuButton
         />
 
-        <main className="relative mx-auto flex min-h-[calc(100vh-64px)] w-full max-w-7xl gap-6 px-6 pb-16 sm:px-8">
+        <main className="relative mx-auto flex min-h-[calc(100vh-64px)] w-full max-w-full gap-6 px-3 pt-6 pb-16 sm:px-4">
           {isNavOpen ? (
             <div className="fixed left-0 right-0 top-16 z-40 flex h-[calc(100vh-64px)]">
               <button
@@ -193,27 +202,41 @@ export default function Home() {
                 aria-label="Close navigation"
                 onClick={() => setIsNavOpen(false)}
               />
-              <aside className="relative h-full w-20 bg-[#F6F0D7] px-3 py-6 shadow-xl sm:w-24 sm:px-4">
-                <div className="flex flex-col items-center gap-4 pt-6">
+              <aside className="relative h-full w-56 bg-transparent px-2 py-4 shadow-xl backdrop-blur-md">
+                <div className="sidebar-scroll flex max-h-full flex-col gap-1 overflow-y-auto pt-2">
                   {sidebarItems.map((item) => (
                     <button
                       key={item.label}
-                      className="flex h-12 w-12 flex-col items-center justify-center rounded-2xl border border-zinc-900/10 bg-white text-xs font-semibold text-zinc-900 shadow-sm transition hover:-translate-y-0.5"
+                      className="flex w-full items-center justify-between rounded-2xl border border-zinc-900/10 bg-white/70 px-3 py-2 text-[11px] font-semibold leading-tight text-zinc-900 shadow-sm transition hover:-translate-y-0.5 backdrop-blur-md"
                       type="button"
                       aria-label={item.label}
                       title={item.label}
                     >
-                      <span className="text-lg">{item.icon}</span>
+                      <span className="flex items-center gap-3">
+                        <span className="text-lg">{item.icon}</span>
+                        <span>{item.label}</span>
+                      </span>
+                      {item.hasChevron ? (
+                        <span className="text-xs text-zinc-500">›</span>
+                      ) : null}
                     </button>
                   ))}
-                  <button
-                    className="mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-zinc-900/10 bg-white text-xs font-semibold shadow-sm"
-                    type="button"
-                    aria-label="Help"
-                    title="Help"
-                  >
-                    ?
-                  </button>
+                  <div className="mt-3 flex items-center gap-2">
+                    <button
+                      className="flex items-center gap-2 rounded-full border border-zinc-900/10 bg-white/80 px-3 py-1.5 text-[11px] font-semibold shadow-sm"
+                      type="button"
+                    >
+                      <span className="text-pink-500">?</span>
+                      Help
+                    </button>
+                    <button
+                      className="flex items-center gap-2 rounded-full border border-zinc-900/10 bg-white/80 px-3 py-1.5 text-[11px] font-semibold shadow-sm"
+                      type="button"
+                    >
+                      <span className="text-rose-500">✉️</span>
+                      Complaint
+                    </button>
+                  </div>
                 </div>
               </aside>
             </div>
@@ -221,7 +244,7 @@ export default function Home() {
 
           <section className="flex-1">
             <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-              <div className="space-y-6 pt-6">
+              <div className="space-y-6">
                 <div className="space-y-4">
                   <h1 className="text-4xl font-semibold leading-tight text-zinc-900 sm:text-5xl">
                     Grocery delivered at your doorstep
