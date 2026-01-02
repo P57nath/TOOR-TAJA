@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useState } from "react";
 
 import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 
 export const dynamic = "force-static";
 
@@ -54,57 +54,11 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#C5D89D] text-zinc-900">
       <div className="relative">
-        <header className="flex items-center justify-between gap-4 border-b border-zinc-900/10 bg-[#C5D89D] px-6 py-3 sm:px-8">
-          <div className="flex items-center gap-4">
-            <button
-              aria-label={isNavOpen ? "Close menu" : "Open menu"}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-900/10 bg-white/70"
-              type="button"
-              onClick={() => setIsNavOpen((open) => !open)}
-            >
-              <Image
-                src={isNavOpen ? "/cross.png" : "/left-side-nav.png"}
-                alt={isNavOpen ? "Close navigation" : "Open navigation"}
-                width={22}
-                height={22}
-              />
-            </button>
-            <div className="flex items-center gap-2 text-2xl font-semibold">
-              <Image
-                src="/toortaja-logo.png"
-                width={36}
-                height={36}
-                alt="Toor-Taja logo"
-                className="h-9 w-9 object-contain"
-              />
-              <span className="font-semibold">ToorTaja</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 text-sm font-semibold">
-            <button
-              className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2"
-              type="button"
-            >
-              <span className="text-emerald-600">??</span>
-              Dhaka
-              <span className="text-xs">?</span>
-            </button>
-            <div className="hidden items-center gap-2 sm:flex">
-              <button className="rounded-full bg-white/70 px-3 py-2" type="button">
-                EN
-              </button>
-              <button className="rounded-full bg-white/70 px-3 py-2" type="button">
-                ?????
-              </button>
-            </div>
-            <Link
-              className="rounded-full bg-rose-500 px-5 py-2 text-white"
-              href="/login"
-            >
-              Login
-            </Link>
-          </div>
-        </header>
+        <Navbar
+          onMenuToggle={() => setIsNavOpen((open) => !open)}
+          isMenuOpen={isNavOpen}
+          showMenuButton
+        />
 
         <main className="relative mx-auto flex w-full max-w-7xl gap-6 px-6 pb-16 sm:px-8">
           {isNavOpen ? (
