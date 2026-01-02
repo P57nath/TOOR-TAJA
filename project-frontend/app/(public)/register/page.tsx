@@ -9,8 +9,9 @@ import {
   registerSeller,
   registerSellerFormSchema,
 } from "@/lib/auth-client";
-import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
 
 export const dynamic = "force-static";
 
@@ -131,7 +132,7 @@ export default function RegisterPage() {
       <section className="w-full max-w-lg overflow-hidden rounded-3xl border border-zinc-900/10 bg-white shadow-lg">
         <div className="flex flex-col justify-center gap-4 p-6">
           <div className="flex flex-col items-center gap-2 text-center">
-            <div className="flex items-center justify-center gap-2">
+            <Link className="flex items-center justify-center gap-2" href="/">
               <Image
                 src="/toortaja-logo.png"
                 width={28}
@@ -142,7 +143,7 @@ export default function RegisterPage() {
               <h2 className="text-lg font-semibold text-emerald-950">
                 ToorTaja
               </h2>
-            </div>
+            </Link>
             <p className="text-xs text-emerald-900/70">
               {currentRole?.blurb ?? "Create a role-based account in minutes."}
             </p>

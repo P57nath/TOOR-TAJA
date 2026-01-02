@@ -63,16 +63,18 @@ export default function LoginPage() {
       <section className="w-full max-w-xl overflow-hidden rounded-3xl border border-zinc-900/10 bg-white shadow-lg">
         <div className="flex flex-col justify-center gap-6 p-10">
           <div className="flex flex-col items-center gap-3 text-center">
-            <Image
-              src="/toortaja-logo.png"
-              width={36}
-              height={36}
-              alt="Toor-Taja logo"
-              className="h-9 w-9 object-contain"
-            />
-            <h2 className="text-2xl font-semibold text-emerald-950">
-              ToorTaja
-            </h2>
+            <Link className="flex items-center gap-2" href="/">
+              <Image
+                src="/toortaja-logo.png"
+                width={36}
+                height={36}
+                alt="Toor-Taja logo"
+                className="h-9 w-9 object-contain"
+              />
+              <h2 className="text-2xl font-semibold text-emerald-950">
+                ToorTaja
+              </h2>
+            </Link>
             <p className="text-sm text-emerald-900/70">
               Sign in to track orders, manage baskets, and explore fresh picks.
             </p>
