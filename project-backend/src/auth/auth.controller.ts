@@ -1,4 +1,5 @@
-import { Body, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, UploadedFile, UseInterceptors, Res } from '@nestjs/common';
+import express from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import passport from 'passport';
@@ -13,8 +14,19 @@ export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
     @Post('login')
-    async login(@Body() dto: LoginDto) {
-        return this.authService.login(dto.email, dto.password);
+    async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: express.Response) {
+        const result = await this.authService.login(dto.email, dto.password);
+        const token = (result as any)?.access_token;
+        if (token) {
+            res.cookie('access_token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+            });
+            return { message: 'Logged in' };
+        }
+        return result;
     }
 
     @Post('register/buyer')

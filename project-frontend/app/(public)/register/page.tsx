@@ -7,6 +7,8 @@ import {
 } from "@/lib/validation";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 
 export const dynamic = "force-static";
 
@@ -15,6 +17,7 @@ export default function RegisterPage() {
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
   const [message, setMessage] = useState("");
   const [toast, setToast] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     if (!toast) return;
@@ -22,14 +25,18 @@ export default function RegisterPage() {
     return () => clearTimeout(timeout);
   }, [toast]);
 
+
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("loading");
     setMessage("");
 
     const formData = new FormData(event.currentTarget);
+    const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5010";
 
     try {
+      // Validate based on role first
       if (role === "buyer") {
         const parsed = registerBuyerSchema.safeParse({
           name: String(formData.get("buyerName") ?? ""),
@@ -50,6 +57,18 @@ export default function RegisterPage() {
           setMessage(parsed.error.issues[0]?.message ?? "Invalid buyer data.");
           return;
         }
+
+        // Send to backend
+        await axios.post(`${API_BASE}/auth/register/buyer`, {
+          name: parsed.data.name,
+          email: parsed.data.email,
+          password: parsed.data.password,
+          phone: parsed.data.phone,
+          age: parsed.data.age,
+          status: parsed.data.status,
+          defaultAddressId: parsed.data.defaultAddressId,
+        }, { withCredentials: true });
+
       }
 
       if (role === "seller") {
@@ -72,6 +91,18 @@ export default function RegisterPage() {
           setMessage(parsed.error.issues[0]?.message ?? "Invalid seller data.");
           return;
         }
+
+        // Send to backend
+        await axios.post(`${API_BASE}/auth/register/seller`, {
+          username: parsed.data.username,
+          fullName: parsed.data.fullName,
+          email: parsed.data.email,
+          password: parsed.data.password,
+          gender: parsed.data.gender,
+          phoneNumber: parsed.data.phoneNumber,
+          isActive: parsed.data.isActive,
+        }, { withCredentials: true });
+
       }
 
       if (role === "admin") {
@@ -95,16 +126,35 @@ export default function RegisterPage() {
           setMessage(parsed.error.issues[0]?.message ?? "Invalid admin data.");
           return;
         }
+
+        const body = new FormData();
+        body.append('name', parsed.data.name);
+        body.append('email', parsed.data.email);
+        body.append('password', parsed.data.password);
+        body.append('nid', parsed.data.nid);
+        body.append('role', parsed.data.role);
+        if (parsed.data.phone) body.append('phone', String(parsed.data.phone));
+        if (parsed.data.isActive) body.append('isActive', parsed.data.isActive);
+
+        const file = formData.get('profileFile') as File | null;
+        if (file && file.size) body.append('profileFile', file);
+
+        await axios.post(`${API_BASE}/auth/register/admin`, body, { withCredentials: true });
       }
-      setStatus("success");
-      setMessage("");
-      setToast("Registration validated successfully.");
-    } catch (error) {
+
+      // If we got here without throwing, registration succeeded
+      setStatus('success');
+      setMessage('');
+      setToast('Registration successful. Redirecting to login...');
+
+      // Redirect to login after short delay so users can see toast
+      setTimeout(() => router.push('/login'), 1200);
+
+    } catch (error: any) {
       setStatus("idle");
+      const serverMsg = error?.response?.data?.message || error?.response?.data || error?.message;
       setMessage(
-        error instanceof Error
-          ? error.message
-          : "Unable to create the account right now.",
+        typeof serverMsg === 'string' ? serverMsg : 'Unable to create the account right now.'
       );
     }
   }
@@ -559,6 +609,7 @@ export default function RegisterPage() {
                 className="inline-flex w-full items-center justify-center rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
                 type="submit"
                 disabled={status === "loading"}
+                
               >
                 {status === "loading" ? "Creating..." : "Create account"}
               </button>
