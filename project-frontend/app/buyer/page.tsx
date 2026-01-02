@@ -1,4 +1,4 @@
-import Navbar from "@/components/Navbar";
+import BuyerShell from "@/components/buyer/BuyerShell";
 import { apiFetch } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 
@@ -29,15 +29,8 @@ export default async function BuyerDashboard() {
     profilesResult.status === "fulfilled" ? profilesResult.value : null;
 
   return (
-    <div className="min-h-screen bg-amber-50 text-zinc-900">
-      <Navbar
-        showSearch
-        showAuthButton={false}
-        showUserActions
-        searchPlaceholder="Search for products (e.g. eggs, milk, potato)"
-      />
-
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-10 sm:py-14">
+    <BuyerShell>
+      <div className="flex w-full flex-col gap-10">
         <section className="grid gap-10 rounded-3xl bg-amber-200/80 p-8 shadow-sm md:grid-cols-[1.3fr_0.7fr]">
           <div className="space-y-6">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-800">
@@ -140,7 +133,7 @@ export default async function BuyerDashboard() {
             {formatData(profiles)}
           </pre>
         </section>
-      </main>
-    </div>
+      </div>
+    </BuyerShell>
   );
 }

@@ -60,7 +60,7 @@ export default function Navbar({
 
   return (
     <div className="w-full">
-      <nav className="relative flex w-full flex-wrap items-center gap-4 border-b border-zinc-900/10 bg-[#C5D89D] px-6 py-3 sm:px-8">
+      <nav className="relative flex w-full flex-wrap items-center gap-4 bg-[#C5D89D] px-6 py-3 shadow-[0_1px_0_rgba(0,0,0,0.05)] sm:px-8">
         <div className="flex items-center gap-3">
           {showMenuButton ? (
             <button

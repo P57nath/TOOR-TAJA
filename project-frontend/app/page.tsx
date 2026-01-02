@@ -401,7 +401,7 @@ export default function Home() {
 
         <main className="relative mx-auto flex min-h-[calc(100vh-64px)] w-full max-w-full gap-6 px-3 pt-6 pb-16 sm:px-4">
           {isNavOpen ? (
-            <div className="fixed left-0 right-0 top-16 z-40 flex h-[calc(100vh-64px)]">
+            <div className="fixed left-0 right-0 top-[68px] z-40 flex h-[calc(100vh-68px)]">
               <button
                 className="absolute inset-0 bg-zinc-900/20"
                 type="button"
