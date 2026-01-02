@@ -3,6 +3,7 @@
 import FormField from "@/components/forms/FormField";
 import { login, loginSchema } from "@/lib/auth-client";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -109,12 +110,12 @@ export default function LoginPage() {
               />
             </FormField>
             <div className="flex items-center justify-end text-xs text-emerald-900/70">
-              <button
+              <Link
                 className="font-semibold text-emerald-700 hover:text-emerald-600"
-                type="button"
+                href="/forgot-password"
               >
                 Forgot password?
-              </button>
+              </Link>
             </div>
             {errors.form ? (
               <p className="text-sm text-rose-600">{errors.form}</p>

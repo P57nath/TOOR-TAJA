@@ -63,6 +63,18 @@ export class MailerService {
     return this.sendEmail(email, 'Admin access ready', html);
   }
 
+  async sendPasswordResetEmail(email: string, resetLink: string) {
+    const html = `
+      <h1>Reset your TOOR-TAJA password</h1>
+      <p>We received a request to reset your password.</p>
+      <p><a href="${resetLink}">Click here to reset your password</a></p>
+      <p>This link expires in 1 hour. If you didn't request this, you can ignore this email.</p>
+      <br/>
+      <p>TOOR-TAJA Team</p>
+    `;
+    return this.sendEmail(email, 'Reset your TOOR-TAJA password', html);
+  }
+
   async sendGenericEmail(email: string, subject: string, html: string) {
     return this.sendEmail(email, subject, html);
   }

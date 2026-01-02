@@ -26,6 +26,15 @@ export const registerAdminFormSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters."),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Enter a valid email address."),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, "Reset token is missing."),
+  password: z.string().min(6, "Password must be at least 6 characters."),
+});
+
 const registerBuyerPayloadSchema = z.object({
   email: registerBuyerFormSchema.shape.email,
   password: registerBuyerFormSchema.shape.password,
@@ -58,6 +67,8 @@ export type LoginPayload = z.infer<typeof loginSchema>;
 export type RegisterBuyerForm = z.infer<typeof registerBuyerFormSchema>;
 export type RegisterSellerForm = z.infer<typeof registerSellerFormSchema>;
 export type RegisterAdminForm = z.infer<typeof registerAdminFormSchema>;
+export type ForgotPasswordPayload = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordPayload = z.infer<typeof resetPasswordSchema>;
 
 export type LoginResponse = {
   access_token: string;
@@ -129,6 +140,28 @@ export async function registerAdmin(
   const response = await apiClient.post<RegisterResponse>(
     "/auth/register",
     requestBody,
+  );
+  return response.data;
+}
+
+export async function requestPasswordReset(
+  payload: ForgotPasswordPayload,
+): Promise<RegisterResponse> {
+  const validated = forgotPasswordSchema.parse(payload);
+  const response = await apiClient.post<RegisterResponse>(
+    "/auth/password/forgot",
+    validated,
+  );
+  return response.data;
+}
+
+export async function resetPassword(
+  payload: ResetPasswordPayload,
+): Promise<RegisterResponse> {
+  const validated = resetPasswordSchema.parse(payload);
+  const response = await apiClient.post<RegisterResponse>(
+    "/auth/password/reset",
+    validated,
   );
   return response.data;
 }

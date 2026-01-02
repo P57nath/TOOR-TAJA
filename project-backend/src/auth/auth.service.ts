@@ -10,6 +10,9 @@ import * as bcrypt from 'bcrypt';
 import { User } from 'src/users/user.entity';
 import { Role } from 'src/common/enums/role.enum';
 import { RegisterDto } from './dto/register.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -36,6 +39,12 @@ export class AuthService {
         await this.userRepo.update({ id: user.id }, { refreshTokenHash });
 
         return { accessToken, refreshToken };
+    }
+
+    private buildPasswordResetToken() {
+        const token = crypto.randomBytes(32).toString('hex');
+        const hash = crypto.createHash('sha256').update(token).digest('hex');
+        return { token, hash };
     }
 
     async login(email: string, password: string) {
@@ -174,5 +183,57 @@ export class AuthService {
     async logout(userId: string) {
         await this.userRepo.update({ id: userId }, { refreshTokenHash: null });
         return { message: 'Logged out' };
+    }
+
+    async requestPasswordReset(dto: ForgotPasswordDto) {
+        const normalizedEmail = dto.email.trim().toLowerCase();
+        const user = await this.userRepo.findOne({ where: { email: normalizedEmail } });
+
+        if (user && user.isActive) {
+            const { token, hash } = this.buildPasswordResetToken();
+            const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+            await this.userRepo.update(
+                { id: user.id },
+                {
+                    passwordResetTokenHash: hash,
+                    passwordResetExpiresAt: expiresAt,
+                },
+            );
+
+            const appUrl = process.env.APP_URL || 'http://localhost:3000';
+            const resetLink = `${appUrl}/reset-password?token=${token}`;
+            await this.mailerService.sendPasswordResetEmail(user.email, resetLink);
+        }
+
+        return { message: 'If that email exists, a reset link has been sent.' };
+    }
+
+    async resetPassword(dto: ResetPasswordDto) {
+        const tokenHash = crypto.createHash('sha256').update(dto.token).digest('hex');
+        const user = await this.userRepo.findOne({ where: { passwordResetTokenHash: tokenHash } });
+
+        if (!user || !user.passwordResetExpiresAt) {
+            throw new HttpException('Invalid or expired reset token', HttpStatus.BAD_REQUEST);
+        }
+        if (user.passwordResetExpiresAt.getTime() < Date.now()) {
+            throw new HttpException('Reset token has expired', HttpStatus.BAD_REQUEST);
+        }
+        if (!user.isActive) {
+            throw new HttpException('Account is inactive', HttpStatus.FORBIDDEN);
+        }
+
+        const hashed = await bcrypt.hash(dto.password, 10);
+        await this.userRepo.update(
+            { id: user.id },
+            {
+                passwordHash: hashed,
+                passwordResetTokenHash: null,
+                passwordResetExpiresAt: null,
+                refreshTokenHash: null,
+            },
+        );
+
+        return { message: 'Password has been reset successfully.' };
     }
 }
