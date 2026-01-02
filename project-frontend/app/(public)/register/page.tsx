@@ -9,8 +9,8 @@ import {
   registerSeller,
   registerSellerFormSchema,
 } from "@/lib/auth-client";
-import Image from "next/image";
 import { useState } from "react";
+import Image from "next/image";
 
 export const dynamic = "force-static";
 
@@ -127,36 +127,28 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12 sm:py-16">
-      <section className="grid overflow-hidden rounded-3xl border border-emerald-100 bg-white/90 shadow-sm backdrop-blur md:grid-cols-[1.1fr_0.9fr]">
-        <aside className="relative min-h-[420px] overflow-hidden bg-emerald-100/80">
-          <Image
-            src="/register-illustration.jpg"
-            alt="Toor-Taja illustration"
-            fill
-            className="object-cover"
-            sizes="(min-width: 768px) 40vw, 100vw"
-          />
-        </aside>
-
-        <div className="flex flex-col justify-center gap-6 p-10">
-          <div className="flex flex-col items-center gap-3 text-center">
-            <Image
-              src="/toortaja-logo.png"
-              width={36}
-              height={36}
-              alt="Toor-Taja logo"
-              className="h-9 w-9 object-contain"
-            />
-            <h2 className="text-2xl font-semibold text-emerald-950">
-              ToorTaja
-            </h2>
-            <p className="text-sm text-emerald-900/70">
+    <main className="mx-auto flex h-screen w-full max-w-6xl items-start justify-center overflow-hidden px-6 pt-6 pb-6">
+      <section className="w-full max-w-lg overflow-hidden rounded-3xl border border-zinc-900/10 bg-white shadow-lg">
+        <div className="flex flex-col justify-center gap-4 p-6">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <div className="flex items-center justify-center gap-2">
+              <Image
+                src="/toortaja-logo.png"
+                width={28}
+                height={28}
+                alt="Toor-Taja logo"
+                className="h-7 w-7 object-contain"
+              />
+              <h2 className="text-lg font-semibold text-emerald-950">
+                ToorTaja
+              </h2>
+            </div>
+            <p className="text-xs text-emerald-900/70">
               {currentRole?.blurb ?? "Create a role-based account in minutes."}
             </p>
           </div>
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <FormField id="register-role-type" label="Register as">
               <select
                 id="register-role-type"
@@ -178,7 +170,7 @@ export default function RegisterPage() {
             </FormField>
 
             {role === "BUYER" ? (
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <FormField
                   id="buyer-full-name"
                   label="Full name"
@@ -241,7 +233,7 @@ export default function RegisterPage() {
             ) : null}
 
             {role === "SELLER" ? (
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <FormField
                   id="seller-store-name"
                   label="Store name"
@@ -290,7 +282,7 @@ export default function RegisterPage() {
             ) : null}
 
             {role === "ADMIN" ? (
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <FormField
                   id="admin-display-name"
                   label="Display name"
@@ -335,7 +327,7 @@ export default function RegisterPage() {
                     required
                   />
                 </FormField>
-                <p className="text-xs text-emerald-900/60">
+                <p className="text-[11px] text-emerald-900/60">
                   Admin registration requires backend support to be enabled.
                 </p>
               </div>
@@ -354,13 +346,13 @@ export default function RegisterPage() {
               </p>
             ) : null}
             <button
-              className="inline-flex w-full items-center justify-center rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
+              className="inline-flex w-full items-center justify-center rounded-full bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
               type="submit"
               disabled={status === "loading"}
             >
               {status === "loading" ? "Creating..." : "Create account"}
             </button>
-            <p className="text-xs text-emerald-900/60">
+            <p className="text-[11px] text-emerald-900/60">
               By creating an account you agree to future Toor-Taja terms and
               privacy policies.
             </p>

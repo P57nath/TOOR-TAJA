@@ -1,4 +1,3 @@
-import Navbar from "@/components/Navbar";
 import { requireGuest } from "@/lib/auth";
 import type { ReactNode } from "react";
 
@@ -10,8 +9,7 @@ export default async function PublicLayout({ children }: PublicLayoutProps) {
   await requireGuest();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-emerald-50 to-sky-50 text-zinc-900">
-      <Navbar />
+    <div className="h-screen bg-[#C5D89D] text-zinc-900">
       {children}
     </div>
   );

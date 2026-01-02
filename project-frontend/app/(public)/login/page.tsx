@@ -58,18 +58,8 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12 sm:py-16">
-      <section className="grid overflow-hidden rounded-3xl border border-emerald-100 bg-white/90 shadow-sm backdrop-blur md:grid-cols-[1.1fr_0.9fr]">
-        <aside className="relative min-h-[420px] overflow-hidden bg-emerald-100/80">
-          <Image
-            src="/register-illustration.jpg"
-            alt="Toor-Taja illustration"
-            fill
-            className="object-cover"
-            sizes="(min-width: 768px) 40vw, 100vw"
-          />
-        </aside>
-
+    <main className="mx-auto flex h-screen w-full max-w-6xl items-start justify-center overflow-hidden px-6 pt-10 pb-6">
+      <section className="w-full max-w-xl overflow-hidden rounded-3xl border border-zinc-900/10 bg-white shadow-lg">
         <div className="flex flex-col justify-center gap-6 p-10">
           <div className="flex flex-col items-center gap-3 text-center">
             <Image
