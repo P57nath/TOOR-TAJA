@@ -37,6 +37,7 @@ export default function BuyerShell({ children }: BuyerShellProps) {
         showAuthButton={false}
         showUserActions
         searchPlaceholder="Search for products (e.g. eggs, milk, potato)"
+        logoRefreshOnClick
       />
 
       <main className="relative mx-auto flex w-full max-w-6xl gap-6 px-6 pb-10 pt-8 sm:pb-14 sm:pt-10">

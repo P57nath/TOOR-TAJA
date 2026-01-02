@@ -12,6 +12,7 @@ type NavbarProps = {
   showAuthButton?: boolean;
   showUserActions?: boolean;
   searchPlaceholder?: string;
+  logoRefreshOnClick?: boolean;
 };
 
 const divisions = [
@@ -33,10 +34,12 @@ export default function Navbar({
   showAuthButton = true,
   showUserActions = false,
   searchPlaceholder = "Search for products...",
+  logoRefreshOnClick = false,
 }: NavbarProps) {
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [locationLabel, setLocationLabel] = useState("Dhaka");
   const [isDetecting, setIsDetecting] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   function handleDetectLocation() {
     if (!("geolocation" in navigator)) {
@@ -77,19 +80,36 @@ export default function Navbar({
               />
             </button>
           ) : null}
-          <Link
-            className="flex items-center gap-2 text-2xl font-semibold text-zinc-900"
-            href="/"
-          >
-            <Image
-              src="/toortaja-logo.png"
-              width={36}
-              height={36}
-              alt="Toor-Taja logo"
-              className="h-9 w-9 object-contain"
-            />
-            <span>ToorTaja</span>
-          </Link>
+          {logoRefreshOnClick ? (
+            <button
+              className="flex items-center gap-2 text-2xl font-semibold text-zinc-900"
+              type="button"
+              onClick={() => window.location.reload()}
+            >
+              <Image
+                src="/toortaja-logo.png"
+                width={36}
+                height={36}
+                alt="Toor-Taja logo"
+                className="h-9 w-9 object-contain"
+              />
+              <span>ToorTaja</span>
+            </button>
+          ) : (
+            <Link
+              className="flex items-center gap-2 text-2xl font-semibold text-zinc-900"
+              href="/"
+            >
+              <Image
+                src="/toortaja-logo.png"
+                width={36}
+                height={36}
+                alt="Toor-Taja logo"
+                className="h-9 w-9 object-contain"
+              />
+              <span>ToorTaja</span>
+            </Link>
+          )}
         </div>
 
         {showSearch ? (
@@ -189,7 +209,7 @@ export default function Navbar({
             EN / বাংলা
           </button>
           {showUserActions ? (
-            <div className="hidden items-center gap-2 sm:flex">
+            <div className="relative hidden items-center gap-2 sm:flex">
               <button
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-900/10 bg-white/70"
                 type="button"
@@ -212,6 +232,7 @@ export default function Navbar({
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-900/10 bg-white/70"
                 type="button"
                 aria-label="Profile"
+                onClick={() => setIsProfileOpen((open) => !open)}
               >
                 <svg
                   className="h-4 w-4 text-emerald-700"
@@ -226,6 +247,33 @@ export default function Navbar({
                   <path d="M5 20a7 7 0 0 1 14 0" />
                 </svg>
               </button>
+              {isProfileOpen ? (
+                <div className="absolute right-0 top-12 z-10 w-56 rounded-2xl border border-emerald-100 bg-white p-3 text-xs shadow-lg">
+                  {[
+                    { label: "Your profile", href: "/buyer/profile" },
+                    { label: "Your orders", href: "/buyer/orders" },
+                    { label: "Payment history", href: "/buyer/payments/history" },
+                    { label: "Payment methods", href: "/buyer/payments/methods" },
+                    { label: "Change password", href: "/forgot-password" },
+                  ].map((item) => (
+                    <Link
+                      key={item.label}
+                      className="block rounded-xl px-3 py-2 font-semibold text-emerald-900 transition hover:bg-emerald-50"
+                      href={item.href}
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                  <Link
+                    className="mt-2 block w-full rounded-xl border border-emerald-100 px-3 py-2 font-semibold text-rose-600 transition hover:bg-rose-50"
+                    href="/login"
+                    onClick={() => setIsProfileOpen(false)}
+                  >
+                    Logout
+                  </Link>
+                </div>
+              ) : null}
             </div>
           ) : null}
           {showAuthButton ? (
