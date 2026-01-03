@@ -5,32 +5,16 @@ import { login, loginSchema } from "@/lib/auth-client";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export const dynamic = "force-static";
-
-type TokenPayload = {
-  role?: string;
-};
-
-function getRoleFromToken(token: string): string | null {
-  const parts = token.split(".");
-  if (parts.length !== 3) return null;
-  try {
-    const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const decoded = atob(payload.padEnd(payload.length + ((4 - (payload.length % 4)) % 4), "="));
-    const data = JSON.parse(decoded) as TokenPayload;
-    return data.role ? data.role.toLowerCase() : null;
-  } catch {
-    return null;
-  }
-}
 
 export default function LoginPage() {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const formRef = useRef<HTMLFormElement | null>(null);
 
   const inputClassName = (hasError?: string) =>
     `mt-2 w-full border-b bg-transparent pb-2 text-sm text-emerald-950 outline-none ${
@@ -65,12 +49,12 @@ export default function LoginPage() {
       const response = await login(parsed.data);
       setStatus("success");
       setMessage("Signed in successfully. Redirecting...");
-      const role = getRoleFromToken(response.access_token);
-      if (role === "buyer") {
+      formRef.current?.reset();
+      if (response.role === "buyer") {
         router.push("/buyer");
-      } else if (role === "seller") {
+      } else if (response.role === "seller") {
         router.push("/seller");
-      } else if (role === "admin") {
+      } else if (response.role === "admin") {
         router.push("/admin");
       } else {
         router.push("/");
@@ -106,7 +90,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form className="space-y-5" onSubmit={handleSubmit}>
+          <form className="space-y-5" onSubmit={handleSubmit} ref={formRef}>
             <FormField
               id="login-email"
               label="Email address"

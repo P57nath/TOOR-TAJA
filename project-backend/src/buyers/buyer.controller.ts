@@ -15,13 +15,17 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { StoriesService } from 'src/stories/stories.service';
 
 @Controller('buyer')
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.BUYER)
 export class BuyerController {
-  constructor(private readonly buyerService: BuyerService) { }
+  constructor(
+    private readonly buyerService: BuyerService,
+    private readonly storiesService: StoriesService,
+  ) { }
 
   // // Post /buyer -> create buyer
 
@@ -182,6 +186,11 @@ export class BuyerController {
     @Query('limit', ParseIntPipe) q: OrderQueryDto
   ) {
     return this.buyerService.listOrders(user.id, q);
+  }
+
+  @Get('stories')
+  listStories() {
+    return this.storiesService.listApprovedStories();
   }
 
   @Get(':orderId/buyer-orders')

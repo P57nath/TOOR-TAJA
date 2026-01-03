@@ -39,6 +39,12 @@ export default async function SellerDashboard() {
           <p className="max-w-2xl text-white/70">
             Live data is pulled from seller endpoints using your JWT.
           </p>
+          <a
+            className="inline-flex items-center justify-center rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-400"
+            href="/seller/stories"
+          >
+            Post a story
+          </a>
         </header>
 
         <section className="grid gap-6 md:grid-cols-2">

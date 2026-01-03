@@ -9,6 +9,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { StoriesService } from 'src/stories/stories.service';
 
 
 @Controller('admin')
@@ -16,7 +17,10 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.ADMIN)
 export class AdminController {
-  constructor(private readonly adminService: AdminService) { }
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly storiesService: StoriesService,
+  ) { }
 
   // Admin dashboard summary
   @Get('dashboard')
@@ -63,5 +67,15 @@ export class AdminController {
   @Patch('disputes/:id/resolve')
   resolveDispute(@Param('id') id: string, @Body('resolutionNote') resolutionNote?: string) {
     return this.adminService.resolveDispute(id, resolutionNote);
+  }
+
+  @Get('stories')
+  listStories(@Query('status') status?: string) {
+    return this.storiesService.listStoriesByStatus(status);
+  }
+
+  @Patch('stories/:id/approve')
+  approveStory(@Param('id') id: string) {
+    return this.storiesService.approveStory(id);
   }
 }

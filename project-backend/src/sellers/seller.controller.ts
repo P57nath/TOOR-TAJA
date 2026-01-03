@@ -7,7 +7,9 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { SellerService } from './seller.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -21,12 +23,20 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage, MulterError } from 'multer';
+import { CreateStoryDto } from 'src/stories/dto/create-story.dto';
+import { StoriesService } from 'src/stories/stories.service';
+import { mkdirSync } from 'fs';
 
 @Controller('seller')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.SELLER)
 export class SellerController {
-  constructor(private readonly sellerService: SellerService) {}
+  constructor(
+    private readonly sellerService: SellerService,
+    private readonly storiesService: StoriesService,
+  ) {}
 
 
   // GET /seller/me/with-products - Get seller with all their products
@@ -111,5 +121,39 @@ export class SellerController {
     @Body() dto: UpdateOrderStatusDto,
   ) {
     return this.sellerService.updateOrderStatus(user.id, id, dto.status);
+  }
+
+  @Post('stories')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      fileFilter: (_req, file, cb) => {
+        if (!file.originalname.match(/\.(png|jpe?g|webp)$/i)) {
+          return cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'image'), false);
+        }
+        cb(null, true);
+      },
+      storage: diskStorage({
+        destination: (_req, _file, cb) => {
+          const dir = './upload/stories';
+          mkdirSync(dir, { recursive: true });
+          cb(null, dir);
+        },
+        filename: (_req, file, cb) => {
+          const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+          const ext = file.originalname.split('.').pop();
+          cb(null, `${uniqueName}.${ext}`);
+        },
+      }),
+    }),
+  )
+  createStory(
+    @CurrentUser() user: { id: string },
+    @Body() dto: CreateStoryDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new MulterError('LIMIT_UNEXPECTED_FILE', 'image');
+    }
+    return this.storiesService.createStory(user.id, file.filename, dto);
   }
 }

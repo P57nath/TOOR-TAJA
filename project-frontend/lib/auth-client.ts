@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { apiClient } from "./http";
+import { apiClient, appClient } from "./http";
 
 export const loginSchema = z.object({
   email: z.string().email("Enter a valid email address."),
@@ -71,8 +71,7 @@ export type ForgotPasswordPayload = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordPayload = z.infer<typeof resetPasswordSchema>;
 
 export type LoginResponse = {
-  access_token: string;
-  refresh_token: string;
+  role: "buyer" | "seller" | "admin";
 };
 
 export type RegisterResponse = {
@@ -82,7 +81,10 @@ export type RegisterResponse = {
 
 export async function login(payload: LoginPayload): Promise<LoginResponse> {
   const validated = loginSchema.parse(payload);
-  const response = await apiClient.post<LoginResponse>("/auth/login", validated);
+  const response = await appClient.post<LoginResponse>(
+    "/api/auth/login",
+    validated,
+  );
   return response.data;
 }
 

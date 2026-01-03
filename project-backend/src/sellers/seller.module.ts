@@ -10,12 +10,14 @@ import { SellerProfile } from './seller-profile.entity';
 import { Order } from 'src/orders/entities/order.entity';
 import { OrderItem } from 'src/orders/entities/order-items.entity';
 import { InventoryModule } from 'src/inventory/inventory.module';
+import { StoriesModule } from 'src/stories/stories.module';
 
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([SellerProfile, Product, Order, OrderItem]), 
     InventoryModule,
+    StoriesModule,
     MailerModuleCustom,
     JwtModule.register({
       secret: jwtConstants.secret,

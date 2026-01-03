@@ -9,6 +9,7 @@ const loginSchema = z.object({
 
 type LoginResponse = {
   access_token: string;
+  refresh_token: string;
 };
 
 type RoleResponse = {
@@ -25,8 +26,8 @@ function parseJwtRole(token: string): RoleResponse["role"] | null {
       "=",
     );
     const payload = Buffer.from(padded, "base64").toString("utf8");
-    const data = JSON.parse(payload) as { role?: RoleResponse["role"] };
-    return data.role ?? null;
+    const data = JSON.parse(payload) as { role?: string };
+    return data.role ? (data.role.toLowerCase() as RoleResponse["role"]) : null;
   } catch {
     return null;
   }
@@ -59,6 +60,7 @@ export async function POST(request: Request) {
   );
 
   const token = response.data.access_token;
+  const refreshToken = response.data.refresh_token;
   const role = parseJwtRole(token);
 
   if (!role) {
@@ -74,6 +76,13 @@ export async function POST(request: Request) {
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     maxAge: 60 * 60 * 24,
+    path: "/",
+  });
+  cookieStore.set("refresh_token", refreshToken, {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24 * 7,
     path: "/",
   });
 

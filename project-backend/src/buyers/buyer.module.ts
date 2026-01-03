@@ -14,6 +14,7 @@ import { Review } from 'src/reviews/review.entity';
 import { InventoryModule } from 'src/inventory/inventory.module';
 import { PaymentsModule } from 'src/payments/payments.module';
 import { DisputesModule } from 'src/disputes/disputes.module';
+import { StoriesModule } from 'src/stories/stories.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { DisputesModule } from 'src/disputes/disputes.module';
     InventoryModule,
     PaymentsModule,
     DisputesModule,
+    StoriesModule,
     JwtModule.register({
       secret: jwtConstants.secret,
       signOptions: { expiresIn: jwtConstants.expiresIn as any },

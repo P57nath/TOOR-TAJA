@@ -40,6 +40,12 @@ export default async function AdminDashboard() {
           <p className="max-w-2xl text-slate-600">
             Live data is pulled from admin endpoints using your JWT.
           </p>
+          <a
+            className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
+            href="/admin/stories"
+          >
+            Review stories
+          </a>
         </header>
 
         <section className="grid gap-6 md:grid-cols-3">

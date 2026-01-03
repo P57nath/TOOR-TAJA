@@ -11,7 +11,8 @@ import {
 } from "@/lib/auth-client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 export const dynamic = "force-static";
 
@@ -36,10 +37,13 @@ const roleOptions: Array<{ value: RoleKey; label: string; blurb: string }> = [
 ];
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [role, setRole] = useState<RoleKey>("BUYER");
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const redirectTimeoutRef = useRef<number | null>(null);
 
   const inputClassName = (hasError?: string) =>
     `mt-2 w-full border-b bg-transparent pb-2 text-sm text-emerald-950 outline-none ${
@@ -117,7 +121,11 @@ export default function RegisterPage() {
         await registerAdmin(parsed.data);
       }
       setStatus("success");
-      setMessage("Registration submitted. Check your email for next steps.");
+      setMessage("Registration submitted. Redirecting to login...");
+      formRef.current?.reset();
+      redirectTimeoutRef.current = window.setTimeout(() => {
+        router.push("/login");
+      }, 4500);
     } catch (error) {
       setStatus("idle");
       setMessage("");
@@ -126,6 +134,14 @@ export default function RegisterPage() {
       });
     }
   }
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimeoutRef.current) {
+        window.clearTimeout(redirectTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <main className="mx-auto flex h-screen w-full max-w-6xl items-start justify-center overflow-hidden px-6 pt-6 pb-6">
@@ -149,7 +165,7 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form className="space-y-4" onSubmit={handleSubmit} ref={formRef}>
             <FormField id="register-role-type" label="Register as">
               <select
                 id="register-role-type"

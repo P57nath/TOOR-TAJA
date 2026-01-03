@@ -14,7 +14,7 @@ export type SessionUser = {
 type JwtPayload = {
   sub?: string;
   email?: string;
-  role?: UserRole;
+  role?: string;
 };
 
 function decodeBase64Url(input: string) {
@@ -54,12 +54,13 @@ export async function requireRole(requiredRole: UserRole): Promise<SessionUser> 
   if (!token) redirect("/login");
 
   const payload = parseJwtPayload(token);
-  if (!payload?.role || payload.role !== requiredRole) {
+  const normalizedRole = payload?.role?.toLowerCase() as UserRole | undefined;
+  if (!normalizedRole || normalizedRole !== requiredRole) {
     redirect("/login");
   }
 
   return {
-    role: payload.role,
+    role: normalizedRole,
     displayName: payload.email ?? requiredRole,
     userId: payload.sub,
     email: payload.email,

@@ -10,9 +10,10 @@ import { SellerProfile } from 'src/sellers/seller-profile.entity';
 import { Order } from 'src/orders/entities/order.entity';
 import { Category } from 'src/products/category.entity';
 import { Dispute } from 'src/disputes/dispute.entity';
+import { StoriesModule } from 'src/stories/stories.module';
 
 @Module({
-   imports: [TypeOrmModule.forFeature([User, SellerProfile, Order, Category, Dispute]), MailerModuleCustom, JwtModule.register({
+   imports: [TypeOrmModule.forFeature([User, SellerProfile, Order, Category, Dispute]), StoriesModule, MailerModuleCustom, JwtModule.register({
     secret: jwtConstants.secret,
     signOptions: { expiresIn: jwtConstants.expiresIn as any },
   })],
