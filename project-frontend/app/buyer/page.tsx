@@ -62,15 +62,7 @@ export default async function BuyerDashboard() {
           imageBaseUrl={apiBaseUrl}
         />
 
-        <section className="rounded-3xl bg-amber-200/80 p-8 shadow-sm">
-          <h1 className="text-3xl font-semibold text-amber-950">
-            Welcome back, {session.displayName}.
-          </h1>
-          <p className="mt-2 text-sm text-amber-900/80">
-            Discover fresh picks, seasonal offers, and curated essentials from
-            trusted sellers.
-          </p>
-        </section>
+        
       </div>
     </BuyerShell>
   );
