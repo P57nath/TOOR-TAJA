@@ -1,6 +1,14 @@
 import BuyerShell from "@/components/buyer/BuyerShell";
+import BuyerStories from "@/components/buyer/BuyerStories";
 import { apiFetch } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
+
+type Story = {
+  id: string;
+  title?: string;
+  imagePath: string;
+  sellerProfile?: { storeName?: string };
+};
 
 function formatData(data: unknown) {
   if (!data) return "No data returned yet.";
@@ -22,14 +30,14 @@ export default async function BuyerDashboard() {
       apiFetch(`/buyer/${buyerId}/cart`, { token }),
       apiFetch(`/buyer/${buyerId}/orders?page=1&limit=5`, { token }),
       apiFetch("/buyer", { token }),
-      apiFetch("/buyer/stories", { token }),
+      apiFetch<Story[]>("/buyer/stories", { token }),
     ]);
 
   const cart = cartResult.status === "fulfilled" ? cartResult.value : null;
   const orders = ordersResult.status === "fulfilled" ? ordersResult.value : null;
   const profiles =
     profilesResult.status === "fulfilled" ? profilesResult.value : null;
-  const stories =
+  const stories: Story[] =
     storiesResult.status === "fulfilled" ? storiesResult.value : [];
 
   const apiBaseUrl =
@@ -38,42 +46,7 @@ export default async function BuyerDashboard() {
   return (
     <BuyerShell>
       <div className="flex w-full flex-col gap-10">
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-amber-950">
-              Marketplace stories
-            </h2>
-            <a className="text-sm font-semibold text-amber-700" href="#">
-              View more
-            </a>
-          </div>
-          <div className="flex gap-4 overflow-x-auto pb-2">
-            {stories.length ? (
-              stories.map((story: any) => (
-                <article
-                  key={story.id}
-                  className="relative h-48 w-28 flex-shrink-0 overflow-hidden rounded-2xl border border-amber-100 bg-white shadow-sm"
-                >
-                  <img
-                    alt={story.title ?? "Story"}
-                    className="h-full w-full object-cover"
-                    src={`${apiBaseUrl}/stories/image/${story.imagePath}`}
-                  />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-2 text-[10px] text-white">
-                    <p className="font-semibold">
-                      {story.sellerProfile?.storeName ?? "Seller"}
-                    </p>
-                    {story.title ? <p>{story.title}</p> : null}
-                  </div>
-                </article>
-              ))
-            ) : (
-              <div className="rounded-2xl border border-amber-100 bg-white px-4 py-6 text-sm text-amber-900/70">
-                No stories yet. Check back soon.
-              </div>
-            )}
-          </div>
-        </section>
+        <BuyerStories stories={stories} apiBaseUrl={apiBaseUrl} />
 
         <section className="grid gap-10 rounded-3xl bg-amber-200/80 p-8 shadow-sm md:grid-cols-[1.3fr_0.7fr]">
           <div className="space-y-6">
