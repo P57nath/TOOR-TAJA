@@ -221,55 +221,49 @@ export default function BuyerShell({ children }: BuyerShellProps) {
       <main
         className={`relative mx-auto flex w-full max-w-6xl gap-6 px-6 pb-10 pt-8 transition-all duration-300 sm:pb-14 sm:pt-10 ${
           isCartOpen ? "lg:pr-[360px]" : ""
-        }`}
+        } ${isNavOpen ? "lg:pl-[240px]" : ""}`}
       >
-        {isNavOpen ? (
-          <div className="fixed left-0 right-0 top-[68px] z-40 flex h-[calc(100vh-68px)]">
-            <button
-              className="absolute inset-0 bg-zinc-900/20"
-              type="button"
-              aria-label="Close navigation"
-              onClick={() => setIsNavOpen(false)}
-            />
-            <aside className="relative h-full w-56 bg-transparent px-2 py-4 shadow-xl backdrop-blur-md">
-              <div className="sidebar-scroll flex max-h-full flex-col gap-1 overflow-y-auto px-1 pt-5">
-                {buyerMenu.map((item) => (
-                  <button
-                    key={item.label}
-                    className="flex w-full items-center justify-between rounded-2xl border border-zinc-900/10 bg-white/80 px-3 py-2 text-[11px] font-semibold leading-tight text-zinc-900 shadow-sm transition hover:-translate-y-0.5"
-                    type="button"
-                    aria-label={item.label}
-                    title={item.label}
-                  >
-                    <span className="flex items-center gap-3">
-                      <span className="text-lg">{item.icon}</span>
-                      <span>{item.label}</span>
-                    </span>
-                    {item.hasChevron ? (
-                      <span className="text-xs text-zinc-500">{">"}</span>
-                    ) : null}
-                  </button>
-                ))}
-                <div className="mt-3 flex items-center gap-2">
-                  <button
-                    className="flex items-center gap-2 rounded-full border border-zinc-900/10 bg-white/80 px-3 py-1.5 text-[11px] font-semibold shadow-sm"
-                    type="button"
-                  >
-                    <span className="text-pink-500">?</span>
-                    Help
-                  </button>
-                  <button
-                    className="flex items-center gap-2 rounded-full border border-zinc-900/10 bg-white/80 px-3 py-1.5 text-[11px] font-semibold shadow-sm"
-                    type="button"
-                  >
-                    <span className="text-rose-500">!</span>
-                    Complaint
-                  </button>
-                </div>
-              </div>
-            </aside>
+        <aside
+          className={`fixed left-0 top-[68px] z-40 h-[calc(100vh-68px)] w-56 bg-transparent px-2 py-4 shadow-xl backdrop-blur-md transition-transform duration-300 ${
+            isNavOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <div className="sidebar-scroll flex max-h-full flex-col gap-1 overflow-y-auto px-1 pt-5">
+            {buyerMenu.map((item) => (
+              <button
+                key={item.label}
+                className="flex w-full items-center justify-between rounded-2xl border border-zinc-900/10 bg-white/80 px-3 py-2 text-[11px] font-semibold leading-tight text-zinc-900 shadow-sm transition hover:-translate-y-0.5"
+                type="button"
+                aria-label={item.label}
+                title={item.label}
+              >
+                <span className="flex items-center gap-3">
+                  <span className="text-lg">{item.icon}</span>
+                  <span>{item.label}</span>
+                </span>
+                {item.hasChevron ? (
+                  <span className="text-xs text-zinc-500">{">"}</span>
+                ) : null}
+              </button>
+            ))}
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                className="flex items-center gap-2 rounded-full border border-zinc-900/10 bg-white/80 px-3 py-1.5 text-[11px] font-semibold shadow-sm"
+                type="button"
+              >
+                <span className="text-pink-500">?</span>
+                Help
+              </button>
+              <button
+                className="flex items-center gap-2 rounded-full border border-zinc-900/10 bg-white/80 px-3 py-1.5 text-[11px] font-semibold shadow-sm"
+                type="button"
+              >
+                <span className="text-rose-500">!</span>
+                Complaint
+              </button>
+            </div>
           </div>
-        ) : null}
+        </aside>
 
         <div className="flex-1">{children}</div>
 
