@@ -49,6 +49,11 @@ export class AdminController {
     return this.adminService.createCategory(dto);
   }
 
+  @Get('categories')
+  listCategories() {
+    return this.adminService.listCategories();
+  }
+
   @Delete('categories/:id')
   deleteCategory(@Param('id') id: string) {
     return this.adminService.deleteCategory(id);

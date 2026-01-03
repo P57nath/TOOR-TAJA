@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Product } from './entities/product.entity';
+import { Category } from 'src/products/category.entity';
 
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -20,6 +21,8 @@ export class SellerService {
 
     @InjectRepository(Product)
     private productRepo: Repository<Product>,
+    @InjectRepository(Category)
+    private categoryRepo: Repository<Category>,
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
     @InjectRepository(OrderItem)
@@ -69,6 +72,7 @@ export class SellerService {
 
     const products = await this.productRepo.find({
       where: { sellerUserId: userId },
+      relations: ['category'],
       order: { createdAt: 'DESC' },
     });
 
@@ -109,9 +113,26 @@ export class SellerService {
 
 
 
-  async createProduct(sellerUserId: string, dto: CreateProductDto) {
-    const finalDto = { ...dto, stock: dto.stock ?? 0, sellerUserId };
+  async createProduct(
+    sellerUserId: string,
+    dto: CreateProductDto,
+    imagePath?: string | null,
+  ) {
+    const category = await this.categoryRepo.findOne({
+      where: { id: dto.categoryId, isActive: true },
+    });
+    if (!category) {
+      throw new NotFoundException('Category not found or inactive');
+    }
+
+    const finalDto = {
+      ...dto,
+      stock: dto.stock ?? 0,
+      sellerUserId,
+      imagePath: imagePath ?? null,
+    };
     const product = this.productRepo.create(finalDto);
+    product.category = category;
     await this.productRepo.save(product);
     await this.inventoryService.getOrCreate(product.id, sellerUserId);
     return this.ok(product, { message: 'Product created' });
@@ -197,20 +218,24 @@ export class SellerService {
     return this.ok(saved, { message: 'Order status updated' });
   }
 
-  async findAllProducts(sellerUserId: string, category?: string) {
+  async findAllProducts(sellerUserId: string, categoryId?: string) {
     const where: any = { sellerUserId };
-    if (category) {
-      where.category = category;
+    if (categoryId) {
+      where.categoryId = categoryId;
     }
     const products = await this.productRepo.find({
       where,
+      relations: ['category'],
       order: { createdAt: 'DESC' },
     });
     return this.ok(products, { message: `Found ${products.length} products` });
   }
 
   async findProduct(sellerUserId: string, id: string) {
-    const product = await this.productRepo.findOne({ where: { id, sellerUserId } });
+    const product = await this.productRepo.findOne({
+      where: { id, sellerUserId },
+      relations: ['category'],
+    });
 
     if (!product) {
       throw new NotFoundException(`Product with ID '${id}' not found`);
@@ -219,13 +244,26 @@ export class SellerService {
   }
 
   async updateProduct(sellerUserId: string, id: string, dto: UpdateProductDto) {
-    const product = await this.productRepo.findOne({ where: { id, sellerUserId } });
+    const product = await this.productRepo.findOne({
+      where: { id, sellerUserId },
+      relations: ['category'],
+    });
 
     if (!product) {
       throw new NotFoundException(`Product with ID '${id}' not found`);
     }
 
-    
+    if (dto.categoryId) {
+      const category = await this.categoryRepo.findOne({
+        where: { id: dto.categoryId, isActive: true },
+      });
+      if (!category) {
+        throw new NotFoundException('Category not found or inactive');
+      }
+      product.category = category;
+      product.categoryId = category.id;
+    }
+
     Object.assign(product, dto, { updatedAt: new Date() });
     await this.productRepo.save(product);
 

@@ -63,14 +63,40 @@ export class SellerController {
 
 
   @Post('products')
-  createProduct(@CurrentUser() user: { id: string }, @Body() dto: CreateProductDto) {
-    return this.sellerService.createProduct(user.id, dto);
+  @UseInterceptors(
+    FileInterceptor('image', {
+      fileFilter: (_req, file, cb) => {
+        if (!file.originalname.match(/\.(png|jpe?g|webp)$/i)) {
+          return cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'image'), false);
+        }
+        cb(null, true);
+      },
+      storage: diskStorage({
+        destination: (_req, _file, cb) => {
+          const dir = './upload/products';
+          mkdirSync(dir, { recursive: true });
+          cb(null, dir);
+        },
+        filename: (_req, file, cb) => {
+          const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+          const ext = file.originalname.split('.').pop();
+          cb(null, `${uniqueName}.${ext}`);
+        },
+      }),
+    }),
+  )
+  createProduct(
+    @CurrentUser() user: { id: string },
+    @Body() dto: CreateProductDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.sellerService.createProduct(user.id, dto, file?.filename ?? null);
   }
 
  
   @Get('products')
-  findAllProducts(@CurrentUser() user: { id: string }, @Query('category') category?: string) {
-    return this.sellerService.findAllProducts(user.id, category);
+  findAllProducts(@CurrentUser() user: { id: string }, @Query('categoryId') categoryId?: string) {
+    return this.sellerService.findAllProducts(user.id, categoryId);
   }
 
   

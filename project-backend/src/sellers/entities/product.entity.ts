@@ -1,6 +1,17 @@
-import {Entity,PrimaryColumn,Column,CreateDateColumn,UpdateDateColumn,BeforeInsert,ManyToOne,JoinColumn,DeleteDateColumn,} from 'typeorm';
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BeforeInsert,
+  ManyToOne,
+  JoinColumn,
+  DeleteDateColumn,
+} from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { User } from 'src/users/user.entity';
+import { Category } from 'src/products/category.entity';
 
 @Entity('products') 
 export class Product {
@@ -24,8 +35,12 @@ export class Product {
   @Column() 
   stock: number;
 
-  @Column({ length: 50 }) 
-  category: string;
+  @ManyToOne(() => Category, { onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'category_id' })
+  category: Category;
+
+  @Column({ name: 'category_id', nullable: true })
+  categoryId?: string | null;
 
   @Column({ type: 'decimal', precision: 3, scale: 2, default: 0 })
   ratingAverage: number;
@@ -35,6 +50,9 @@ export class Product {
 
   @Column({ nullable: true }) 
   description?: string;
+
+  @Column({ name: 'image_path', type: 'varchar', nullable: true })
+  imagePath?: string | null;
 
   @Column() 
   sellerUserId: string;

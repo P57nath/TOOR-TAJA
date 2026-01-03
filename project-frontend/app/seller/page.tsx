@@ -45,6 +45,12 @@ export default async function SellerDashboard() {
           >
             Post a story
           </a>
+          <a
+            className="inline-flex items-center justify-center rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40"
+            href="/seller/products/new"
+          >
+            Add product
+          </a>
         </header>
 
         <section className="grid gap-6 md:grid-cols-2">

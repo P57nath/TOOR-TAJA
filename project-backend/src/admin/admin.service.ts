@@ -105,6 +105,13 @@ export class AdminService {
     return this.ok(saved, { message: 'Category created' });
   }
 
+  async listCategories() {
+    const categories = await this.categoryRepository.find({
+      order: { createdAt: 'DESC' },
+    });
+    return this.ok(categories, { total: categories.length });
+  }
+
   async deleteCategory(id: string) {
     const result = await this.categoryRepository.delete(id);
     if (result.affected === 0) {

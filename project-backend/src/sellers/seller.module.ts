@@ -11,11 +11,12 @@ import { Order } from 'src/orders/entities/order.entity';
 import { OrderItem } from 'src/orders/entities/order-items.entity';
 import { InventoryModule } from 'src/inventory/inventory.module';
 import { StoriesModule } from 'src/stories/stories.module';
+import { Category } from 'src/products/category.entity';
 
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([SellerProfile, Product, Order, OrderItem]), 
+    TypeOrmModule.forFeature([SellerProfile, Product, Order, OrderItem, Category]), 
     InventoryModule,
     StoriesModule,
     MailerModuleCustom,

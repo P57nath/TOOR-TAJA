@@ -46,6 +46,12 @@ export default async function AdminDashboard() {
           >
             Review stories
           </a>
+          <a
+            className="inline-flex items-center justify-center rounded-full border border-indigo-200 px-4 py-2 text-sm font-semibold text-indigo-600 transition hover:border-indigo-300"
+            href="/admin/categories"
+          >
+            Add category
+          </a>
         </header>
 
         <section className="grid gap-6 md:grid-cols-3">
