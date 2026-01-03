@@ -9,6 +9,19 @@ type BuyerShellProps = {
   children: ReactNode;
 };
 
+type CartItem = {
+  id: number;
+  productId: string;
+  name: string;
+  price: number | string;
+  quantity: number;
+};
+
+type CartData = {
+  items: CartItem[];
+  coupon?: string | null;
+};
+
 const buyerMenu = [
   { label: "Favourites", icon: "❤️" },
   { label: "Winter Collection", icon: "❄️" },
@@ -26,6 +39,10 @@ const buyerMenu = [
 
 export default function BuyerShell({ children }: BuyerShellProps) {
   const [isNavOpen, setIsNavOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cart, setCart] = useState<CartData>({ items: [] });
+  const [cartMessage, setCartMessage] = useState("");
+  const [cartLoading, setCartLoading] = useState(false);
   const [cartPos, setCartPos] = useState({ x: 0, y: 0 });
   const [hasCartPosition, setHasCartPosition] = useState(false);
   const [isDraggingCart, setIsDraggingCart] = useState(false);
@@ -48,6 +65,107 @@ export default function BuyerShell({ children }: BuyerShellProps) {
     setCartPos({ x: defaultX, y: defaultY });
     setHasCartPosition(true);
   }, [hasCartPosition]);
+
+  useEffect(() => {
+    if (!isCartOpen) return;
+    void loadCart();
+  }, [isCartOpen]);
+
+  useEffect(() => {
+    void loadCart();
+  }, []);
+
+  useEffect(() => {
+    function handleCartUpdated() {
+      void loadCart();
+    }
+    window.addEventListener("cart:updated", handleCartUpdated);
+    return () => window.removeEventListener("cart:updated", handleCartUpdated);
+  }, []);
+
+  function formatPrice(value: number | string) {
+    const numeric = typeof value === "number" ? value : Number(value);
+    if (Number.isNaN(numeric)) return "0";
+    return Math.round(numeric).toString();
+  }
+
+  function calculateTotal(items: CartItem[]) {
+    return items.reduce((sum, item) => {
+      const price = typeof item.price === "number" ? item.price : Number(item.price);
+      return sum + price * item.quantity;
+    }, 0);
+  }
+
+  async function loadCart() {
+    setCartLoading(true);
+    setCartMessage("");
+    try {
+      const response = await fetch("/api/buyer/cart", { cache: "no-store" });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || "Unable to load cart.");
+      }
+      const payload = await response.json();
+      setCart(payload.data ?? { items: [] });
+    } catch (error) {
+      setCartMessage(
+        error instanceof Error ? error.message : "Unable to load cart.",
+      );
+    } finally {
+      setCartLoading(false);
+    }
+  }
+
+  async function updateCartItem(itemId: number, quantity: number) {
+    if (!Number.isFinite(Number(itemId))) {
+      setCartMessage("Please reopen the cart to refresh items.");
+      return;
+    }
+    if (quantity < 1) return;
+    setCartLoading(true);
+    try {
+      const response = await fetch(`/api/buyer/cart/items/${itemId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quantity }),
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || "Unable to update item.");
+      }
+      await loadCart();
+    } catch (error) {
+      setCartMessage(
+        error instanceof Error ? error.message : "Unable to update item.",
+      );
+    } finally {
+      setCartLoading(false);
+    }
+  }
+
+  async function removeCartItem(itemId: number) {
+    if (!Number.isFinite(Number(itemId))) {
+      setCartMessage("Please reopen the cart to refresh items.");
+      return;
+    }
+    setCartLoading(true);
+    try {
+      const response = await fetch(`/api/buyer/cart/items/${itemId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || "Unable to remove item.");
+      }
+      await loadCart();
+    } catch (error) {
+      setCartMessage(
+        error instanceof Error ? error.message : "Unable to remove item.",
+      );
+    } finally {
+      setCartLoading(false);
+    }
+  }
 
   function handleCartPointerDown(event: React.PointerEvent<HTMLDivElement>) {
     if ((event.target as HTMLElement).closest("button")) return;
@@ -100,7 +218,11 @@ export default function BuyerShell({ children }: BuyerShellProps) {
         logoRefreshOnClick
       />
 
-      <main className="relative mx-auto flex w-full max-w-6xl gap-6 px-6 pb-10 pt-8 sm:pb-14 sm:pt-10">
+      <main
+        className={`relative mx-auto flex w-full max-w-6xl gap-6 px-6 pb-10 pt-8 transition-all duration-300 sm:pb-14 sm:pt-10 ${
+          isCartOpen ? "lg:pr-[360px]" : ""
+        }`}
+      >
         {isNavOpen ? (
           <div className="fixed left-0 right-0 top-[68px] z-40 flex h-[calc(100vh-68px)]">
             <button
@@ -183,18 +305,151 @@ export default function BuyerShell({ children }: BuyerShellProps) {
                 </svg>
               </span>
               <p className="text-[10px] font-semibold uppercase text-emerald-700">
-                0 items
+                {cart.items.length} items
               </p>
             </div>
             <p className="mt-3 flex items-center justify-center gap-1 text-sm font-semibold text-zinc-900">
-              <span className="text-[10px] text-zinc-700">BDT</span> 0
+              <span className="text-[10px] text-zinc-700">BDT</span>{" "}
+              {formatPrice(calculateTotal(cart.items))}
             </p>
             <button
               className="mt-3 w-full rounded-full bg-emerald-600 px-3 py-2 text-[10px] font-semibold text-white"
               type="button"
+              onClick={() => setIsCartOpen(true)}
             >
               View cart
             </button>
+          </div>
+        </div>
+
+        <div
+          className={`fixed top-[68px] z-40 h-[calc(100vh-68px)] w-full max-w-[340px] border-l border-zinc-900/10 bg-white shadow-2xl transition-all duration-300 ${
+            isCartOpen ? "right-0" : "-right-[360px]"
+          }`}
+        >
+          <div className="flex h-full flex-col">
+            <div className="flex items-center justify-between border-b border-zinc-900/10 bg-zinc-100 px-4 py-3 text-sm font-semibold text-zinc-800">
+              <div className="flex items-center gap-2">
+                <span className="text-zinc-700" aria-hidden>
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M6 8h12l-1.2 12H7.2L6 8z" />
+                    <path d="M9 8a3 3 0 0 1 6 0" />
+                  </svg>
+                </span>
+                <span>{cart.items.length} items</span>
+              </div>
+              <button
+                className="rounded border border-zinc-400 px-3 py-1 text-xs font-semibold text-zinc-700"
+                type="button"
+                onClick={() => setIsCartOpen(false)}
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between border-b border-zinc-900/10 bg-zinc-200 px-4 py-2 text-xs font-semibold text-zinc-700">
+              <span>Delivery charge not needed</span>
+              <span>Tk 0</span>
+            </div>
+
+            <div className="flex items-center gap-2 border-b border-zinc-900/10 bg-white px-4 py-2 text-xs font-semibold text-zinc-700">
+              <span className="text-zinc-800">Express Delivery</span>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-4 py-3 text-sm text-zinc-700">
+              {cartLoading ? (
+                <p className="text-xs text-zinc-500">Loading cart...</p>
+              ) : cart.items.length ? (
+                <div className="space-y-3">
+                  {cart.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between gap-3 border-b border-zinc-200 pb-3"
+                    >
+                      <div className="flex flex-1 items-center gap-3">
+                        <div className="flex flex-col items-center gap-1">
+                          <button
+                            className="text-xs font-semibold text-zinc-500"
+                            type="button"
+                            onClick={() =>
+                              updateCartItem(item.id, item.quantity + 1)
+                            }
+                          >
+                            +
+                          </button>
+                          <span className="text-sm font-semibold text-zinc-800">
+                            {item.quantity}
+                          </span>
+                          <button
+                            className="text-xs font-semibold text-zinc-500"
+                            type="button"
+                            onClick={() =>
+                              updateCartItem(
+                                item.id,
+                                Math.max(1, item.quantity - 1),
+                              )
+                            }
+                          >
+                            -
+                          </button>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs font-semibold text-zinc-800">
+                            {item.name}
+                          </p>
+                          <p className="text-[11px] text-zinc-500">
+                            Tk {formatPrice(item.price)}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        className="text-sm font-semibold text-zinc-400"
+                        type="button"
+                        onClick={() => removeCartItem(item.id)}
+                      >
+                        x
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-zinc-500">Your cart is empty.</p>
+              )}
+              {cartMessage ? (
+                <p className="mt-3 text-xs font-semibold text-rose-500">
+                  {cartMessage}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="border-t border-zinc-900/10 bg-white px-4 py-3">
+              <button
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-700"
+                type="button"
+              >
+                Have a special code?
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between border-t border-zinc-900/10">
+              <button
+                className="flex-1 bg-rose-400 px-4 py-3 text-sm font-semibold text-white"
+                type="button"
+              >
+                Place order
+              </button>
+              <div className="flex w-32 items-center justify-center bg-rose-500 px-3 py-3 text-sm font-semibold text-white">
+                Tk {formatPrice(calculateTotal(cart.items))}
+              </div>
+            </div>
           </div>
         </div>
       </main>

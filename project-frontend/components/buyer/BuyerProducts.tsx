@@ -139,6 +139,7 @@ export default function BuyerProducts({
         throw new Error(text || "Unable to add to cart.");
       }
       setMessage("Added to cart.");
+      window.dispatchEvent(new CustomEvent("cart:updated"));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Add to cart failed.");
     } finally {

@@ -278,8 +278,11 @@ export class BuyerService {
     }
 
     const filteredItems = updatedCart.items.map(item => ({
+      id: item.id,
       productId: item.productId,
       name: item.name,
+      price: item.price,
+      quantity: item.quantity,
     }));
 
     return this.Success(
@@ -345,7 +348,19 @@ export class BuyerService {
       await this.cartRepository.save(cart);
     }
 
-    return this.Success(cart);
+    const items = (cart.items ?? []).map(item => ({
+      id: item.id,
+      productId: item.productId,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+    }));
+
+    return this.Success({
+      userId: cart.userId,
+      coupon: cart.coupon ?? null,
+      items,
+    });
   }
 
   // --- Orders operations ---

@@ -8,7 +8,11 @@ async function getToken() {
   return cookieStore.get("access_token")?.value ?? null;
 }
 
-export async function GET(request: Request) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ itemId: string }> },
+) {
+  const { itemId } = await params;
   const token = await getToken();
   if (!token) {
     return new Response(JSON.stringify({ message: "Unauthorized" }), {
@@ -17,15 +21,18 @@ export async function GET(request: Request) {
     });
   }
 
-  const { searchParams } = new URL(request.url);
-  const coupon = searchParams.get("coupon");
-  const url = new URL(`${apiBaseUrl}/buyer/cart`);
-  if (coupon) url.searchParams.set("coupon", coupon);
-
-  const response = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
+  const body = await request.json();
+  const response = await fetch(
+    `${apiBaseUrl}/buyer/cart/items/${itemId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    },
+  );
 
   const data = await response.text();
   return new Response(data, {
@@ -34,10 +41,12 @@ export async function GET(request: Request) {
   });
 }
 
-export async function POST(request: Request) {
-  const body = await request.json();
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ itemId: string }> },
+) {
+  const { itemId } = await params;
   const token = await getToken();
-
   if (!token) {
     return new Response(JSON.stringify({ message: "Unauthorized" }), {
       status: 401,
@@ -45,14 +54,13 @@ export async function POST(request: Request) {
     });
   }
 
-  const response = await fetch(`${apiBaseUrl}/buyer/cart/items`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+  const response = await fetch(
+    `${apiBaseUrl}/buyer/cart/items/${itemId}`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
     },
-    body: JSON.stringify(body),
-  });
+  );
 
   const data = await response.text();
   return new Response(data, {
