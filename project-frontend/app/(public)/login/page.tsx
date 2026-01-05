@@ -38,7 +38,7 @@ export default function LoginPage() {
         setMessage(payload.error.issues[0]?.message ?? "Invalid login details.");
         return;
       }
-      await axios.post(
+      const response = await axios.post(
         `${API_BASE}/auth/login`,
         { email: payload.data.email, password: payload.data.password },
         { withCredentials: true },
@@ -47,7 +47,16 @@ export default function LoginPage() {
       setStatus("success");
       setMessage("");
       setToast("Login successful. Redirecting...");
-      setTimeout(() => router.push("/products"), 600);
+      const role = response.data?.role as "seller" | "admin" | "buyer" | undefined;
+      const destination =
+        role === "seller"
+          ? "/seller/dashboard"
+          : role === "admin"
+            ? "/admin/dashboard"
+            : role === "buyer"
+              ? "/buyer/dashboard"
+              : "/products";
+      setTimeout(() => router.push(destination), 600);
     } catch (error) {
       setStatus("idle");
       const serverMsg =

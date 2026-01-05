@@ -24,7 +24,7 @@ export class AuthController {
                 sameSite: 'lax',
                 maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
             });
-            return { message: 'Logged in' };
+            return { message: 'Logged in', role: (result as any)?.role };
         }
         return result;
     }

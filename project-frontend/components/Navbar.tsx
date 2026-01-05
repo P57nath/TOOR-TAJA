@@ -4,7 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-const navigation = [{ label: "Home", href: "/" }];
+const navigation = [
+  { label: "Home", href: "/" },
+  { label: "Products", href: "/products" },
+];
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
