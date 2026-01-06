@@ -13,7 +13,7 @@ import { SellerProfile } from './entities/seller-profile.entity'; // Import Prof
     TypeOrmModule.forFeature([Seller, Product,SellerProfile]), 
     JwtModule.register({
       global: true,
-      secret: 'MY_SECRET_KEY', // Match this with AuthGuard
+      secret: 'MY_SECRET_KEY', 
       signOptions: { expiresIn: '1h' },
     }),
   ],

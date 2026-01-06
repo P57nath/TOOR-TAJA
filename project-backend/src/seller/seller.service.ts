@@ -37,8 +37,8 @@ export class SellerService {
       service: 'gmail',
       auth: {
 
-        user: process.env.MAIL_USER || '',
-        pass: process.env.MAIL_PASS || '',
+        user: process.env.MAIL_USER || 'sajidhasanmahir003@gmail.com',
+        pass: process.env.MAIL_PASS || 'vmit soje catb ctef',
       },
     });
   }
@@ -80,6 +80,7 @@ export class SellerService {
     const isMatch = await bcrypt.compare(dto.password, seller.password);
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
 
+    
     // Generate Token
     const payload = { sub: seller.id, username: seller.username };
     const access_token = await this.jwtService.signAsync(payload, { secret: 'MY_SECRET_KEY', expiresIn: '1h' });
@@ -120,7 +121,7 @@ export class SellerService {
   async sendWelcomeEmail(to: string, name: string) {
     try {
       await this.transporter.sendMail({
-        from: '"Mahir Email service" <no-reply@shop.com>',
+        from: '"TOOR-TAJA" <no-reply@toortaja.com>',
         to: to,
         subject: 'Welcome to Our Platform!',
         text: `Hello ${name}, welcome to our Seller Platform!`,
@@ -232,6 +233,43 @@ export class SellerService {
     });
     return this.ok(products, { message: `Found ${products.length} products` });
   }
+
+
+async findAllProductsBySellerId(sellerId: string) {
+  const products = await this.productRepo.find({
+    where: { sellerId },
+    order: { createdAt: 'DESC' },
+  });
+
+  if (products.length === 0) {
+    const sellerExists = await this.sellerRepo.exist({ where: { id: sellerId } });
+    if (!sellerExists) {
+      throw new NotFoundException(`Seller with ID '${sellerId}' not found`);
+    }
+    return this.ok([], { message: `Seller ID '${sellerId}' has no products` });
+  }
+
+  return this.ok(products, { message: `Found ${products.length} products for seller ID '${sellerId}'` });
+}
+
+
+async findSellerByProductId(productId: string) {
+  const product = await this.productRepo.findOne({
+    where: { id: productId },
+    relations: ['seller'], 
+  });
+
+  if (!product) {
+    throw new NotFoundException(`Product with ID '${productId}' not found`);
+  }
+
+  
+  if (!product.seller) {
+    throw new NotFoundException(`Seller for product ID '${productId}' could not be loaded`);
+  }
+
+  return this.ok(product.seller, { message: `Found seller for product ID '${productId}'` });
+}
 
   async findProduct(id: string) {
     const product = await this.productRepo.findOne({ where: { id } });

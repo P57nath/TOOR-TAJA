@@ -92,9 +92,22 @@ export class SellerController {
     return this.sellerService.createProduct(dto);
   }
 
+  
+@Get('products/seller/:sellerId')
+findAllProductsBySellerId(@Param('sellerId') sellerId: string) {
+  return this.sellerService.findAllProductsBySellerId(sellerId);
+}
+
+
+@Get('products/:productId/seller')
+findSellerByProductId(@Param('productId') productId: string) {
+  return this.sellerService.findSellerByProductId(productId);
+}
+
+
  
   @Get('products')
-  @UseGuards(AuthGuard) // Protected route
+ 
   findAllProducts(@Query('category') category?: string) {
     return this.sellerService.findAllProducts(category);
   }

@@ -2,6 +2,9 @@ import { Controller, Get } from '@nestjs/common';
 
 @Controller()
 export class AppController {
+  getHello(): any {
+    throw new Error('Method not implemented.');
+  }
   @Get('/')
   root() {
     return { success: true, message: 'TOOR-TAJA API', version: 'v1' };
