@@ -1,5 +1,6 @@
 import { apiFetch } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
+import AdminSellerApproval from "@/components/admin/AdminSellerApproval"; 
 
 function formatData(data: unknown) {
   if (!data) return "No data returned yet.";
@@ -80,6 +81,8 @@ export default async function AdminDashboard() {
             </pre>
           </div>
         </section>
+
+        <AdminSellerApproval />
       </main>
     </div>
   );
