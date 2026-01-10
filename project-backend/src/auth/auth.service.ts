@@ -57,10 +57,22 @@ export class AuthService {
             throw new HttpException('Account is inactive', HttpStatus.FORBIDDEN);
         }
 
-        const match = await bcrypt.compare(password, user.passwordHash || '');
-        if (!match) {
-            throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    const match = await bcrypt.compare(password, user.passwordHash || '');
+    if (!match) {
+        throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
+
+    if (user.role === Role.SELLER) {
+        const sellerProfile = await this.sellerProfileRepo.findOne({
+            where: { user: { id: user.id } },
+        });
+        if (!sellerProfile) {
+            throw new HttpException('Seller profile not found', HttpStatus.FORBIDDEN);
         }
+        if (sellerProfile.status !== 'APPROVED') {
+            throw new HttpException('Seller account is not approved', HttpStatus.FORBIDDEN);
+        }
+    }
 
         const tokens = await this.buildTokens(user);
         return { access_token: tokens.accessToken, refresh_token: tokens.refreshToken };

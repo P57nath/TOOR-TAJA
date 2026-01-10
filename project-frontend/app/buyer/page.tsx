@@ -52,7 +52,7 @@ export default async function BuyerDashboard() {
     process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5010";
 
   return (
-    <BuyerShell>
+    <BuyerShell notificationRole="buyer" notificationUserId={session.userId}>
       <div className="flex w-full flex-col gap-10">
         <BuyerStories stories={stories} apiBaseUrl={apiBaseUrl} />
 

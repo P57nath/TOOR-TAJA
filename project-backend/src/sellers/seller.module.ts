@@ -12,6 +12,7 @@ import { OrderItem } from 'src/orders/entities/order-items.entity';
 import { InventoryModule } from 'src/inventory/inventory.module';
 import { StoriesModule } from 'src/stories/stories.module';
 import { Category } from 'src/products/category.entity';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 
 @Module({
@@ -19,6 +20,7 @@ import { Category } from 'src/products/category.entity';
     TypeOrmModule.forFeature([SellerProfile, Product, Order, OrderItem, Category]), 
     InventoryModule,
     StoriesModule,
+    NotificationsModule,
     MailerModuleCustom,
     JwtModule.register({
       secret: jwtConstants.secret,

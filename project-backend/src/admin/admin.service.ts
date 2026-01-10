@@ -9,6 +9,7 @@ import { Category } from 'src/products/category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { Dispute } from 'src/disputes/dispute.entity';
 import { MailerService } from 'src/mailer/mailer.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 @Injectable()
 export class AdminService {
   constructor(
@@ -23,6 +24,7 @@ export class AdminService {
     @InjectRepository(Dispute)
     private disputeRepository: Repository<Dispute>,
     private readonly mailerService: MailerService,
+    private readonly notificationsService: NotificationsService,
   ) { }
 
   private ok(data: any, extra: Record<string, any> = {}) {
@@ -80,11 +82,22 @@ export class AdminService {
       await this.userRepository.save(profile.user);
     }
     await this.mailerService.sendSellerApprovedEmail(profile.user.email, profile.storeName);
+    await this.notificationsService.notifySeller(
+      profile.user.id,
+      this.notificationsService.buildPayload(
+        'Seller approved',
+        `Your seller account for ${profile.storeName} is approved.`,
+        { sellerProfileId: profile.id },
+      ),
+    );
     return this.ok(profile, { message: 'Seller approved' });
   }
 
   async suspendSeller(sellerProfileId: string) {
-    const profile = await this.sellerProfileRepository.findOne({ where: { id: sellerProfileId } });
+    const profile = await this.sellerProfileRepository.findOne({
+      where: { id: sellerProfileId },
+      relations: ['user'],
+    });
     if (!profile) throw new NotFoundException('Seller not found');
     if (profile.status === 'SUSPENDED') {
       throw new BadRequestException('Seller already suspended');
@@ -92,6 +105,18 @@ export class AdminService {
 
     profile.status = 'SUSPENDED';
     await this.sellerProfileRepository.save(profile);
+    if (profile.user && profile.user.isActive) {
+      profile.user.isActive = false;
+      await this.userRepository.save(profile.user);
+    }
+    await this.notificationsService.notifySeller(
+      profile.user.id,
+      this.notificationsService.buildPayload(
+        'Seller suspended',
+        `Your seller account for ${profile.storeName} is suspended.`,
+        { sellerProfileId: profile.id },
+      ),
+    );
     return this.ok(profile, { message: 'Seller suspended' });
   }
 

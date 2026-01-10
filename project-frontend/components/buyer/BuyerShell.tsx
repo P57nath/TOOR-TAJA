@@ -7,6 +7,8 @@ import Navbar from "@/components/Navbar";
 
 type BuyerShellProps = {
   children: ReactNode;
+  notificationRole?: "buyer" | "seller" | "admin";
+  notificationUserId?: string;
 };
 
 type CartItem = {
@@ -37,7 +39,11 @@ const buyerMenu = [
   { label: "Toys & Sports", icon: "🧸", hasChevron: true },
 ];
 
-export default function BuyerShell({ children }: BuyerShellProps) {
+export default function BuyerShell({
+  children,
+  notificationRole,
+  notificationUserId,
+}: BuyerShellProps) {
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cart, setCart] = useState<CartData>({ items: [] });
@@ -216,6 +222,8 @@ export default function BuyerShell({ children }: BuyerShellProps) {
         showUserActions
         searchPlaceholder="Search for products (e.g. eggs, milk, potato)"
         logoRefreshOnClick
+        notificationRole={notificationRole}
+        notificationUserId={notificationUserId}
       />
 
       <main

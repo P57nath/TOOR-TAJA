@@ -7,7 +7,14 @@ type SellerLayoutProps = {
 };
 
 export default async function SellerLayout({ children }: SellerLayoutProps) {
-  await requireRole("seller");
+  const session = await requireRole("seller");
 
-  return <SellerShell>{children}</SellerShell>;
+  return (
+    <SellerShell
+      notificationRole="seller"
+      notificationUserId={session.userId}
+    >
+      {children}
+    </SellerShell>
+  );
 }

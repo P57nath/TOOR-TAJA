@@ -7,6 +7,8 @@ import Navbar from "@/components/Navbar";
 
 type AdminShellProps = {
   children: ReactNode;
+  notificationRole?: "buyer" | "seller" | "admin";
+  notificationUserId?: string;
 };
 
 const adminNavItems = [
@@ -87,7 +89,11 @@ const adminNavItems = [
   },
 ];
 
-export default function AdminShell({ children }: AdminShellProps) {
+export default function AdminShell({
+  children,
+  notificationRole,
+  notificationUserId,
+}: AdminShellProps) {
   const [isNavOpen, setIsNavOpen] = useState(false);
 
   return (
@@ -99,6 +105,8 @@ export default function AdminShell({ children }: AdminShellProps) {
         showAuthButton={false}
         showUserActions
         logoRefreshOnClick
+        notificationRole={notificationRole}
+        notificationUserId={notificationUserId}
       />
 
       <main

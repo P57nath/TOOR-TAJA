@@ -16,6 +16,7 @@ import { DisputesModule } from './disputes/disputes.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { PaymentsModule } from './payments/payments.module';
 import { StoriesModule } from './stories/stories.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { StoriesModule } from './stories/stories.module';
     InventoryModule,
     PaymentsModule,
     StoriesModule,
+    NotificationsModule,
     MailerModuleCustom,
     TypeOrmModule.forRoot(
     {

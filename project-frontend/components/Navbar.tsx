@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import Pusher from "pusher-js";
+import { useEffect, useState } from "react";
 
 type NavbarProps = {
   onMenuToggle?: () => void;
@@ -13,6 +14,8 @@ type NavbarProps = {
   showUserActions?: boolean;
   searchPlaceholder?: string;
   logoRefreshOnClick?: boolean;
+  notificationRole?: "buyer" | "seller" | "admin";
+  notificationUserId?: string;
 };
 
 const divisions = [
@@ -35,11 +38,111 @@ export default function Navbar({
   showUserActions = false,
   searchPlaceholder = "Search for products...",
   logoRefreshOnClick = false,
+  notificationRole,
+  notificationUserId,
 }: NavbarProps) {
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [locationLabel, setLocationLabel] = useState("Dhaka");
   const [isDetecting, setIsDetecting] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<
+    Array<{
+      id?: string;
+      title: string;
+      body: string;
+      createdAt: string;
+      isRead?: boolean;
+    }>
+  >([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!notificationRole) return;
+    if (
+      (notificationRole === "buyer" || notificationRole === "seller") &&
+      !notificationUserId
+    ) {
+      return;
+    }
+    const key = process.env.NEXT_PUBLIC_PUSHER_KEY;
+    const cluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
+    if (!key || !cluster) return;
+
+    const pusher = new Pusher(key, {
+      cluster,
+      authEndpoint: "/api/realtime/auth",
+    });
+
+    const channelName =
+      notificationRole === "admin"
+        ? "private-admin"
+        : `private-${notificationRole}-${notificationUserId}`;
+    const channel = pusher.subscribe(channelName);
+
+    channel.bind("notification", (data: any) => {
+      const payload = {
+        id: data?.id ? String(data.id) : undefined,
+        title: String(data?.title ?? "Notification"),
+        body: String(data?.body ?? ""),
+        createdAt: String(data?.createdAt ?? new Date().toISOString()),
+      };
+      setNotifications((prev) => [payload, ...prev].slice(0, 20));
+      setUnreadCount((count) => count + 1);
+    });
+
+    return () => {
+      channel.unbind_all();
+      pusher.unsubscribe(channelName);
+      pusher.disconnect();
+    };
+  }, [notificationRole, notificationUserId]);
+
+  useEffect(() => {
+    if (!notificationRole) return;
+    if (
+      (notificationRole === "buyer" || notificationRole === "seller") &&
+      !notificationUserId
+    ) {
+      return;
+    }
+
+    async function loadHistory() {
+      try {
+        const response = await fetch("/api/notifications?limit=20", {
+          cache: "no-store",
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        const list = Array.isArray(data) ? data : data?.data;
+        if (!Array.isArray(list)) return;
+        const mapped = list.map((item: any) => ({
+          id: item.id ? String(item.id) : undefined,
+          title: String(item.title ?? "Notification"),
+          body: String(item.body ?? ""),
+          createdAt: String(item.createdAt ?? new Date().toISOString()),
+          isRead: Boolean(item.isRead),
+        }));
+        setNotifications(mapped);
+        const unread = mapped.filter((note) => !note.isRead).length;
+        setUnreadCount(unread);
+      } catch {
+        return;
+      }
+    }
+
+    void loadHistory();
+  }, [notificationRole, notificationUserId]);
+
+  useEffect(() => {
+    if (isNotificationsOpen) {
+      setUnreadCount(0);
+      setNotifications((prev) =>
+        prev.map((note) => ({ ...note, isRead: true })),
+      );
+      void fetch("/api/notifications/read", { method: "POST" });
+    }
+  }, [isNotificationsOpen]);
 
   function handleDetectLocation() {
     if (!("geolocation" in navigator)) {
@@ -210,24 +313,65 @@ export default function Navbar({
           </button>
           {showUserActions ? (
             <div className="relative hidden items-center gap-2 sm:flex">
-              <button
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-900/10 bg-white/70"
-                type="button"
-                aria-label="Notifications"
-              >
-                <svg
-                  className="h-4 w-4 text-emerald-700"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+              <div className="relative">
+                <button
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-900/10 bg-white/70"
+                  type="button"
+                  aria-label="Notifications"
+                  onClick={() =>
+                    setIsNotificationsOpen((open) => !open)
+                  }
                 >
-                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7" />
-                  <path d="M13.7 21a2 2 0 0 1-3.4 0" />
-                </svg>
-              </button>
+                  <svg
+                    className="h-4 w-4 text-emerald-700"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7" />
+                    <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+                  </svg>
+                  {unreadCount > 0 ? (
+                    <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">
+                      {unreadCount}
+                    </span>
+                  ) : null}
+                </button>
+                {isNotificationsOpen ? (
+                  <div className="absolute right-0 top-12 z-10 w-72 rounded-2xl border border-emerald-100 bg-white p-3 text-xs shadow-lg">
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-700">
+                      Notifications
+                    </p>
+                    <div className="max-h-64 space-y-2 overflow-y-auto">
+                      {notifications.length ? (
+                        notifications.map((note, index) => (
+                          <div
+                            key={`${note.createdAt}-${index}`}
+                            className="rounded-xl border border-emerald-50 bg-emerald-50/40 px-3 py-2"
+                          >
+                            <p className="text-xs font-semibold text-emerald-900">
+                              {note.title}
+                            </p>
+                            <p className="mt-1 text-[11px] text-emerald-900/70">
+                              {note.body}
+                            </p>
+                            <p className="mt-1 text-[10px] text-emerald-700/70">
+                              {new Date(note.createdAt).toLocaleTimeString()}
+                            </p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-[11px] text-emerald-700/70">
+                          No notifications yet.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
               <button
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-900/10 bg-white/70"
                 type="button"

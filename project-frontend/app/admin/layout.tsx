@@ -7,7 +7,14 @@ type AdminLayoutProps = {
 };
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
-  await requireRole("admin");
+  const session = await requireRole("admin");
 
-  return <AdminShell>{children}</AdminShell>;
+  return (
+    <AdminShell
+      notificationRole="admin"
+      notificationUserId={session.userId}
+    >
+      {children}
+    </AdminShell>
+  );
 }

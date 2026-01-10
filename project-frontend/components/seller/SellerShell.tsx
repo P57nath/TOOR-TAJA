@@ -7,6 +7,8 @@ import Navbar from "@/components/Navbar";
 
 type SellerShellProps = {
   children: ReactNode;
+  notificationRole?: "buyer" | "seller" | "admin";
+  notificationUserId?: string;
 };
 
 const sellerNavItems = [
@@ -68,7 +70,11 @@ const sellerNavItems = [
   },
 ];
 
-export default function SellerShell({ children }: SellerShellProps) {
+export default function SellerShell({
+  children,
+  notificationRole,
+  notificationUserId,
+}: SellerShellProps) {
   const [isNavOpen, setIsNavOpen] = useState(false);
 
   return (
@@ -80,6 +86,8 @@ export default function SellerShell({ children }: SellerShellProps) {
         showAuthButton={false}
         showUserActions
         logoRefreshOnClick
+        notificationRole={notificationRole}
+        notificationUserId={notificationUserId}
       />
 
       <main

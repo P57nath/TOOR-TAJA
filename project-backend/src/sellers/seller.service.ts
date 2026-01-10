@@ -12,6 +12,7 @@ import { SellerProfile } from './seller-profile.entity';
 import { Order, OrderStatus } from 'src/orders/entities/order.entity';
 import { OrderItem } from 'src/orders/entities/order-items.entity';
 import { InventoryService } from 'src/inventory/inventory.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class SellerService {
@@ -29,6 +30,7 @@ export class SellerService {
     private orderItemRepository: Repository<OrderItem>,
     private inventoryService: InventoryService,
     private readonly mailerService: MailerService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   private ok(data: any, extra: Record<string, any> = {}) {
@@ -95,6 +97,13 @@ export class SellerService {
       status: 'PENDING',
     });
     const saved = await this.sellerProfileRepo.save(profile);
+    await this.notificationsService.notifyAdmin(
+      this.notificationsService.buildPayload(
+        'New seller signup',
+        `${dto.storeName} is awaiting approval.`,
+        { sellerProfileId: saved.id, sellerUserId: userId },
+      ),
+    );
     return this.ok(saved, { message: 'Seller profile created' });
   }
 
@@ -215,6 +224,14 @@ export class SellerService {
 
     order.updateStatus(status);
     const saved = await this.orderRepository.save(order);
+    await this.notificationsService.notifyBuyer(
+      order.userId,
+      this.notificationsService.buildPayload(
+        'Order status updated',
+        `Order ${order.id} is now ${status.toLowerCase()}.`,
+        { orderId: order.id, status },
+      ),
+    );
     return this.ok(saved, { message: 'Order status updated' });
   }
 

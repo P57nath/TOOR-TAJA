@@ -22,6 +22,7 @@ import { Review } from 'src/reviews/review.entity';
 import { CreateReviewDto } from 'src/reviews/dto/create-review.dto';
 import { InventoryService } from 'src/inventory/inventory.service';
 import { PaymentsService } from 'src/payments/payments.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class BuyerService {
@@ -48,6 +49,7 @@ export class BuyerService {
     private reviewRepository: Repository<Review>,
     private inventoryService: InventoryService,
     private paymentsService: PaymentsService,
+    private notificationsService: NotificationsService,
   ) { }
 
   private Success(data: any, extra: Record<string, any> = {}) {
@@ -415,6 +417,32 @@ export class BuyerService {
     // Calculate and update total
     savedOrder.total = savedOrder.calculateTotal();
     await this.orderRepository.save(savedOrder);
+
+    await this.notificationsService.notifyBuyer(
+      userId,
+      this.notificationsService.buildPayload(
+        'Order placed',
+        `Order ${savedOrder.id} has been placed successfully.`,
+        { orderId: savedOrder.id, total: savedOrder.total },
+      ),
+    );
+
+    const notifiedSellers = new Set<string>();
+    orderItems.forEach((item) => {
+      if (item.sellerUserId) {
+        notifiedSellers.add(item.sellerUserId);
+      }
+    });
+    for (const sellerUserId of notifiedSellers) {
+      await this.notificationsService.notifySeller(
+        sellerUserId,
+        this.notificationsService.buildPayload(
+          'New order',
+          `You have a new order ${savedOrder.id}.`,
+          { orderId: savedOrder.id },
+        ),
+      );
+    }
 
     await this.paymentsService.createIntent(savedOrder.id, userId, savedOrder.total);
 

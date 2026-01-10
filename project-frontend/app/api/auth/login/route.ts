@@ -51,13 +51,29 @@ export async function POST(request: Request) {
   params.set("email", parsed.data.email);
   params.set("password", parsed.data.password);
 
-  const response = await axios.post<LoginResponse>(
-    `${apiBaseUrl}/auth/login`,
-    params,
-    {
+  let response: { data: LoginResponse };
+  try {
+    response = await axios.post<LoginResponse>(`${apiBaseUrl}/auth/login`, params, {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    },
-  );
+    });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status ?? 500;
+      const message =
+        (error.response?.data as any)?.message ??
+        (status === 403
+          ? "Account is inactive or not approved"
+          : "Invalid credentials");
+      return new Response(JSON.stringify({ message }), {
+        status,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify({ message: "Login failed" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   const token = response.data.access_token;
   const refreshToken = response.data.refresh_token;
