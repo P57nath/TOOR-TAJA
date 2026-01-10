@@ -80,45 +80,45 @@ export default function SellerProductForm({
       onSubmit={handleSubmit}
       className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg backdrop-blur"
     >
-      <h2 className="text-xl font-semibold text-white">Add product</h2>
-      <p className="mt-2 text-sm text-white/70">
+      <h2 className="text-xl font-semibold text-zinc-900">Add product</h2>
+      <p className="mt-2 text-sm text-zinc-900/70">
         Upload a product and assign it to one of the admin categories.
       </p>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <label className="flex flex-col gap-2 text-sm text-white/70">
+        <label className="flex flex-col gap-2 text-sm text-zinc-900/70">
           Product name
           <input
-            className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white outline-none focus:border-sky-400"
+            className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-zinc-900 outline-none focus:border-sky-400"
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="e.g., Fresh spinach bundle"
           />
         </label>
-        <label className="flex flex-col gap-2 text-sm text-white/70">
+        <label className="flex flex-col gap-2 text-sm text-zinc-900/70">
           Price (Tk)
           <input
-            className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white outline-none focus:border-sky-400"
+            className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-zinc-900 outline-none focus:border-sky-400"
             value={price}
             onChange={(event) => setPrice(event.target.value)}
             inputMode="decimal"
             placeholder="e.g., 120"
           />
         </label>
-        <label className="flex flex-col gap-2 text-sm text-white/70">
+        <label className="flex flex-col gap-2 text-sm text-zinc-900/70">
           Stock
           <input
-            className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white outline-none focus:border-sky-400"
+            className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-zinc-900 outline-none focus:border-sky-400"
             value={stock}
             onChange={(event) => setStock(event.target.value)}
             inputMode="numeric"
             placeholder="e.g., 60"
           />
         </label>
-        <label className="flex flex-col gap-2 text-sm text-white/70">
+        <label className="flex flex-col gap-2 text-sm text-zinc-900/70">
           Category
           <select
-            className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white outline-none focus:border-sky-400"
+            className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-zinc-900 outline-none focus:border-sky-400"
             value={categoryId}
             onChange={(event) => setCategoryId(event.target.value)}
           >
@@ -131,20 +131,20 @@ export default function SellerProductForm({
         </label>
       </div>
 
-      <label className="mt-4 flex flex-col gap-2 text-sm text-white/70">
+      <label className="mt-4 flex flex-col gap-2 text-sm text-zinc-900/70">
         Description
         <textarea
-          className="min-h-[110px] rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white outline-none focus:border-sky-400"
+          className="min-h-[110px] rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-zinc-900 outline-none focus:border-sky-400"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           placeholder="Share storage tips, size, and sourcing details."
         />
       </label>
 
-      <label className="mt-4 flex flex-col gap-2 text-sm text-white/70">
+      <label className="mt-4 flex flex-col gap-2 text-sm text-zinc-900/70">
         Product image
         <input
-          className="rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white file:mr-4 file:rounded-full file:border-0 file:bg-sky-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+          className="rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-zinc-900 file:mr-4 file:rounded-full file:border-0 file:bg-sky-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-zinc-900"
           type="file"
           accept="image/png,image/jpeg,image/webp"
           onChange={(event) => {
@@ -156,7 +156,7 @@ export default function SellerProductForm({
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <button
-          className="rounded-full bg-sky-500 px-6 py-2 text-sm font-semibold text-white transition hover:bg-sky-400"
+          className="rounded-full bg-sky-500 px-6 py-2 text-sm font-semibold text-zinc-900 transition hover:bg-sky-400"
           type="submit"
           disabled={loading}
         >

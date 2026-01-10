@@ -27,57 +27,43 @@ export default async function SellerDashboard() {
     productsResult.status === "fulfilled" ? productsResult.value : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white">
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-16 sm:py-20">
-        <header className="space-y-3">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sky-300">
-            Seller dashboard
-          </p>
-          <h1 className="text-3xl font-semibold text-white sm:text-4xl">
-            Manage your storefront
-          </h1>
-          <p className="max-w-2xl text-white/70">
-            Live data is pulled from seller endpoints using your JWT.
-          </p>
-          <a
-            className="inline-flex items-center justify-center rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-400"
-            href="/seller/stories"
-          >
-            Post a story
-          </a>
-          <a
-            className="inline-flex items-center justify-center rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40"
-            href="/seller/products/new"
-          >
-            Add product
-          </a>
-        </header>
+    <div className="flex flex-col gap-10">
+      <header className="space-y-3">
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-700">
+          Seller dashboard
+        </p>
+        <h1 className="text-3xl font-semibold text-zinc-900 sm:text-4xl">
+          Manage your storefront
+        </h1>
+        <p className="max-w-2xl text-zinc-700">
+          This dashboard will be customized later.
+        </p>
+      </header>
 
-        <section className="grid gap-6 md:grid-cols-2">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg backdrop-blur">
-            <h2 className="text-xl font-semibold text-white">
-              Seller profile + products
-            </h2>
-            <p className="mt-2 text-sm text-white/70">
-              Loaded from /seller/{sellerId}/with-products.
-            </p>
-            <pre className="mt-4 max-h-80 overflow-auto whitespace-pre-wrap text-xs text-white/70">
-              {formatData(profile)}
-            </pre>
-          </div>
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg backdrop-blur">
-            <h2 className="text-xl font-semibold text-white">
-              Catalog overview
-            </h2>
-            <p className="mt-2 text-sm text-white/70">
-              Loaded from /seller/products.
-            </p>
-            <pre className="mt-4 max-h-80 overflow-auto whitespace-pre-wrap text-xs text-white/70">
-              {formatData(products)}
-            </pre>
-          </div>
-        </section>
-      </main>
+      <section className="grid gap-6 md:grid-cols-2">
+        <div className="rounded-3xl border border-emerald-100 bg-white p-8 shadow-sm">
+          <h2 className="text-xl font-semibold text-zinc-900">
+            Seller profile + products
+          </h2>
+          <p className="mt-2 text-sm text-zinc-700">
+            Loaded from /seller/{sellerId}/with-products.
+          </p>
+          <pre className="mt-4 max-h-80 overflow-auto whitespace-pre-wrap text-xs text-zinc-700">
+            {formatData(profile)}
+          </pre>
+        </div>
+        <div className="rounded-3xl border border-emerald-100 bg-white p-8 shadow-sm">
+          <h2 className="text-xl font-semibold text-zinc-900">
+            Catalog overview
+          </h2>
+          <p className="mt-2 text-sm text-zinc-700">
+            Loaded from /seller/products.
+          </p>
+          <pre className="mt-4 max-h-80 overflow-auto whitespace-pre-wrap text-xs text-zinc-700">
+            {formatData(products)}
+          </pre>
+        </div>
+      </section>
     </div>
   );
 }

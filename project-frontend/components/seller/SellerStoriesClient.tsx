@@ -61,8 +61,8 @@ export default function SellerStoriesClient({
 
   return (
     <section className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg backdrop-blur">
-      <h2 className="text-xl font-semibold text-white">Post a story</h2>
-      <p className="mt-2 text-sm text-white/70">
+      <h2 className="text-xl font-semibold text-zinc-900">Post a story</h2>
+      <p className="mt-2 text-sm text-zinc-900/70">
         Upload a vertical image for the buyer story strip. Admin approval
         required before it appears.
       </p>
@@ -77,7 +77,7 @@ export default function SellerStoriesClient({
           </label>
           <input
             id="story-title"
-            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white outline-none focus:border-sky-400"
+            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-zinc-900 outline-none focus:border-sky-400"
             placeholder="Eid Special Discounts"
             type="text"
             value={title}
@@ -93,7 +93,7 @@ export default function SellerStoriesClient({
           </label>
           <input
             id="story-image"
-            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white outline-none"
+            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-zinc-900 outline-none"
             type="file"
             accept="image/png,image/jpeg,image/jpg,image/webp"
             onChange={(event) => setFile(event.target.files?.[0] ?? null)}
@@ -111,7 +111,7 @@ export default function SellerStoriesClient({
         ) : null}
 
         <button
-          className="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-2 text-sm font-semibold text-white transition hover:bg-sky-400"
+          className="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-2 text-sm font-semibold text-zinc-900 transition hover:bg-sky-400"
           type="submit"
           disabled={status === "loading"}
         >
