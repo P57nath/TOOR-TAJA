@@ -15,7 +15,7 @@ import { AppService } from './app.service';
       host: 'localhost',
       port: 5432,
       username: 'postgres',
-      password: 'DBweb012@',// add your database password here
+      password: 'mahir12345',// add your database password here
       database: 'toortaja',// add your database name here
       autoLoadEntities: true,
       synchronize: true,
