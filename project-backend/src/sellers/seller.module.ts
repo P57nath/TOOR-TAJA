@@ -13,11 +13,12 @@ import { InventoryModule } from 'src/inventory/inventory.module';
 import { StoriesModule } from 'src/stories/stories.module';
 import { Category } from 'src/products/category.entity';
 import { NotificationsModule } from 'src/notifications/notifications.module';
+import { User } from 'src/users/user.entity';
 
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([SellerProfile, Product, Order, OrderItem, Category]), 
+    TypeOrmModule.forFeature([SellerProfile, Product, Order, OrderItem, Category, User]), 
     InventoryModule,
     StoriesModule,
     NotificationsModule,

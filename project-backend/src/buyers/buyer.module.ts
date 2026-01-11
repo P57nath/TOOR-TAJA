@@ -16,10 +16,11 @@ import { PaymentsModule } from 'src/payments/payments.module';
 import { DisputesModule } from 'src/disputes/disputes.module';
 import { StoriesModule } from 'src/stories/stories.module';
 import { NotificationsModule } from 'src/notifications/notifications.module';
+import { User } from 'src/users/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([BuyerProfile, Cart, Order, OrderItem, CartItem, Product, Review]),
+    TypeOrmModule.forFeature([BuyerProfile, Cart, Order, OrderItem, CartItem, Product, Review, User]),
     InventoryModule,
     PaymentsModule,
     DisputesModule,

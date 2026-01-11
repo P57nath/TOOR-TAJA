@@ -26,6 +26,9 @@ export class SellerProfile {
   @Column({ nullable: true })
   phone?: string;
 
+  @Column({ type: 'text', nullable: true })
+  businessInfo?: string;
+
   @Column({ type: 'enum', enum: ['PENDING', 'APPROVED', 'SUSPENDED'], default: 'PENDING' })
   status: SellerStatus;
 }

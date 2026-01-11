@@ -28,4 +28,8 @@ export class UpdateBuyerDto {
   @IsOptional() 
   @IsString() 
   defaultAddressId?: string;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
 }

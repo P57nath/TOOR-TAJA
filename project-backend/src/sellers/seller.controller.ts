@@ -15,6 +15,7 @@ import { SellerService } from './seller.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateSellerProfileDto } from './dto/create-seller-profile.dto';
+import { UpdateSellerProfileDto } from './dto/update-seller-profile.dto';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
@@ -53,6 +54,11 @@ export class SellerController {
   @Get('profile')
   getProfile(@CurrentUser() user: { id: string }) {
     return this.sellerService.getProfile(user.id);
+  }
+
+  @Patch('profile')
+  updateProfile(@CurrentUser() user: { id: string }, @Body() dto: UpdateSellerProfileDto) {
+    return this.sellerService.updateProfile(user.id, dto);
   }
 
 

@@ -10,6 +10,9 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { Dispute } from 'src/disputes/dispute.entity';
 import { MailerService } from 'src/mailer/mailer.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
+import { AdminProfile } from './admin-profile.entity';
+import { UpdateAdminProfileDto } from './dto/update-admin-profile.dto';
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class AdminService {
   constructor(
@@ -23,6 +26,8 @@ export class AdminService {
     private categoryRepository: Repository<Category>,
     @InjectRepository(Dispute)
     private disputeRepository: Repository<Dispute>,
+    @InjectRepository(AdminProfile)
+    private adminProfileRepository: Repository<AdminProfile>,
     private readonly mailerService: MailerService,
     private readonly notificationsService: NotificationsService,
   ) { }
@@ -168,6 +173,41 @@ export class AdminService {
     dispute.resolvedAt = new Date();
     const saved = await this.disputeRepository.save(dispute);
     return this.ok(saved, { message: 'Dispute resolved' });
+  }
+
+  async getProfile(userId: string) {
+    const profile = await this.adminProfileRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+    if (!profile) {
+      throw new NotFoundException('Admin profile not found');
+    }
+    return this.ok(profile);
+  }
+
+  async updateProfile(userId: string, dto: UpdateAdminProfileDto) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const match = await bcrypt.compare(dto.currentPassword || '', user.passwordHash || '');
+    if (!match) {
+      throw new BadRequestException('Invalid password');
+    }
+
+    const profile = await this.adminProfileRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+    if (!profile) {
+      throw new NotFoundException('Admin profile not found');
+    }
+
+    const { currentPassword, ...updates } = dto;
+    Object.assign(profile, updates);
+    const saved = await this.adminProfileRepository.save(profile);
+    return this.ok(saved, { message: 'Admin profile updated' });
   }
 
 }

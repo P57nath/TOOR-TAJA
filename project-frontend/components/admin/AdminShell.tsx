@@ -104,9 +104,13 @@ export default function AdminShell({
         showMenuButton
         showAuthButton={false}
         showUserActions
-        logoRefreshOnClick
+        logoHref="/admin"
         notificationRole={notificationRole}
         notificationUserId={notificationUserId}
+        profileLinks={[
+          { label: "Your profile", href: "/admin/profile" },
+          { label: "Change password", href: "/forgot-password" },
+        ]}
       />
 
       <main

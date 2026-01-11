@@ -16,6 +16,8 @@ type NavbarProps = {
   logoRefreshOnClick?: boolean;
   notificationRole?: "buyer" | "seller" | "admin";
   notificationUserId?: string;
+  profileLinks?: Array<{ label: string; href: string }>;
+  logoHref?: string;
 };
 
 const divisions = [
@@ -40,6 +42,8 @@ export default function Navbar({
   logoRefreshOnClick = false,
   notificationRole,
   notificationUserId,
+  profileLinks,
+  logoHref = "/",
 }: NavbarProps) {
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [locationLabel, setLocationLabel] = useState("Dhaka");
@@ -201,7 +205,7 @@ export default function Navbar({
           ) : (
             <Link
               className="flex items-center gap-2 text-2xl font-semibold text-zinc-900"
-              href="/"
+              href={logoHref}
             >
               <Image
                 src="/toortaja-logo.png"
@@ -393,13 +397,13 @@ export default function Navbar({
               </button>
               {isProfileOpen ? (
                 <div className="absolute right-0 top-12 z-10 w-56 rounded-2xl border border-emerald-100 bg-white p-3 text-xs shadow-lg">
-                  {[
+                  {(profileLinks ?? [
                     { label: "Your profile", href: "/buyer/profile" },
                     { label: "Your orders", href: "/buyer/orders" },
                     { label: "Payment history", href: "/buyer/payments/history" },
                     { label: "Payment methods", href: "/buyer/payments/methods" },
                     { label: "Change password", href: "/forgot-password" },
-                  ].map((item) => (
+                  ]).map((item) => (
                     <Link
                       key={item.label}
                       className="block rounded-xl px-3 py-2 font-semibold text-emerald-900 transition hover:bg-emerald-50"

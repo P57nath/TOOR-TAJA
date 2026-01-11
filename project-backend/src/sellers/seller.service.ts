@@ -9,16 +9,21 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { MailerService } from 'src/mailer/mailer.service';
 import { SellerProfile } from './seller-profile.entity';
+import { User } from 'src/users/user.entity';
 import { Order, OrderStatus } from 'src/orders/entities/order.entity';
 import { OrderItem } from 'src/orders/entities/order-items.entity';
 import { InventoryService } from 'src/inventory/inventory.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
+import * as bcrypt from 'bcrypt';
+import { UpdateSellerProfileDto } from './dto/update-seller-profile.dto';
 
 @Injectable()
 export class SellerService {
   constructor(
     @InjectRepository(SellerProfile)
     private sellerProfileRepo: Repository<SellerProfile>,
+    @InjectRepository(User)
+    private userRepo: Repository<User>,
 
     @InjectRepository(Product)
     private productRepo: Repository<Product>,
@@ -81,7 +86,7 @@ export class SellerService {
     return { profile, products };
   }
 
-  async createProfile(userId: string, dto: { storeName: string; phone?: string }) {
+  async createProfile(userId: string, dto: { storeName: string; phone?: string; businessInfo?: string }) {
     const existing = await this.sellerProfileRepo.findOne({
       where: { user: { id: userId } },
       relations: ['user'],
@@ -94,6 +99,7 @@ export class SellerService {
       user: { id: userId } as any,
       storeName: dto.storeName,
       phone: dto.phone,
+      businessInfo: dto.businessInfo,
       status: 'PENDING',
     });
     const saved = await this.sellerProfileRepo.save(profile);
@@ -116,6 +122,30 @@ export class SellerService {
       throw new NotFoundException('Seller profile not found');
     }
     return this.ok(profile);
+  }
+
+  async updateProfile(userId: string, dto: UpdateSellerProfileDto) {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const match = await bcrypt.compare(dto.currentPassword || '', user.passwordHash || '');
+    if (!match) {
+      throw new ForbiddenException('Invalid password');
+    }
+
+    const profile = await this.sellerProfileRepo.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+    if (!profile) {
+      throw new NotFoundException('Seller profile not found');
+    }
+
+    const { currentPassword, ...updates } = dto;
+    Object.assign(profile, updates);
+    const saved = await this.sellerProfileRepo.save(profile);
+    return this.ok(saved, { message: 'Seller profile updated' });
   }
 
   

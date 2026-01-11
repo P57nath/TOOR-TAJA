@@ -1,16 +1,17 @@
 import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
-export class CreateSellerProfileDto {
+export class UpdateAdminProfileDto {
   @IsString()
   @IsNotEmpty()
-  @MaxLength(150)
-  storeName: string;
+  currentPassword: string;
 
   @IsOptional()
   @IsString()
-  phone?: string;
+  @MaxLength(120)
+  displayName?: string;
 
   @IsOptional()
   @IsString()
-  businessInfo?: string;
+  @MaxLength(120)
+  profileName?: string;
 }

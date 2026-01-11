@@ -33,6 +33,9 @@ export class BuyerProfile {
   @Column({ name: 'default_address_id', nullable: true })
   defaultAddressId?: string;
 
+  @Column({ type: 'text', nullable: true })
+  address?: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

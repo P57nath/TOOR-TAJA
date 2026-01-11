@@ -10,6 +10,8 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { StoriesService } from 'src/stories/stories.service';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { UpdateAdminProfileDto } from './dto/update-admin-profile.dto';
 
 
 @Controller('admin')
@@ -62,6 +64,19 @@ export class AdminController {
   @Get('orders')
   listOrders() {
     return this.adminService.listOrders();
+  }
+
+  @Get('profile')
+  getProfile(@CurrentUser() user: { id: string }) {
+    return this.adminService.getProfile(user.id);
+  }
+
+  @Patch('profile')
+  updateProfile(
+    @CurrentUser() user: { id: string },
+    @Body() dto: UpdateAdminProfileDto,
+  ) {
+    return this.adminService.updateProfile(user.id, dto);
   }
 
   @Get('disputes')

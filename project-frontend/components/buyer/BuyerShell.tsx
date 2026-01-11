@@ -221,7 +221,7 @@ export default function BuyerShell({
         showAuthButton={false}
         showUserActions
         searchPlaceholder="Search for products (e.g. eggs, milk, potato)"
-        logoRefreshOnClick
+        logoHref="/buyer"
         notificationRole={notificationRole}
         notificationUserId={notificationUserId}
       />

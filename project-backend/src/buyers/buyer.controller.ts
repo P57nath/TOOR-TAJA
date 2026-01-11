@@ -10,6 +10,7 @@ import { UpdateBuyerStatusDto } from './dto/buyerProfileDtos/update-buyerStatus.
 import { GetInactiveBuyersDto } from './dto/buyerProfileDtos/getInactive-buyer.dto';
 import { GetBuyersOverAgeDto } from './dto/buyerProfileDtos/getOverage-buyer.dto';
 import { UpdateBuyerDto } from './dto/buyerProfileDtos/update-buyer.dto';
+import { UpdateBuyerProfileDto } from './dto/buyerProfileDtos/update-buyer-profile.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -41,8 +42,13 @@ export class BuyerController {
   // PUT /buyer/profile -> update profile
 
   @Put('profile')
-  replaceProfile(@CurrentUser() user: { id: string }, @Body() dto: UpdateBuyerDto) {
+  replaceProfile(@CurrentUser() user: { id: string }, @Body() dto: UpdateBuyerProfileDto) {
     return this.buyerService.replaceProfile(user.id, dto);
+  }
+
+  @Get('profile')
+  getProfile(@CurrentUser() user: { id: string }) {
+    return this.buyerService.getProfile(user.id);
   }
 
   // PATCH /buyer/status -> change user status (active/inactive)

@@ -85,9 +85,13 @@ export default function SellerShell({
         showMenuButton
         showAuthButton={false}
         showUserActions
-        logoRefreshOnClick
+        logoHref="/seller"
         notificationRole={notificationRole}
         notificationUserId={notificationUserId}
+        profileLinks={[
+          { label: "Your profile", href: "/seller/profile" },
+          { label: "Change password", href: "/forgot-password" },
+        ]}
       />
 
       <main

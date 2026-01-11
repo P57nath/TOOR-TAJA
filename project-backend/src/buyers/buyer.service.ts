@@ -14,7 +14,7 @@ import { GetInactiveBuyersDto } from './dto/buyerProfileDtos/getInactive-buyer.d
 import { GetBuyersOverAgeDto } from './dto/buyerProfileDtos/getOverage-buyer.dto';
 import * as fs from 'fs';
 import { Response } from 'express';
-import { UpdateBuyerDto } from './dto/buyerProfileDtos/update-buyer.dto';
+import { UpdateBuyerProfileDto } from './dto/buyerProfileDtos/update-buyer-profile.dto';
 import { OrderItem } from 'src/orders/entities/order-items.entity';
 import { User } from 'src/users/user.entity';
 import { Product } from 'src/sellers/entities/product.entity';
@@ -23,12 +23,16 @@ import { CreateReviewDto } from 'src/reviews/dto/create-review.dto';
 import { InventoryService } from 'src/inventory/inventory.service';
 import { PaymentsService } from 'src/payments/payments.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class BuyerService {
   constructor(
     @InjectRepository(BuyerProfile)
     private buyerProfileRepository: Repository<BuyerProfile>,
+
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
 
     @InjectRepository(Cart)
     private cartRepository: Repository<Cart>,
@@ -79,7 +83,16 @@ export class BuyerService {
   }
 
   // --- Profile operations ---
-  async replaceProfile(userId: string, dto: UpdateBuyerDto) {
+  async replaceProfile(userId: string, dto: UpdateBuyerProfileDto) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const match = await bcrypt.compare(dto.currentPassword || '', user.passwordHash || '');
+    if (!match) {
+      throw new ForbiddenException('Invalid password');
+    }
+
     const existingProfile = await this.buyerProfileRepository.findOne({
       where: { user: { id: userId } },
       relations: ['user'],
@@ -92,9 +105,10 @@ export class BuyerService {
     const orginalData = { ...existingProfile };
 
     // Update all fields
+    const { currentPassword, ...profileUpdates } = dto;
     const updatedProfile = await this.buyerProfileRepository.save({
       ...existingProfile,
-      ...dto,
+      ...profileUpdates,
       updatedAt: new Date(),
     });
 
@@ -110,6 +124,17 @@ export class BuyerService {
       message: 'Profile updated successfully',
       userId
     });
+  }
+
+  async getProfile(userId: string) {
+    const profile = await this.buyerProfileRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+    if (!profile) {
+      throw new NotFoundException('Buyer not found');
+    }
+    return this.Success(profile);
   }
   //Change buyer status to active/inactive
   async updateBuyerStatus(userId: string, dto: UpdateBuyerStatusDto) {
