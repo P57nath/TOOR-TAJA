@@ -15,6 +15,8 @@ type Product = {
   category?: Category | null;
   description?: string | null;
   imagePath?: string | null;
+  unit?: string | null;
+  unitValue?: number | string | null;
 };
 
 type ProductSection = {
@@ -29,11 +31,44 @@ type BuyerProductsProps = {
 };
 
 function extractUnitLabel(product: Product) {
+  if (product.unit) {
+    const unit = product.unit;
+    const value =
+      product.unitValue === null || product.unitValue === undefined
+        ? ""
+        : String(product.unitValue);
+    if (unit === "each" && !value) {
+      return "each";
+    }
+    if (!value) {
+      return unit === "L" ? "1 L" : `1 ${unit}`;
+    }
+    const normalized = value.replace(",", ".");
+    return `${normalized} ${unit === "L" ? "L" : unit}`;
+  }
+
   const text = `${product.name} ${product.description ?? ""}`.toLowerCase();
-  const match = text.match(/(\d+)\s?(ml|l|kg|g|pcs|pc)\b/);
+  const match = text.match(
+    /(\d+(?:[.,]\d+)?)\s?(ml|l|kg|g|gm|gram|grams|pcs|pc|piece|pieces)\b/,
+  );
   if (match) {
-    const unit = match[2] === "pc" ? "pcs" : match[2];
-    return `${match[1]} ${unit}`;
+    const quantity = match[1].replace(",", ".");
+    const rawUnit = match[2];
+    const unitMap: Record<string, string> = {
+      ml: "ml",
+      l: "L",
+      kg: "kg",
+      g: "g",
+      gm: "g",
+      gram: "g",
+      grams: "g",
+      pcs: "pcs",
+      pc: "pcs",
+      piece: "pcs",
+      pieces: "pcs",
+    };
+    const unit = unitMap[rawUnit] ?? rawUnit;
+    return `${quantity} ${unit}`;
   }
   if (text.includes("milk") || text.includes("dairy")) return "1 L";
   if (text.includes("water") || text.includes("drink")) return "500 ml";
@@ -54,6 +89,7 @@ export default function BuyerProducts({
 }: BuyerProductsProps) {
   const [addingId, setAddingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [activeProduct, setActiveProduct] = useState<Product | null>(null);
 
   const sections = useMemo<ProductSection[]>(() => {
     if (!products.length) return [];
@@ -174,7 +210,12 @@ export default function BuyerProducts({
                 key={product.id}
                 className="rounded-3xl border border-amber-100 bg-white p-4 shadow-sm"
               >
-                <div className="flex items-center justify-center rounded-2xl bg-amber-50 px-4 py-6">
+                <button
+                  className="flex w-full items-center justify-center rounded-2xl bg-amber-50 px-4 py-6 transition hover:shadow-md"
+                  type="button"
+                  onClick={() => setActiveProduct(product)}
+                  aria-label={`View ${product.name}`}
+                >
                   <img
                     alt={product.name}
                     className="h-24 w-24 object-contain"
@@ -184,7 +225,7 @@ export default function BuyerProducts({
                         : "/product-placeholder.svg"
                     }
                   />
-                </div>
+                </button>
                 <div className="mt-4 space-y-2">
                   <h3 className="text-sm font-semibold text-amber-950">
                     {product.name}
@@ -211,6 +252,64 @@ export default function BuyerProducts({
       ))}
       {message ? (
         <p className="text-sm font-semibold text-emerald-700">{message}</p>
+      ) : null}
+      {activeProduct ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-xl rounded-3xl border border-amber-100 bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-semibold text-amber-950">
+                  {activeProduct.name}
+                </h3>
+                <p className="text-sm text-amber-900/60">
+                  {extractUnitLabel(activeProduct)}
+                </p>
+              </div>
+              <button
+                className="rounded-full border border-amber-200 px-3 py-1 text-xs font-semibold text-amber-800"
+                type="button"
+                onClick={() => setActiveProduct(null)}
+              >
+                Close
+              </button>
+            </div>
+            <div className="mt-4 flex flex-col gap-4 sm:flex-row">
+              <div className="flex w-full items-center justify-center rounded-3xl bg-amber-50 p-6 sm:w-1/2">
+                <img
+                  alt={activeProduct.name}
+                  className="h-44 w-44 object-contain"
+                  src={
+                    activeProduct.imagePath
+                      ? `${imageBaseUrl}/products/image/${activeProduct.imagePath}`
+                      : "/product-placeholder.svg"
+                  }
+                />
+              </div>
+              <div className="flex w-full flex-col justify-between gap-4 sm:w-1/2">
+                <p className="text-sm text-amber-900/70">
+                  {activeProduct.description || "No description provided yet."}
+                </p>
+                <div>
+                  <p className="text-sm text-amber-900/60">Price</p>
+                  <p className="text-xl font-semibold text-amber-950">
+                    Tk {formatPrice(activeProduct.price)}
+                  </p>
+                </div>
+                <button
+                  className="w-full rounded-full border border-amber-200 bg-white px-4 py-2 text-xs font-semibold text-amber-800 transition hover:border-amber-400 hover:text-amber-900"
+                  type="button"
+                  onClick={() => {
+                    setActiveProduct(null);
+                    handleAddToCart(activeProduct.id);
+                  }}
+                  disabled={addingId === activeProduct.id}
+                >
+                  {addingId === activeProduct.id ? "Adding..." : "Add to bag"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       ) : null}
     </div>
   );

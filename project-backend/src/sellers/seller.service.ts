@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 
 import { Product } from './entities/product.entity';
 import { Category } from 'src/products/category.entity';
+import { SubCategory } from 'src/products/subcategory.entity';
 
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -29,6 +30,8 @@ export class SellerService {
     private productRepo: Repository<Product>,
     @InjectRepository(Category)
     private categoryRepo: Repository<Category>,
+    @InjectRepository(SubCategory)
+    private subcategoryRepo: Repository<SubCategory>,
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
     @InjectRepository(OrderItem)
@@ -79,7 +82,7 @@ export class SellerService {
 
     const products = await this.productRepo.find({
       where: { sellerUserId: userId },
-      relations: ['category'],
+      relations: ['category', 'subcategory'],
       order: { createdAt: 'DESC' },
     });
 
@@ -157,21 +160,30 @@ export class SellerService {
     dto: CreateProductDto,
     imagePath?: string | null,
   ) {
-    const category = await this.categoryRepo.findOne({
-      where: { id: dto.categoryId, isActive: true },
+    const subcategory = await this.subcategoryRepo.findOne({
+      where: { id: dto.subcategoryId },
+      relations: ['category'],
     });
-    if (!category) {
+    if (!subcategory || !subcategory.category) {
+      throw new NotFoundException('Subcategory not found');
+    }
+    if (!subcategory.category.isActive) {
       throw new NotFoundException('Category not found or inactive');
     }
 
     const finalDto = {
       ...dto,
       stock: dto.stock ?? 0,
+      unit: dto.unit ?? 'each',
+      unitValue: dto.unitValue ?? null,
       sellerUserId,
       imagePath: imagePath ?? null,
     };
     const product = this.productRepo.create(finalDto);
-    product.category = category;
+    product.category = subcategory.category;
+    product.categoryId = subcategory.category.id;
+    product.subcategory = subcategory;
+    product.subcategoryId = subcategory.id;
     await this.productRepo.save(product);
     await this.inventoryService.getOrCreate(product.id, sellerUserId);
     return this.ok(product, { message: 'Product created' });
@@ -272,7 +284,7 @@ export class SellerService {
     }
     const products = await this.productRepo.find({
       where,
-      relations: ['category'],
+      relations: ['category', 'subcategory'],
       order: { createdAt: 'DESC' },
     });
     return this.ok(products, { message: `Found ${products.length} products` });
@@ -281,7 +293,7 @@ export class SellerService {
   async findProduct(sellerUserId: string, id: string) {
     const product = await this.productRepo.findOne({
       where: { id, sellerUserId },
-      relations: ['category'],
+      relations: ['category', 'subcategory'],
     });
 
     if (!product) {
@@ -293,22 +305,28 @@ export class SellerService {
   async updateProduct(sellerUserId: string, id: string, dto: UpdateProductDto) {
     const product = await this.productRepo.findOne({
       where: { id, sellerUserId },
-      relations: ['category'],
+      relations: ['category', 'subcategory'],
     });
 
     if (!product) {
       throw new NotFoundException(`Product with ID '${id}' not found`);
     }
 
-    if (dto.categoryId) {
-      const category = await this.categoryRepo.findOne({
-        where: { id: dto.categoryId, isActive: true },
+    if (dto.subcategoryId) {
+      const subcategory = await this.subcategoryRepo.findOne({
+        where: { id: dto.subcategoryId },
+        relations: ['category'],
       });
-      if (!category) {
+      if (!subcategory || !subcategory.category) {
+        throw new NotFoundException('Subcategory not found');
+      }
+      if (!subcategory.category.isActive) {
         throw new NotFoundException('Category not found or inactive');
       }
-      product.category = category;
-      product.categoryId = category.id;
+      product.subcategory = subcategory;
+      product.subcategoryId = subcategory.id;
+      product.category = subcategory.category;
+      product.categoryId = subcategory.category.id;
     }
 
     Object.assign(product, dto, { updatedAt: new Date() });

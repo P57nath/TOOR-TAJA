@@ -33,8 +33,7 @@ export default async function SellerAddProductPage() {
           Add a new product
         </h1>
         <p className="max-w-2xl text-zinc-700">
-          Categories are managed by the admin team. Choose the best fit before
-          publishing.
+          Pick the right category, set a unit size, and publish with confidence.
         </p>
       </header>
 

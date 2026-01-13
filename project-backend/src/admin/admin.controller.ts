@@ -2,6 +2,8 @@ import {
   Body, Controller, Delete, UsePipes, Get, Param, Patch, Post, Query,
   ValidationPipe,
   UseGuards,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -12,6 +14,10 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { StoriesService } from 'src/stories/stories.service';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { UpdateAdminProfileDto } from './dto/update-admin-profile.dto';
+import { CreateSubCategoryDto } from './dto/create-subcategory.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage, MulterError } from 'multer';
+import { mkdirSync } from 'fs';
 
 
 @Controller('admin')
@@ -59,6 +65,47 @@ export class AdminController {
   @Delete('categories/:id')
   deleteCategory(@Param('id') id: string) {
     return this.adminService.deleteCategory(id);
+  }
+
+  @Get('categories/:id/subcategories')
+  listSubcategories(@Param('id') id: string) {
+    return this.adminService.listSubcategories(id);
+  }
+
+  @Post('categories/:id/subcategories')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      fileFilter: (_req, file, cb) => {
+        if (!file.originalname.match(/\.(png|jpe?g|webp)$/i)) {
+          return cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'image'), false);
+        }
+        cb(null, true);
+      },
+      storage: diskStorage({
+        destination: (_req, _file, cb) => {
+          const dir = './upload/subcategories';
+          mkdirSync(dir, { recursive: true });
+          cb(null, dir);
+        },
+        filename: (_req, file, cb) => {
+          const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+          const ext = file.originalname.split('.').pop();
+          cb(null, `${uniqueName}.${ext}`);
+        },
+      }),
+    }),
+  )
+  createSubcategory(
+    @Param('id') id: string,
+    @Body() dto: CreateSubCategoryDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.adminService.createSubcategory(id, dto, file?.filename ?? null);
+  }
+
+  @Delete('subcategories/:id')
+  deleteSubcategory(@Param('id') id: string) {
+    return this.adminService.deleteSubcategory(id);
   }
 
   @Get('orders')

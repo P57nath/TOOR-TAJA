@@ -12,6 +12,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { User } from 'src/users/user.entity';
 import { Category } from 'src/products/category.entity';
+import { SubCategory } from 'src/products/subcategory.entity';
 
 @Entity('products') 
 export class Product {
@@ -39,8 +40,15 @@ export class Product {
   @JoinColumn({ name: 'category_id' })
   category: Category;
 
-  @Column({ name: 'category_id', nullable: true })
+  @Column({ name: 'category_id', type: 'varchar', nullable: true })
   categoryId?: string | null;
+
+  @ManyToOne(() => SubCategory, { onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'subcategory_id' })
+  subcategory?: SubCategory | null;
+
+  @Column({ name: 'subcategory_id', type: 'varchar', nullable: true })
+  subcategoryId?: string | null;
 
   @Column({ type: 'decimal', precision: 3, scale: 2, default: 0 })
   ratingAverage: number;
@@ -50,6 +58,12 @@ export class Product {
 
   @Column({ nullable: true }) 
   description?: string;
+
+  @Column({ type: 'varchar', default: 'each' })
+  unit: string;
+
+  @Column({ name: 'unit_value', type: 'decimal', precision: 8, scale: 2, nullable: true })
+  unitValue?: number | null;
 
   @Column({ name: 'image_path', type: 'varchar', nullable: true })
   imagePath?: string | null;

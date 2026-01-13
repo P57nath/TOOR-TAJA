@@ -6,6 +6,7 @@ import { Role } from 'src/common/enums/role.enum';
 import { SellerProfile, SellerStatus } from 'src/sellers/seller-profile.entity';
 import { Order } from 'src/orders/entities/order.entity';
 import { Category } from 'src/products/category.entity';
+import { SubCategory } from 'src/products/subcategory.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { Dispute } from 'src/disputes/dispute.entity';
 import { MailerService } from 'src/mailer/mailer.service';
@@ -13,6 +14,7 @@ import { NotificationsService } from 'src/notifications/notifications.service';
 import { AdminProfile } from './admin-profile.entity';
 import { UpdateAdminProfileDto } from './dto/update-admin-profile.dto';
 import * as bcrypt from 'bcrypt';
+import { CreateSubCategoryDto } from './dto/create-subcategory.dto';
 @Injectable()
 export class AdminService {
   constructor(
@@ -24,6 +26,8 @@ export class AdminService {
     private orderRepository: Repository<Order>,
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
+    @InjectRepository(SubCategory)
+    private subcategoryRepository: Repository<SubCategory>,
     @InjectRepository(Dispute)
     private disputeRepository: Repository<Dispute>,
     @InjectRepository(AdminProfile)
@@ -137,6 +141,7 @@ export class AdminService {
 
   async listCategories() {
     const categories = await this.categoryRepository.find({
+      relations: ['subcategories'],
       order: { createdAt: 'DESC' },
     });
     return this.ok(categories, { total: categories.length });
@@ -148,6 +153,47 @@ export class AdminService {
       throw new NotFoundException('Category not found');
     }
     return this.ok(null, { message: 'Category deleted' });
+  }
+
+  async listSubcategories(categoryId: string) {
+    const items = await this.subcategoryRepository.find({
+      where: { categoryId },
+      order: { name: 'ASC' },
+    });
+    return this.ok(items, { total: items.length });
+  }
+
+  async createSubcategory(
+    categoryId: string,
+    dto: CreateSubCategoryDto,
+    imagePath?: string | null,
+  ) {
+    const category = await this.categoryRepository.findOne({ where: { id: categoryId } });
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+    const existing = await this.subcategoryRepository.findOne({
+      where: { name: dto.name, categoryId },
+    });
+    if (existing) {
+      throw new BadRequestException('Subcategory already exists');
+    }
+    const subcategory = this.subcategoryRepository.create({
+      name: dto.name,
+      categoryId,
+      category,
+      imagePath: imagePath ?? null,
+    });
+    const saved = await this.subcategoryRepository.save(subcategory);
+    return this.ok(saved, { message: 'Subcategory created' });
+  }
+
+  async deleteSubcategory(id: string) {
+    const result = await this.subcategoryRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException('Subcategory not found');
+    }
+    return this.ok(null, { message: 'Subcategory deleted' });
   }
 
   async listOrders() {

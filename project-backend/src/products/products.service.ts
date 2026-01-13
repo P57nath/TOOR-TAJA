@@ -16,7 +16,7 @@ export class ProductsService {
   listAll() {
     return this.productRepository.find({
       where: { category: { isActive: true } },
-      relations: ['category'],
+      relations: ['category', 'subcategory'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -24,13 +24,14 @@ export class ProductsService {
   getById(id: string) {
     return this.productRepository.findOne({
       where: { id },
-      relations: ['category'],
+      relations: ['category', 'subcategory'],
     });
   }
 
   listCategories() {
     return this.categoryRepository.find({
       where: { isActive: true },
+      relations: ['subcategories'],
       order: { createdAt: 'DESC' },
     });
   }

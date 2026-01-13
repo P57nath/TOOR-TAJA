@@ -1,5 +1,6 @@
-import { BeforeInsert, Column, CreateDateColumn, Entity, PrimaryColumn, DeleteDateColumn } from 'typeorm';
+import { BeforeInsert, Column, CreateDateColumn, Entity, PrimaryColumn, DeleteDateColumn, OneToMany } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
+import { SubCategory } from './subcategory.entity';
 
 @Entity('categories')
 export class Category {
@@ -18,6 +19,11 @@ export class Category {
 
   @Column({ default: true })
   isActive: boolean;
+
+  @OneToMany(() => SubCategory, (subcategory) => subcategory.category, {
+    cascade: true,
+  })
+  subcategories?: SubCategory[];
 
   @CreateDateColumn()
   createdAt: Date;

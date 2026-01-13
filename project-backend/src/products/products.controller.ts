@@ -20,6 +20,15 @@ export class ProductsController {
     return { success: true, data: products, total: products.length };
   }
 
+  @Get('subcategories/image/:filename')
+  getSubcategoryImage(@Param('filename') filename: string, @Res() res: Response) {
+    const imagePath = join(process.cwd(), 'upload', 'subcategories', filename);
+    if (!existsSync(imagePath)) {
+      throw new NotFoundException('Subcategory image not found');
+    }
+    return res.sendFile(imagePath);
+  }
+
   @Get('image/:filename')
   getProductImage(@Param('filename') filename: string, @Res() res: Response) {
     const imagePath = join(process.cwd(), 'upload', 'products', filename);

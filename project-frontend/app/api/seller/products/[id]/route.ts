@@ -3,7 +3,11 @@ import { cookies } from "next/headers";
 const apiBaseUrl =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5010";
 
-export async function POST(request: Request) {
+type RouteContext = {
+  params: { id: string };
+};
+
+export async function PATCH(request: Request, context: RouteContext) {
   const cookieStore = await cookies();
   const token = cookieStore.get("access_token")?.value;
 
@@ -14,12 +18,14 @@ export async function POST(request: Request) {
     });
   }
 
-  const formData = await request.formData();
-
-  const response = await fetch(`${apiBaseUrl}/seller/products`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-    body: formData,
+  const body = await request.json();
+  const response = await fetch(`${apiBaseUrl}/seller/products/${context.params.id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
   });
 
   const data = await response.text();
@@ -29,7 +35,7 @@ export async function POST(request: Request) {
   });
 }
 
-export async function GET() {
+export async function DELETE(_request: Request, context: RouteContext) {
   const cookieStore = await cookies();
   const token = cookieStore.get("access_token")?.value;
 
@@ -40,7 +46,8 @@ export async function GET() {
     });
   }
 
-  const response = await fetch(`${apiBaseUrl}/seller/products`, {
+  const response = await fetch(`${apiBaseUrl}/seller/products/${context.params.id}`, {
+    method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });
 

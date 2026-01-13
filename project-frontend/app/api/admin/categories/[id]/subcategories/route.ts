@@ -3,7 +3,41 @@ import { cookies } from "next/headers";
 const apiBaseUrl =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5010";
 
-export async function POST(request: Request) {
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const cookieStore = await cookies();
+  const token = cookieStore.get("access_token")?.value;
+
+  if (!token) {
+    return new Response(JSON.stringify({ message: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const response = await fetch(
+    `${apiBaseUrl}/admin/categories/${id}/subcategories`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    },
+  );
+
+  const data = await response.text();
+  return new Response(data, {
+    status: response.status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
   const cookieStore = await cookies();
   const token = cookieStore.get("access_token")?.value;
 
@@ -15,34 +49,16 @@ export async function POST(request: Request) {
   }
 
   const formData = await request.formData();
-
-  const response = await fetch(`${apiBaseUrl}/seller/products`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-    body: formData,
-  });
-
-  const data = await response.text();
-  return new Response(data, {
-    status: response.status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-export async function GET() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("access_token")?.value;
-
-  if (!token) {
-    return new Response(JSON.stringify({ message: "Unauthorized" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  const response = await fetch(`${apiBaseUrl}/seller/products`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const response = await fetch(
+    `${apiBaseUrl}/admin/categories/${id}/subcategories`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    },
+  );
 
   const data = await response.text();
   return new Response(data, {

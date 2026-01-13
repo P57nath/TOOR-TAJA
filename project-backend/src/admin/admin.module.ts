@@ -13,9 +13,10 @@ import { Dispute } from 'src/disputes/dispute.entity';
 import { StoriesModule } from 'src/stories/stories.module';
 import { NotificationsModule } from 'src/notifications/notifications.module';
 import { AdminProfile } from './admin-profile.entity';
+import { SubCategory } from 'src/products/subcategory.entity';
 
 @Module({
-   imports: [TypeOrmModule.forFeature([User, SellerProfile, Order, Category, Dispute, AdminProfile]), StoriesModule, NotificationsModule, MailerModuleCustom, JwtModule.register({
+   imports: [TypeOrmModule.forFeature([User, SellerProfile, Order, Category, SubCategory, Dispute, AdminProfile]), StoriesModule, NotificationsModule, MailerModuleCustom, JwtModule.register({
     secret: jwtConstants.secret,
     signOptions: { expiresIn: jwtConstants.expiresIn as any },
   })],
