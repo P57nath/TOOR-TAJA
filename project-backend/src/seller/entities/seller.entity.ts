@@ -6,11 +6,11 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     OneToMany,
-    OneToOne,
+    //OneToOne,
   } from 'typeorm';
     import { v4 as uuidv4 } from 'uuid';
 import { Product } from './product.entity';
-import { SellerProfile } from './seller-profile.entity'; // Import Profile
+//import { SellerProfile } from './seller-profile.entity'; // Import Profile
   
   @Entity('sellers')
   export class Seller {
@@ -34,9 +34,12 @@ import { SellerProfile } from './seller-profile.entity'; // Import Profile
     @Column({ type: 'varchar', length: 150 })
     fullName: string;
   
-    @Column({ type: 'boolean', default: false })
-    isActive: boolean; 
+    // @Column({ type: 'boolean', default: false })
+    // isActive: boolean; 
   
+    @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })
+    isActive: 'active' | 'inactive' = 'active';
+    
     @Column({ unique: true })
     email: string;
   
@@ -63,6 +66,8 @@ import { SellerProfile } from './seller-profile.entity'; // Import Profile
     products: Product[];
 
    
-  @OneToOne(() => SellerProfile, (profile) => profile.seller)
-  profile: SellerProfile;
+  // @OneToOne(() => SellerProfile, (profile) => profile.seller)
+  // profile: SellerProfile;
+
+
   }

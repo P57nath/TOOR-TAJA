@@ -7,18 +7,19 @@ import * as nodemailer from 'nodemailer'; // Mailer
 
 import { Seller } from './entities/seller.entity';
 import { Product } from './entities/product.entity';
-import { SellerProfile } from './entities/seller-profile.entity'; // New Entity
+//import { SellerProfile } from './entities/seller-profile.entity'; // New Entity
 
 import { CreateSellerDto } from './dto/create-seller.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
-import { CreateProfileDto } from './dto/create-profile.dto'; // New DTO
-import { LoginDto } from './dto/login.dto'; // New DTO
+//import { CreateProfileDto } from './dto/create-profile.dto'; // New DTO
+//import { LoginDto } from './dto/login.dto'; // New DTO
+import { MailerService } from 'src/mailer/mailer.service';
 
 @Injectable()
 export class SellerService {
-  private transporter;
+ // private transporter;
 
   constructor(
     @InjectRepository(Seller)
@@ -26,22 +27,23 @@ export class SellerService {
 
     @InjectRepository(Product)
     private productRepo: Repository<Product>,
+    private readonly mailerService: MailerService,
 
-    @InjectRepository(SellerProfile)
-    private profileRepo: Repository<SellerProfile>,
+    // @InjectRepository(SellerProfile)
+    // private profileRepo: Repository<SellerProfile>,
 
-    private jwtService: JwtService,
+    //private jwtService: JwtService,
   ) {
   
-    this.transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
+  //   this.transporter = nodemailer.createTransport({
+  //     service: 'gmail',
+  //     auth: {
 
-        user: process.env.MAIL_USER || 'sajidhasanmahir003@gmail.com',
-        pass: process.env.MAIL_PASS || 'vmit soje catb ctef',
-      },
-    });
-  }
+  //       user: process.env.MAIL_USER || 'sajidhasanmahir003@gmail.com',
+  //       pass: process.env.MAIL_PASS || 'vmit soje catb ctef',
+  //     },
+  //   });
+   }
 
   private ok(data: any, extra: Record<string, any> = {}) {
     return { success: true, ...extra, data };
@@ -72,98 +74,98 @@ export class SellerService {
   // }
  
 
-  async login(dto: LoginDto) {
-    const seller = await this.sellerRepo.findOne({ where: { username: dto.username } });
-    if (!seller) throw new UnauthorizedException('Invalid credentials');
+  // async login(dto: LoginDto) {
+  //   const seller = await this.sellerRepo.findOne({ where: { username: dto.username } });
+  //   if (!seller) throw new UnauthorizedException('Invalid credentials');
 
-    // Compare Password (BCrypt)
-    const isMatch = await bcrypt.compare(dto.password, seller.password);
-    if (!isMatch) throw new UnauthorizedException('Invalid credentials');
+  //   // Compare Password (BCrypt)
+  //   const isMatch = await bcrypt.compare(dto.password, seller.password);
+  //   if (!isMatch) throw new UnauthorizedException('Invalid credentials');
 
     
-    // Generate Token
-    const payload = { sub: seller.id, username: seller.username };
-    const access_token = await this.jwtService.signAsync(payload, { secret: 'MY_SECRET_KEY', expiresIn: '1h' });
+  //   // Generate Token
+  //   const payload = { sub: seller.id, username: seller.username };
+  //   const access_token = await this.jwtService.signAsync(payload, { secret: 'MY_SECRET_KEY', expiresIn: '1h' });
 
-    return this.ok({ access_token }, { message: 'Login successful' });
-  }
+  //   return this.ok({ access_token }, { message: 'Login successful' });
+  // }
 
-  async createUser(dto: CreateSellerDto) {
+  // async createUser(dto: CreateSellerDto) {
    
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(dto.password, salt);
+  //   const salt = await bcrypt.genSalt();
+  //   const hashedPassword = await bcrypt.hash(dto.password, salt);
 
-    const seller = this.sellerRepo.create({
-      ...dto,
-      password: hashedPassword, // Save hashed password
-    });
+  //   const seller = this.sellerRepo.create({
+  //     ...dto,
+  //     password: hashedPassword, // Save hashed password
+  //   });
 
-    try {
-      await this.sellerRepo.save(seller);
+  //   try {
+  //     await this.sellerRepo.save(seller);
 
-      // Send Email (Mailer)
-      await this.sendWelcomeEmail(seller.email, seller.fullName);
-    } catch (error) {
-       throw new BadRequestException('Username or Email already exists');
-    }
+  //     // Send Email (Mailer)
+  //     await this.sendWelcomeEmail(seller.email, seller.fullName);
+  //   } catch (error) {
+  //      throw new BadRequestException('Username or Email already exists');
+  //   }
 
-    return this.ok(
-      {
-        id: seller.id,
-        username: seller.username,
-        email: seller.email,
-        createdAt: seller.createdAt,
-      },
-      { message: 'User created successfully' },
-    );
-  }
+  //   return this.ok(
+  //     {
+  //       id: seller.id,
+  //       username: seller.username,
+  //       email: seller.email,
+  //       createdAt: seller.createdAt,
+  //     },
+  //     { message: 'User created successfully' },
+  //   );
+  // }
 
-  async sendWelcomeEmail(to: string, name: string) {
-    try {
-      await this.transporter.sendMail({
-        from: '"TOOR-TAJA" <no-reply@toortaja.com>',
-        to: to,
-        subject: 'Welcome to Our Platform!',
-        text: `Hello ${name}, welcome to our Seller Platform!`,
-      });
-      console.log(`Email sent to ${to}`);
-    } catch (e) {
-      console.log('Email failed (Mocking success for development)');
-    }
-  }
+  // async sendWelcomeEmail(to: string, name: string) {
+  //   try {
+  //     await this.transporter.sendMail({
+  //       from: '"TOOR-TAJA" <no-reply@toortaja.com>',
+  //       to: to,
+  //       subject: 'Welcome to Our Platform!',
+  //       text: `Hello ${name}, welcome to our Seller Platform!`,
+  //     });
+  //     console.log(`Email sent to ${to}`);
+  //   } catch (e) {
+  //     console.log('Email failed (Mocking success for development)');
+  //   }
+  // }
 
   
 
-  async createOrUpdateProfile(sellerId: string, dto: CreateProfileDto) {
-    const seller = await this.sellerRepo.findOne({ 
-        where: { id: sellerId },
-        relations: ['profile'] 
-    });
+  // async createOrUpdateProfile(sellerId: string, dto: CreateProfileDto) {
+  //   const seller = await this.sellerRepo.findOne({ 
+  //       where: { id: sellerId },
+  //       relations: ['profile'] 
+  //   });
     
-    if (!seller) throw new NotFoundException('Seller not found');
+  //   if (!seller) throw new NotFoundException('Seller not found');
 
-    if (seller.profile) {
-        // Update existing
-        Object.assign(seller.profile, dto);
-        await this.profileRepo.save(seller.profile);
-        return this.ok(seller.profile, { message: 'Profile updated' });
-    } else {
-        // Create new
-        const newProfile = this.profileRepo.create(dto);
-        newProfile.seller = seller;
-        await this.profileRepo.save(newProfile);
-        return this.ok(newProfile, { message: 'Profile created' });
-    }
-  }
+  //   if (seller.profile) {
+  //       // Update existing
+  //       Object.assign(seller.profile, dto);
+  //       await this.profileRepo.save(seller.profile);
+  //       return this.ok(seller.profile, { message: 'Profile updated' });
+  //   } else {
+  //       // Create new
+  //       const newProfile = this.profileRepo.create(dto);
+  //       newProfile.seller = seller;
+  //       await this.profileRepo.save(newProfile);
+  //       return this.ok(newProfile, { message: 'Profile created' });
+  //   }
+  // }
 
-  async getProfile(sellerId: string) {
-      const seller = await this.sellerRepo.findOne({
-          where: { id: sellerId },
-          relations: ['profile']
-      });
-      if(!seller || !seller.profile) throw new NotFoundException('Profile not found');
-      return this.ok(seller.profile, { message: 'Profile retrieved' });
-  }
+  // async getProfile(sellerId: string) {
+  //     const seller = await this.sellerRepo.findOne({
+  //         where: { id: sellerId },
+  //         relations: ['profile']
+  //     });
+  //     if(!seller || !seller.profile) throw new NotFoundException('Profile not found');
+  //     return this.ok(seller.profile, { message: 'Profile retrieved' });
+  // }
 
   // Get seller with all their products
   async getSellerWithProducts(sellerId: string): Promise<Seller> {
@@ -234,42 +236,44 @@ export class SellerService {
     return this.ok(products, { message: `Found ${products.length} products` });
   }
 
-
-async findAllProductsBySellerId(sellerId: string) {
-  const products = await this.productRepo.find({
-    where: { sellerId },
-    order: { createdAt: 'DESC' },
-  });
-
-  if (products.length === 0) {
-    const sellerExists = await this.sellerRepo.exist({ where: { id: sellerId } });
-    if (!sellerExists) {
-      throw new NotFoundException(`Seller with ID '${sellerId}' not found`);
-    }
-    return this.ok([], { message: `Seller ID '${sellerId}' has no products` });
-  }
-
-  return this.ok(products, { message: `Found ${products.length} products for seller ID '${sellerId}'` });
-}
+//ei duita midfinal assessment e korte disilo but ami comment kore disi haha
 
 
-async findSellerByProductId(productId: string) {
-  const product = await this.productRepo.findOne({
-    where: { id: productId },
-    relations: ['seller'], 
-  });
+// async findAllProductsBySellerId(sellerId: string) {
+//   const products = await this.productRepo.find({
+//     where: { sellerId },
+//     order: { createdAt: 'DESC' },
+//   });
 
-  if (!product) {
-    throw new NotFoundException(`Product with ID '${productId}' not found`);
-  }
+//   if (products.length === 0) {
+//     const sellerExists = await this.sellerRepo.exist({ where: { id: sellerId } });
+//     if (!sellerExists) {
+//       throw new NotFoundException(`Seller with ID '${sellerId}' not found`);
+//     }
+//     return this.ok([], { message: `Seller ID '${sellerId}' has no products` });
+//   }
+
+//   return this.ok(products, { message: `Found ${products.length} products for seller ID '${sellerId}'` });
+// }
+
+
+// async findSellerByProductId(productId: string) {
+//   const product = await this.productRepo.findOne({
+//     where: { id: productId },
+//     relations: ['seller'], 
+//   });
+
+//   if (!product) {
+//     throw new NotFoundException(`Product with ID '${productId}' not found`);
+//   }
 
   
-  if (!product.seller) {
-    throw new NotFoundException(`Seller for product ID '${productId}' could not be loaded`);
-  }
+//   if (!product.seller) {
+//     throw new NotFoundException(`Seller for product ID '${productId}' could not be loaded`);
+//   }
 
-  return this.ok(product.seller, { message: `Found seller for product ID '${productId}'` });
-}
+//   return this.ok(product.seller, { message: `Found seller for product ID '${productId}'` });
+// }
 
   async findProduct(id: string) {
     const product = await this.productRepo.findOne({ where: { id } });
@@ -336,5 +340,36 @@ async findSellerByProductId(productId: string) {
     }
 
     return this.ok(null, { message: `Product ID '${id}' successfully removed` });
+  }
+
+
+
+  async notifySellerOfLowStock(sellerEmail: string, sellerName: string, productName: string, currentStock: number) {
+    const html = `
+      <h1>Low Stock Alert</h1>
+      <p>Hi ${sellerName},</p>
+      <p>The following product has low stock:</p>
+      <p><strong>Product Name:</strong> ${productName}</p>
+      <p><strong>Current Stock:</strong> ${currentStock}</p>
+      <p>Please consider restocking this item.</p>
+      <br/>
+      <p>TOOR-TAJA Team</p>
+    `;
+    return await this.mailerService.sendGenericEmail(sellerEmail, 'Low Stock Alert', html);
+  }
+
+  async notifySellerOfNewOrder(sellerEmail: string, sellerName: string, orderId: string, productCount: number, totalAmount: number) {
+    const html = `
+      <h1>New Order Received</h1>
+      <p>Hi ${sellerName},</p>
+      <p>A new order has been placed on TOOR-TAJA!</p>
+      <p><strong>Order ID:</strong> ${orderId}</p>
+      <p><strong>Number of Products:</strong> ${productCount}</p>
+      <p><strong>Total Amount:</strong> $${totalAmount}</p>
+      <p>Please prepare the order for shipment.</p>
+      <br/>
+      <p>Thank you,<br/>TOOR-TAJA Team</p>
+    `;
+    return await this.mailerService.sendGenericEmail(sellerEmail, `New Order - ${orderId}`, html);
   }
 }

@@ -5,7 +5,9 @@ import {
   Matches,
   IsIn,
   IsNumberString,
-  MaxLength
+  MaxLength,
+  IsOptional,
+  IsEnum
 } from 'class-validator';
 
 export class CreateSellerDto {
@@ -25,7 +27,7 @@ export class CreateSellerDto {
   
   @IsString()
   @IsNotEmpty()
-  @Matches(/@gmail\.com$/, { message: 'Email must belong to the aiub.edu domain.' })
+  @Matches(/@aiub\.edu$/, { message: 'Email must belong to the aiub.edu domain.' })
   email: string;
 
   
@@ -42,4 +44,9 @@ export class CreateSellerDto {
   
   @IsNumberString()
   phoneNumber: string;
+
+  @IsOptional()
+  @IsEnum(['active', 'inactive'])
+  isActive?: 'active' | 'inactive';
+
 }
