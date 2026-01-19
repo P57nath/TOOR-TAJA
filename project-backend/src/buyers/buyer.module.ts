@@ -17,6 +17,7 @@ import { DisputesModule } from 'src/disputes/disputes.module';
 import { StoriesModule } from 'src/stories/stories.module';
 import { NotificationsModule } from 'src/notifications/notifications.module';
 import { User } from 'src/users/user.entity';
+import { MailerModuleCustom } from 'src/mailer/mailer.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { User } from 'src/users/user.entity';
     DisputesModule,
     StoriesModule,
     NotificationsModule,
+    MailerModuleCustom,
     JwtModule.register({
       secret: jwtConstants.secret,
       signOptions: { expiresIn: jwtConstants.expiresIn as any },

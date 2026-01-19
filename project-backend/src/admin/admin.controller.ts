@@ -113,6 +113,12 @@ export class AdminController {
     return this.adminService.listOrders();
   }
 
+  @Get('payments')
+  listPayments() {
+    return this.adminService.listPayments();
+  }
+
+
   @Get('profile')
   getProfile(@CurrentUser() user: { id: string }) {
     return this.adminService.getProfile(user.id);

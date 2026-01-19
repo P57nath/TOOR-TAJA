@@ -68,6 +68,24 @@ const sellerNavItems = [
       </svg>
     ),
   },
+  {
+    label: "Orders",
+    href: "/seller/orders",
+    icon: (
+      <svg
+        className="h-4 w-4 text-emerald-600"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M6 2h12v4H6z" />
+        <path d="M6 10h12v12H6z" />
+      </svg>
+    ),
+  },
 ];
 
 export default function SellerShell({

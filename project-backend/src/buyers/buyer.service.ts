@@ -23,6 +23,7 @@ import { CreateReviewDto } from 'src/reviews/dto/create-review.dto';
 import { InventoryService } from 'src/inventory/inventory.service';
 import { PaymentsService } from 'src/payments/payments.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
+import { MailerService } from 'src/mailer/mailer.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -54,6 +55,7 @@ export class BuyerService {
     private inventoryService: InventoryService,
     private paymentsService: PaymentsService,
     private notificationsService: NotificationsService,
+    private mailerService: MailerService,
   ) { }
 
   private Success(data: any, extra: Record<string, any> = {}) {
@@ -395,12 +397,68 @@ export class BuyerService {
     if (!dto.items || dto.items.length === 0) {
       throw new BadRequestException('Order must contain at least one item');
     }
+    const paymentMethod = dto.paymentMethod ?? 'COD';
+
+    const adjustments: Array<{
+      productId: string;
+      name: string;
+      requested: number;
+      available: number;
+      adjusted: number;
+    }> = [];
+
+    const normalizedItems: Array<{ product: Product; quantity: number }> = [];
+    for (const itemDto of dto.items) {
+      const product = await this.productRepository.findOne({
+        where: { id: itemDto.productId },
+      });
+      if (!product) {
+        throw new NotFoundException(`Product ${itemDto.productId} not found`);
+      }
+      const inventory = await this.inventoryService.getOrCreate(
+        product.id,
+        product.sellerUserId,
+      );
+      const available = inventory.available;
+      let quantity = itemDto.quantity;
+      if (available <= 0) {
+        adjustments.push({
+          productId: product.id,
+          name: product.name,
+          requested: itemDto.quantity,
+          available,
+          adjusted: 0,
+        });
+        continue;
+      }
+      if (available < quantity) {
+        adjustments.push({
+          productId: product.id,
+          name: product.name,
+          requested: itemDto.quantity,
+          available,
+          adjusted: available,
+        });
+        quantity = available;
+      }
+      normalizedItems.push({ product, quantity });
+    }
+
+    if (!normalizedItems.length) {
+      throw new BadRequestException('No items available');
+    }
+
     const order = this.orderRepository.create({
       userId,
       addressId: dto.addressId,
       note: dto.note,
       total: 0, // Will be calculated from items
       status: 'CREATED' as OrderStatus,
+      paymentMethod,
+      deliveryName: dto.deliveryName,
+      deliveryPhone: dto.deliveryPhone,
+      deliveryAddress: dto.deliveryAddress,
+      deliverySlot: dto.deliverySlot,
     });
 
     const savedOrder = await this.orderRepository.save(order);
@@ -410,20 +468,14 @@ export class BuyerService {
     try {
       // Create order items with seller linkage
       orderItems = await Promise.all(
-        dto.items.map(async (itemDto) => {
-          const product = await this.productRepository.findOne({
-            where: { id: itemDto.productId },
-          });
-          if (!product) {
-            throw new NotFoundException(`Product ${itemDto.productId} not found`);
-          }
-          await this.inventoryService.reserve(product.id, product.sellerUserId, itemDto.quantity);
-          reserved.push({ productId: product.id, quantity: itemDto.quantity, sellerUserId: product.sellerUserId });
+        normalizedItems.map(async ({ product, quantity }) => {
+          await this.inventoryService.reserve(product.id, product.sellerUserId, quantity);
+          reserved.push({ productId: product.id, quantity, sellerUserId: product.sellerUserId });
           return this.orderItemRepository.create({
-            productId: itemDto.productId,
+            productId: product.id,
             name: product.name,
             price: product.price,
-            quantity: itemDto.quantity,
+            quantity,
             sellerUserId: product.sellerUserId,
             orderId: savedOrder.id,
             order: savedOrder,
@@ -469,7 +521,23 @@ export class BuyerService {
       );
     }
 
-    await this.paymentsService.createIntent(savedOrder.id, userId, savedOrder.total);
+    const paymentIntent = await this.paymentsService.createIntent(
+      savedOrder.id,
+      userId,
+      savedOrder.total,
+      paymentMethod === 'ONLINE' ? 'SSLCOMMERZ' : 'COD',
+    );
+
+    let gatewayUrl: string | null = null;
+    if (paymentMethod === 'ONLINE') {
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      const session = await this.paymentsService.createSslCommerzSession(
+        paymentIntent.id,
+        savedOrder.total,
+        { email: user?.email, name: user?.email ?? 'Buyer' },
+      );
+      gatewayUrl = session.gatewayUrl;
+    }
 
     // Clear cart for buyer
     await this.cartItemRepository.delete({ cartUserId: userId });
@@ -481,7 +549,34 @@ export class BuyerService {
       relations: ['items']
     });
 
-    return this.Success(completeOrder, { message: 'Order created successfully' });
+    const buyer = await this.userRepository.findOne({ where: { id: userId } });
+    if (buyer?.email) {
+      const itemsHtml = orderItems
+        .map(
+          (item) =>
+            `<li>${item.name} × ${item.quantity} — Tk ${item.price}</li>`,
+        )
+        .join('');
+      const html = `
+        <h2>Order confirmation</h2>
+        <p>Your order <strong>${savedOrder.id}</strong> has been placed.</p>
+        <p><strong>Payment:</strong> ${paymentMethod}</p>
+        <p><strong>Total:</strong> Tk ${savedOrder.total}</p>
+        <p><strong>Delivery:</strong> ${dto.deliveryAddress ?? 'N/A'}</p>
+        <ul>${itemsHtml}</ul>
+        <p>Thank you for shopping with TOOR-TAJA.</p>
+      `;
+      await this.mailerService.sendGenericEmail(
+        buyer.email,
+        `Order ${savedOrder.id} confirmed`,
+        html,
+      );
+    }
+
+    return this.Success(
+      { order: completeOrder, paymentIntent, gatewayUrl, adjustments },
+      { message: 'Order created successfully' },
+    );
   }
 
 
@@ -495,7 +590,26 @@ export class BuyerService {
       throw new NotFoundException('Order not found');
     }
 
-    return this.Success(order);
+    const sanitized = {
+      id: order.id,
+      status: order.status,
+      total: order.total,
+      createdAt: order.createdAt,
+      paymentMethod: order.paymentMethod,
+      deliveryName: order.deliveryName,
+      deliveryPhone: order.deliveryPhone,
+      deliveryAddress: order.deliveryAddress,
+      deliverySlot: order.deliverySlot,
+      items: (order.items ?? []).map((item) => ({
+        id: item.id,
+        productId: item.productId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+    };
+
+    return this.Success(sanitized);
   }
 
   async listOrders(userId: string, q: OrderQueryDto) {
@@ -516,7 +630,26 @@ export class BuyerService {
       order: { createdAt: 'DESC' }
     });
 
-    return this.Success(orders, { page, limit, total });
+    const sanitized = orders.map((order) => ({
+      id: order.id,
+      status: order.status,
+      total: order.total,
+      createdAt: order.createdAt,
+      paymentMethod: order.paymentMethod,
+      deliveryName: order.deliveryName,
+      deliveryPhone: order.deliveryPhone,
+      deliveryAddress: order.deliveryAddress,
+      deliverySlot: order.deliverySlot,
+      items: (order.items ?? []).map((item) => ({
+        id: item.id,
+        productId: item.productId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+    }));
+
+    return this.Success(sanitized, { page, limit, total });
   }
 
   async listBuyers(orderId: string) {
@@ -586,7 +719,25 @@ export class BuyerService {
       relations: ['items'],
       order: { createdAt: 'DESC' },
     });
-    return this.Success(orders, { total: orders.length });
+    const sanitized = orders.map((order) => ({
+      id: order.id,
+      status: order.status,
+      total: order.total,
+      createdAt: order.createdAt,
+      paymentMethod: order.paymentMethod,
+      deliveryName: order.deliveryName,
+      deliveryPhone: order.deliveryPhone,
+      deliveryAddress: order.deliveryAddress,
+      deliverySlot: order.deliverySlot,
+      items: (order.items ?? []).map((item) => ({
+        id: item.id,
+        productId: item.productId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+    }));
+    return this.Success(sanitized, { total: orders.length });
   }
 
   async createReview(userId: string, dto: CreateReviewDto) {

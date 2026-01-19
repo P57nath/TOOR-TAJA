@@ -15,6 +15,7 @@ import { Order, OrderStatus } from 'src/orders/entities/order.entity';
 import { OrderItem } from 'src/orders/entities/order-items.entity';
 import { InventoryService } from 'src/inventory/inventory.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
+import { PaymentsService } from 'src/payments/payments.service';
 import * as bcrypt from 'bcrypt';
 import { UpdateSellerProfileDto } from './dto/update-seller-profile.dto';
 
@@ -39,6 +40,7 @@ export class SellerService {
     private inventoryService: InventoryService,
     private readonly mailerService: MailerService,
     private readonly notificationsService: NotificationsService,
+    private readonly paymentsService: PaymentsService,
   ) {}
 
   private ok(data: any, extra: Record<string, any> = {}) {
@@ -221,14 +223,34 @@ export class SellerService {
       relations: ['order'],
     });
 
-    const ordersById = new Map<string, Order>();
+    const ordersById = new Map<string, any>();
     for (const item of items) {
-      const order = ordersById.get(item.orderId) ?? item.order;
-      if (!ordersById.has(order.id)) {
-        order.items = [];
-        ordersById.set(order.id, order);
+      const order = item.order;
+      if (!order) {
+        continue;
       }
-      order.items.push(item);
+      if (!ordersById.has(order.id)) {
+        ordersById.set(order.id, {
+          id: order.id,
+          status: order.status,
+          total: order.total,
+          createdAt: order.createdAt,
+          paymentMethod: order.paymentMethod,
+          deliveryName: order.deliveryName,
+          deliveryPhone: order.deliveryPhone,
+          deliveryAddress: order.deliveryAddress,
+          deliverySlot: order.deliverySlot,
+          items: [],
+        });
+      }
+      const bucket = ordersById.get(order.id);
+      bucket.items.push({
+        id: item.id,
+        productId: item.productId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      });
     }
 
     return this.ok(Array.from(ordersById.values()), { total: ordersById.size });
@@ -260,12 +282,18 @@ export class SellerService {
       DELIVERED: [],
       CANCELLED: [],
     };
-    if (!allowed[order.status]?.includes(status)) {
+    const isCod = order.paymentMethod === 'COD';
+    if (isCod && order.status === 'CREATED' && status === 'PROCESSING') {
+      // allow COD orders to be processed before payment collection
+    } else if (!allowed[order.status]?.includes(status)) {
       throw new ForbiddenException('Invalid status transition');
     }
 
     order.updateStatus(status);
     const saved = await this.orderRepository.save(order);
+    if (isCod && status === 'DELIVERED') {
+      await this.paymentsService.finalizeCodPayment(order.id);
+    }
     await this.notificationsService.notifyBuyer(
       order.userId,
       this.notificationsService.buildPayload(

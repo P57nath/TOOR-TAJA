@@ -300,7 +300,7 @@ export default function AdminCategoriesClient() {
                     }
                   />
                   <input
-                    className="rounded-2xl border border-emerald-100 bg-white px-2 py-1 text-xs text-zinc-900 file:mr-2 file:rounded-full file:border-0 file:bg-emerald-600 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-white"
+                    className="rounded-2xl border border-emerald-100 w-half bg-white px-2 py-1 text-xs text-zinc-900 file:mr-2 file:rounded-full file:border-0 file:bg-emerald-600 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-white "
                     type="file"
                     accept="image/png,image/jpeg,image/webp"
                     onChange={(event) =>
