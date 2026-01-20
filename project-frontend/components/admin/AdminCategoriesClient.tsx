@@ -287,19 +287,7 @@ export default function AdminCategoriesClient() {
                 <p className="text-xs font-semibold text-emerald-700">
                   Add subcategory
                 </p>
-                <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
-                  <input
-                    className="rounded-2xl border border-emerald-100 bg-white px-3 py-2 text-xs text-zinc-900 outline-none transition focus:border-emerald-300"
-                    placeholder="Subcategory name"
-                    value={subcategoryInput[category.id] ?? ""}
-                    onChange={(event) =>
-                      setSubcategoryInput((prev) => ({
-                        ...prev,
-                        [category.id]: event.target.value,
-                      }))
-                    }
-                  />
-                  <input
+                 <input
                     className="rounded-2xl border border-emerald-100 bg-white px-2 py-1 text-xs text-zinc-900 file:mr-2 file:rounded-full file:border-0 file:bg-emerald-600 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-white"
                     type="file"
                     accept="image/png,image/jpeg,image/webp"
@@ -310,6 +298,19 @@ export default function AdminCategoriesClient() {
                       }))
                     }
                   />
+                <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
+                  <input
+                    className="rounded-2xl border border-emerald-100 bg-white px-1 py-2 text-xs text-zinc-900 outline-none transition focus:border-emerald-300"
+                    placeholder="Subcategory name"
+                    value={subcategoryInput[category.id] ?? ""}
+                    onChange={(event) =>
+                      setSubcategoryInput((prev) => ({
+                        ...prev,
+                        [category.id]: event.target.value,
+                      }))
+                    }
+                  />
+                 
                   <button
                     className="rounded-full bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500"
                     type="button"
