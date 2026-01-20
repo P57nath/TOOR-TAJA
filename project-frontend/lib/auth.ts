@@ -55,7 +55,7 @@ export async function requireRole(requiredRole: UserRole): Promise<SessionUser> 
 
   const payload = parseJwtPayload(token);
   const normalizedRole = payload?.role?.toLowerCase() as UserRole | undefined;
-  if (!normalizedRole || normalizedRole !== requiredRole) {
+  if (!payload||!normalizedRole || normalizedRole !== requiredRole) {
     redirect("/login");
   }
 
