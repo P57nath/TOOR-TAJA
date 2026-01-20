@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import Navbar from "@/components/Navbar";
 
@@ -22,6 +23,15 @@ type CartItem = {
 type CartData = {
   items: CartItem[];
   coupon?: string | null;
+};
+
+type OrderResponse = {
+  success: boolean;
+  data?: {
+    order?: { id: string; total?: number; status?: string };
+    paymentIntent?: { id: string; status?: string };
+  };
+  message?: string;
 };
 
 const buyerMenu = [
@@ -49,9 +59,11 @@ export default function BuyerShell({
   const [cart, setCart] = useState<CartData>({ items: [] });
   const [cartMessage, setCartMessage] = useState("");
   const [cartLoading, setCartLoading] = useState(false);
+  const [orderMessage, setOrderMessage] = useState("");
   const [cartPos, setCartPos] = useState({ x: 0, y: 0 });
   const [hasCartPosition, setHasCartPosition] = useState(false);
   const [isDraggingCart, setIsDraggingCart] = useState(false);
+  const router = useRouter();
   const cartRef = useRef<HTMLDivElement | null>(null);
   const dragState = useRef({
     pointerId: null as number | null,
@@ -171,6 +183,14 @@ export default function BuyerShell({
     } finally {
       setCartLoading(false);
     }
+  }
+
+  function goToCheckout() {
+    if (!cart.items.length) {
+      setOrderMessage("Your cart is empty.");
+      return;
+    }
+    router.push("/buyer/checkout");
   }
 
   function handleCartPointerDown(event: React.PointerEvent<HTMLDivElement>) {
@@ -430,6 +450,11 @@ export default function BuyerShell({
                   {cartMessage}
                 </p>
               ) : null}
+              {orderMessage ? (
+                <p className="mt-3 text-xs font-semibold text-emerald-700">
+                  {orderMessage}
+                </p>
+              ) : null}
             </div>
 
             <div className="border-t border-zinc-900/10 bg-white px-4 py-3">
@@ -445,8 +470,9 @@ export default function BuyerShell({
               <button
                 className="flex-1 bg-rose-400 px-4 py-3 text-sm font-semibold text-white"
                 type="button"
+                onClick={goToCheckout}
               >
-                Place order
+                Checkout
               </button>
               <div className="flex w-32 items-center justify-center bg-rose-500 px-3 py-3 text-sm font-semibold text-white">
                 Tk {formatPrice(calculateTotal(cart.items))}

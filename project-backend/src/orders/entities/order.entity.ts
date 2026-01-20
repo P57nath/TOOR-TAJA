@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { OrderItem } from "./order-items.entity";
 
 export type OrderStatus = 'CREATED' | 'PAID' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+export type PaymentMethod = 'COD' | 'ONLINE';
 
 @Entity('orders')
 export class Order {
@@ -33,6 +34,21 @@ export class Order {
 
   @Column({ type: 'text', nullable: true })
   note?: string;
+
+  @Column({ type: 'varchar', default: 'COD' })
+  paymentMethod: PaymentMethod;
+
+  @Column({ type: 'varchar', nullable: true })
+  deliveryName?: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  deliveryPhone?: string;
+
+  @Column({ type: 'text', nullable: true })
+  deliveryAddress?: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  deliverySlot?: string;
 
   @Column({ nullable: true })
   transactionId?: string;

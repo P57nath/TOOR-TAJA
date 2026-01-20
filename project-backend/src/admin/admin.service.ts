@@ -15,6 +15,7 @@ import { AdminProfile } from './admin-profile.entity';
 import { UpdateAdminProfileDto } from './dto/update-admin-profile.dto';
 import * as bcrypt from 'bcrypt';
 import { CreateSubCategoryDto } from './dto/create-subcategory.dto';
+import { PaymentIntent } from 'src/payments/payment-intent.entity';
 @Injectable()
 export class AdminService {
   constructor(
@@ -32,6 +33,8 @@ export class AdminService {
     private disputeRepository: Repository<Dispute>,
     @InjectRepository(AdminProfile)
     private adminProfileRepository: Repository<AdminProfile>,
+    @InjectRepository(PaymentIntent)
+    private paymentRepository: Repository<PaymentIntent>,
     private readonly mailerService: MailerService,
     private readonly notificationsService: NotificationsService,
   ) { }
@@ -198,10 +201,19 @@ export class AdminService {
 
   async listOrders() {
     const orders = await this.orderRepository.find({
+      relations: ['items'],
       order: { createdAt: 'DESC' },
     });
     return this.ok(orders, { total: orders.length });
   }
+
+  async listPayments() {
+    const intents = await this.paymentRepository.find({
+      order: { createdAt: 'DESC' },
+    });
+    return this.ok(intents, { total: intents.length });
+  }
+
 
   async listDisputes() {
     const disputes = await this.disputeRepository.find({

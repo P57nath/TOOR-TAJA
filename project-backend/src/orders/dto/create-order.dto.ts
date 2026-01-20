@@ -1,4 +1,4 @@
-import { IsArray, IsOptional, IsString, ValidateNested, IsInt, Min } from 'class-validator';
+import { IsArray, IsIn, IsOptional, IsString, ValidateNested, IsInt, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class OrderItemDto {
@@ -11,4 +11,10 @@ export class CreateOrderDto {
 
   @IsOptional() @IsString() addressId?: string;
   @IsOptional() @IsString() note?: string;
+  @IsOptional() @IsString() @IsIn(['COD', 'ONLINE'])
+  paymentMethod?: 'COD' | 'ONLINE';
+  @IsOptional() @IsString() deliveryName?: string;
+  @IsOptional() @IsString() deliveryPhone?: string;
+  @IsOptional() @IsString() deliveryAddress?: string;
+  @IsOptional() @IsString() deliverySlot?: string;
 }

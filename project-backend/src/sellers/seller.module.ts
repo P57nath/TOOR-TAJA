@@ -15,12 +15,14 @@ import { Category } from 'src/products/category.entity';
 import { NotificationsModule } from 'src/notifications/notifications.module';
 import { User } from 'src/users/user.entity';
 import { SubCategory } from 'src/products/subcategory.entity';
+import { PaymentsModule } from 'src/payments/payments.module';
 
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([SellerProfile, Product, Order, OrderItem, Category, SubCategory, User]), 
     InventoryModule,
+    PaymentsModule,
     StoriesModule,
     NotificationsModule,
     MailerModuleCustom,
